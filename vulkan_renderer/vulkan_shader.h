@@ -9,6 +9,9 @@
 #include <fstream>
 #include <iostream>
 
+/**
+ * Stateless class that loads glsl shaders
+*/
 class VulkanShader
 {
 public:
