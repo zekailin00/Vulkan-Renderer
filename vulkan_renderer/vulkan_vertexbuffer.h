@@ -1,25 +1,48 @@
 #pragma once 
 
-#include "vulkan/vulkan.h"
+#include "vulkan_device.h"
 
+#include <vulkan/vulkan.h>
 #include <vector>
-#include <cstddef>
 
 class VulkanVertexbuffer
 {
 public:
-    void* vertexData{nullptr};
-    void* indexData{nullptr};
 
-    void Initialize(VkDeviceSize indexBufferSize, VkDeviceSize vertexBufferSize);
+    /**
+     * Initialize a vulkan vertex buffer.
+     * Can only be called after renderer is allocated.
+     * When calling more than one time,
+     * all the old resources are deallocated,
+     * and new resources will be allocated again.
+    */
+    void Initialize(VulkanDevice* vulkanDevice, 
+        VkDeviceSize indexBufferSize, VkDeviceSize vertexBufferSize);
+
+    /**
+     * Deallocate all resources.
+     * Automatically called in destructor.
+     * Called multiple times will not cause errors,
+     * but all vulkanVertexbuffers have to be deallocated
+     * before the renderer is deallocated.
+    */
     void Destroy();
 
+    /**
+     * Get mapped index address.
+    */
     void* MapIndex();
-    void UnmapIndex();
+
+    /**
+     * Get mapped vertex address.
+    */
     void* MapVertex();
-    void UnmapVertex();
+
 
     static VkPipelineVertexInputStateCreateInfo* GetVertexInputState();
+
+    VulkanVertexbuffer() = default;
+    ~VulkanVertexbuffer() {Destroy();}
 
     VkBuffer indexBuffer{VK_NULL_HANDLE};
     VkDeviceMemory indexMemory{VK_NULL_HANDLE};
@@ -27,8 +50,12 @@ public:
     VkDeviceMemory vertexMemory{VK_NULL_HANDLE};
 
 private:
-    VkDeviceSize vertexBufferSize;
-    VkDeviceSize indexBufferSize;
+    VulkanDevice* vulkanDevice{nullptr};
+
+    void* vertexData{nullptr};
+    void* indexData{nullptr};
+    VkDeviceSize vertexBufferSize{0};
+    VkDeviceSize indexBufferSize{0};
 
     static VkPipelineVertexInputStateCreateInfo vertexInputState;
     static std::vector<VkVertexInputAttributeDescription> inputAttributeDesc;

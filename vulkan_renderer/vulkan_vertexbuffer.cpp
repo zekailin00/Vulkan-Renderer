@@ -1,6 +1,5 @@
 #include "vulkan_vertexbuffer.h"
 
-#include "vulkan_renderer.h"
 #include "pipeline_inputs.h"
 #include "validation.h"
 
@@ -9,10 +8,14 @@ VkPipelineVertexInputStateCreateInfo VulkanVertexbuffer::vertexInputState;
 std::vector<VkVertexInputAttributeDescription> VulkanVertexbuffer::inputAttributeDesc;
 VkVertexInputBindingDescription VulkanVertexbuffer::inputBindingDesc;
 
-void VulkanVertexbuffer::Initialize(VkDeviceSize indexBufferSize, VkDeviceSize vertexBufferSize)
+void VulkanVertexbuffer::Initialize(VulkanDevice* vulkanDevice,
+    VkDeviceSize indexBufferSize, VkDeviceSize vertexBufferSize)
 {
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    VkDevice vkDevice = vulkanDevice.vkDevice;
+    if (this->vulkanDevice != nullptr)
+        Destroy();
+    
+    this->vulkanDevice = vulkanDevice;
+    VkDevice vkDevice = vulkanDevice->vkDevice;
     
     this->indexBufferSize = indexBufferSize;
     this->vertexBufferSize = vertexBufferSize;
@@ -30,8 +33,9 @@ void VulkanVertexbuffer::Initialize(VkDeviceSize indexBufferSize, VkDeviceSize v
 
         VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(memRequirements.memoryTypeBits, 
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        allocInfo.memoryTypeIndex = vulkanDevice->GetMemoryTypeIndex(
+                memRequirements.memoryTypeBits, 
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         CHECK_VKCMD(vkAllocateMemory(vkDevice, &allocInfo, nullptr, &indexMemory));
 
@@ -51,58 +55,50 @@ void VulkanVertexbuffer::Initialize(VkDeviceSize indexBufferSize, VkDeviceSize v
 
         VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(memRequirements.memoryTypeBits, 
+        allocInfo.memoryTypeIndex = vulkanDevice->GetMemoryTypeIndex(
+            memRequirements.memoryTypeBits, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         CHECK_VKCMD(vkAllocateMemory(vkDevice, &allocInfo, nullptr, &vertexMemory));
 
         vkBindBufferMemory(vkDevice, vertexBuffer, vertexMemory, 0);
     }
+
+    vkMapMemory(vkDevice, vertexMemory, 0, vertexBufferSize, 0, &vertexData);
+    vkMapMemory(vkDevice, indexMemory, 0, indexBufferSize, 0, &indexData);
 }
 
-void* VulkanVertexbuffer::MapIndex()
+inline void* VulkanVertexbuffer::MapIndex()
 {
-    if (indexData) return indexData;
-    
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    vkMapMemory(vulkanDevice.vkDevice, indexMemory, 0, indexBufferSize, 0, &indexData);
-
     return indexData;
 }
-    
-void VulkanVertexbuffer::UnmapIndex()
+
+inline void* VulkanVertexbuffer::MapVertex()
 {
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    vkUnmapMemory(vulkanDevice.vkDevice, indexMemory);
-    indexData = nullptr;
-}
-
-void* VulkanVertexbuffer::MapVertex()
-{
-    if (vertexData) return vertexData;
-
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    vkMapMemory(vulkanDevice.vkDevice, vertexMemory, 0, vertexBufferSize, 0, &vertexData);
-
     return vertexData;
-}
-    
-void VulkanVertexbuffer::UnmapVertex()
-{
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    vkUnmapMemory(vulkanDevice.vkDevice, vertexMemory);
-    vertexData = nullptr;
 }
 
 void VulkanVertexbuffer::Destroy()
 {
-    VkDevice& vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
+    if (vulkanDevice == nullptr)
+        return;
+    
+    VkDevice& vkDevice = vulkanDevice->vkDevice;
+
+    vkUnmapMemory(vulkanDevice->vkDevice, indexMemory);
+    vkUnmapMemory(vulkanDevice->vkDevice, vertexMemory);
 
     vkDestroyBuffer(vkDevice, indexBuffer, nullptr);
     vkFreeMemory(vkDevice, indexMemory, nullptr);
 
     vkDestroyBuffer(vkDevice, vertexBuffer, nullptr);
     vkFreeMemory(vkDevice, vertexMemory, nullptr);
+
+    this->indexBufferSize = 0;
+    this->vertexBufferSize = 0;
+    indexData = nullptr;
+    vertexData = nullptr;
+    vulkanDevice = nullptr;
 }
 
 VkPipelineVertexInputStateCreateInfo* VulkanVertexbuffer::GetVertexInputState()
@@ -121,7 +117,7 @@ VkPipelineVertexInputStateCreateInfo* VulkanVertexbuffer::GetVertexInputState()
     vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputState.vertexBindingDescriptionCount = 1;
     vertexInputState.pVertexBindingDescriptions = &inputBindingDesc;
-    vertexInputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(inputAttributeDesc.size());
+    vertexInputState.vertexAttributeDescriptionCount = inputAttributeDesc.size();
     vertexInputState.pVertexAttributeDescriptions = inputAttributeDesc.data();
 
     return &vertexInputState;
