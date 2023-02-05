@@ -1,15 +1,15 @@
 #include "vulkan_uniform.h"
 
-#include "vulkan_renderer.h"
 #include "validation.h"
 #include "logger.h"
 
-#include "vulkan/vulkan.h"
+#include <vulkan/vulkan.h>
 
-void VulkanUniform::Initialize(VkDeviceSize size)
+void VulkanUniform::Initialize(VulkanDevice* vulkanDevice, VkDeviceSize size)
 {
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    VkDevice vkDevice = vulkanDevice.vkDevice;
+    if (this->vulkanDevice != nullptr)
+    this->vulkanDevice = vulkanDevice;
+    VkDevice vkDevice = vulkanDevice->vkDevice;
     vkDeviceSize = size;
 
     VkBufferCreateInfo bufferInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
@@ -24,16 +24,20 @@ void VulkanUniform::Initialize(VkDeviceSize size)
 
     VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(memRequirements.memoryTypeBits, 
+    allocInfo.memoryTypeIndex = vulkanDevice->GetMemoryTypeIndex(memRequirements.memoryTypeBits, 
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     CHECK_VKCMD(vkAllocateMemory(vkDevice, &allocInfo, nullptr, &vkDeviceMemory));
 
     vkBindBufferMemory(vkDevice, vkBuffer, vkDeviceMemory, 0);
+    vkMapMemory(vkDevice, vkDeviceMemory, 0, vkDeviceSize, 0, &data);
 }
 
 VkDescriptorBufferInfo VulkanUniform::GetDescriptor()
 {
+    if (vulkanDevice == nullptr)
+        Log::Write(Log::Level::Error, "Uniform is not initialized");
+
     VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = vkBuffer;
     bufferInfo.offset = 0;
@@ -43,26 +47,23 @@ VkDescriptorBufferInfo VulkanUniform::GetDescriptor()
 
 void* VulkanUniform::Map()
 {
-    if (data) return data;
-
-    VkDevice& vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
-    vkMapMemory(vkDevice, vkDeviceMemory, 0, vkDeviceSize, 0, &data);
     return data;
-}
-
-void VulkanUniform::Unmap()
-{
-    if (data)
-    {
-        data = nullptr;
-        VkDevice& vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
-        vkUnmapMemory(vkDevice, vkDeviceMemory);
-    }
 }
 
 void VulkanUniform::Destroy()
 {
-    VkDevice& vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
+    if (vulkanDevice == nullptr)
+        return;
+
+    VkDevice& vkDevice = vulkanDevice->vkDevice;
+
+    // FIXME: may need to pause all GPU operations before deallocation.
+
+    vkUnmapMemory(vkDevice, vkDeviceMemory);
     vkDestroyBuffer(vkDevice, vkBuffer, nullptr);
     vkFreeMemory(vkDevice, vkDeviceMemory, nullptr);
+
+    vkDeviceSize = 0;
+    data = nullptr;
+    vulkanDevice = nullptr;
 }
