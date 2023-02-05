@@ -37,15 +37,14 @@ add_subdirectory(${GLFW_DIR})
 # Glm
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/glm")
 
-# Vulkan Renderer
-add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
-
 # Dear ImGui
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
 
 # renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
 
+# Vulkan Renderer
+add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
 
 # Target settings
 add_executable(app

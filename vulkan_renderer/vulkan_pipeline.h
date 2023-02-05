@@ -1,8 +1,8 @@
 #pragma once
 
-
 #include <vulkan/vulkan.h>
 #include <vector>
+
 
 class VulkanPipeline
 {
@@ -18,7 +18,7 @@ public:
 
     VulkanPipeline(const VulkanPipeline&) = delete;
     VulkanPipeline& operator=(const VulkanPipeline&) = delete;
-    
+
 public:
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     VkPipelineRasterizationStateCreateInfo rasterState{};
