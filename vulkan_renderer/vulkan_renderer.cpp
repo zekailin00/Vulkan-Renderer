@@ -2,12 +2,12 @@
 
 #include "vulkan_device.h"
 #include "vulkan_cmdbuffer.h"
-#include "vulkan_shader.h"
+#include "vk_primitives/vulkan_shader.h"
 #include "vulkan_swapchain.h"
 #include "pipeline_inputs.h"
 #include "vulkan_utilities.h"
 #include "vulkan_texture.h"
-#include "vulkan_vertexbuffer.h"
+#include "vk_primitives/vulkan_vertexbuffer.h"
 #include "validation.h"
 #include "logger.h"
 
