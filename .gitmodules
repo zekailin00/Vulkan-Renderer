@@ -7,3 +7,6 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = git@github.com:ocornut/imgui.git
+[submodule "external/stb/include/stb"]
+	path = external/stb/include/stb
+	url = git@github.com:zekailin00/stb-copy.git
