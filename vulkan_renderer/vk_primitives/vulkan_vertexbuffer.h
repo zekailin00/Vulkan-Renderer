@@ -44,6 +44,9 @@ public:
     VulkanVertexbuffer() = default;
     ~VulkanVertexbuffer() {Destroy();}
 
+    VulkanVertexbuffer(const VulkanVertexbuffer&) = delete;
+    VulkanVertexbuffer& operator=(VulkanVertexbuffer&) = delete;
+
     VkBuffer indexBuffer{VK_NULL_HANDLE};
     VkDeviceMemory indexMemory{VK_NULL_HANDLE};
     VkBuffer vertexBuffer{VK_NULL_HANDLE};

@@ -68,12 +68,12 @@ void VulkanVertexbuffer::Initialize(VulkanDevice* vulkanDevice,
     vkMapMemory(vkDevice, indexMemory, 0, indexBufferSize, 0, &indexData);
 }
 
-inline void* VulkanVertexbuffer::MapIndex()
+void* VulkanVertexbuffer::MapIndex()
 {
     return indexData;
 }
 
-inline void* VulkanVertexbuffer::MapVertex()
+void* VulkanVertexbuffer::MapVertex()
 {
     return vertexData;
 }

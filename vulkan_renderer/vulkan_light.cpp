@@ -9,7 +9,7 @@ void VulkanLight::Initialize()
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     VulkanDevice& vulkanDevice = vkr.vulkanDevice;
 
-    lightUniform.Initialize(sizeof(LightProperties));
+    lightUniform.Initialize(&vulkanDevice, sizeof(LightProperties));
 
     // Create light descriptor set
     vkr.AllocateDescriptorSet(&lightDescSet, vkr.vkDescriptorSetLayout.sceneDescLayout);

@@ -18,7 +18,7 @@ void VulkanCamera::Initialize(glm::vec2 extent, VkFormat vkFormat)
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
     colorImage.CreateSampler();
 
-    cameraUniform.Initialize(sizeof(ViewProjection));
+    cameraUniform.Initialize(&vulkanDevice, sizeof(ViewProjection));
 
     // Create depth image
     {

@@ -1,6 +1,6 @@
 #include "vulkan_renderer.h"
 
-#include "vulkan_device.h"
+#include "vk_primitives/vulkan_device.h"
 #include "vulkan_cmdbuffer.h"
 #include "vk_primitives/vulkan_shader.h"
 #include "vulkan_swapchain.h"

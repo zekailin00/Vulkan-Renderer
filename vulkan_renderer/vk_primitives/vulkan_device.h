@@ -13,7 +13,8 @@ public:
 
 private:
     void InitializePhysicalDevice();
-    void InitializeLogicalDevice(std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME});
+    void InitializeLogicalDevice(
+        std::vector<const char*> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME});
 
     void GetPhysicalDeviceInfo();
     uint32_t GetQueueFamilyIndex(VkQueueFlags vkQueueFlags);
