@@ -5,7 +5,6 @@
 #include "logger.h"
 
 
-
 Application::Application()
 {
     std::cout << "Current path is " << std::filesystem::current_path() << '\n';

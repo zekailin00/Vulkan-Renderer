@@ -43,6 +43,9 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
 # Dear ImGui
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
 
+# renderer
+add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
+
 
 # Target settings
 add_executable(app
@@ -62,6 +65,7 @@ target_include_directories(app PUBLIC
 target_link_libraries(app glfw ${Vulkan_LIBRARY})
 target_link_libraries(app 
     VulkanRenderer
+    renderer
     utility
 )
 
