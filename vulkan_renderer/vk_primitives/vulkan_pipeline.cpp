@@ -2,6 +2,7 @@
 
 #include "vulkan_shader.h"
 #include "validation.h"
+#include "logger.h"
 
 #include <string>
 
@@ -105,6 +106,10 @@ void VulkanPipeline::BuildPipeline(
     VkPipelineVertexInputStateCreateInfo* vertexInputInfo,
     VkPipelineLayout pipelineLayout, VkRenderPass renderPass
 ){
+    if (shaderStages.size() != 2)
+        Log::Write(Log::Level::Error, 
+            "[Vulkan Pipeline] Shaders loadded incorrectly.");
+
     vkPipelineInfo.pVertexInputState = vertexInputInfo;
     vkPipelineInfo.layout = pipelineLayout;
     vkPipelineInfo.renderPass = renderPass;
