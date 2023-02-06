@@ -108,6 +108,7 @@ VkCommandBuffer VulkanSingleCmd::BeginCommand()
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
     vkBeginCommandBuffer(vkCommandBuffer, &beginInfo);
+    CHECK_VKCMD(vkResetFences(vulkanDevice->vkDevice, 1, &vkFence));
     return vkCommandBuffer;
 }
 
