@@ -98,8 +98,9 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
 
     // Transfer data from buffer to device local memory
     {
-        VulkanCmdBuffer& vcb = VulkanRenderer::GetInstance().vulkanCmdBuffer;
-        VkCommandBuffer vkCommandBuffer = vcb.SingleCmdBegin();
+        VulkanSingleCmd cmd;
+        cmd.Initialize(&VulkanRenderer::GetInstance().vulkanDevice);
+        VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
 
         VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -159,7 +160,7 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
             1, &barrier
         );
 
-        vcb.SingleCmdEnd(vkCommandBuffer);
+        cmd.EndCommand();
     }
 
     vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);

@@ -17,11 +17,13 @@ void ImguiPlugin::InitializePlugin(ImGui_ImplVulkan_InitInfo& imguiVulkanInitInf
 
     // Create font
     io.Fonts->AddFontFromFileTTF("resources/KGPrimaryPenmanship.ttf", 18.0f);
-    VulkanCmdBuffer& vulkanCmdBuffer = VulkanRenderer::GetInstance().vulkanCmdBuffer;
-    VkCommandBuffer vkCommandBuffer = vulkanCmdBuffer.SingleCmdBegin();
+
+    VulkanSingleCmd cmd{};
+    cmd.Initialize(&VulkanRenderer::GetInstance().vulkanDevice);
+    VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
     
     ImGui_ImplVulkan_CreateFontsTexture(vkCommandBuffer);
-    vulkanCmdBuffer.SingleCmdEnd(vkCommandBuffer);
+    cmd.EndCommand();
 
     ImGui_ImplVulkan_DestroyFontUploadObjects();
 }

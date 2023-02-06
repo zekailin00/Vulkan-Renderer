@@ -1,7 +1,7 @@
 #include "vulkan_renderer.h"
 
 #include "vk_primitives/vulkan_device.h"
-#include "vulkan_cmdbuffer.h"
+#include "vk_primitives/vulkan_cmdbuffer.h"
 #include "vk_primitives/vulkan_shader.h"
 #include "vulkan_swapchain.h"
 #include "pipeline_inputs.h"
@@ -119,7 +119,7 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     vkDescriptorPoolInfo.pPoolSizes = poolSizes.data();
     CHECK_VKCMD(vkCreateDescriptorPool(vulkanDevice.vkDevice, &vkDescriptorPoolInfo, nullptr, &vkDescriptorPool));
 
-    vulkanCmdBuffer.Initialize(FRAME_IN_FLIGHT);
+    vulkanCmdBuffer.Initialize(&vulkanDevice, FRAME_IN_FLIGHT);
     
     CreateRenderPasses();
     CreateFramebuffers();
@@ -497,21 +497,11 @@ void VulkanRenderer::EndFrame()
 {
     VulkanCmdBuffer& vcb = vulkanCmdBuffer;
 
-    VkCommandBuffer& vkCommandBuffer = vcb.GetCurrCmdBuffer();
-    VkSemaphore& imageAcquiredSemaphore = vcb.GetCurrImageSemaphore();
-    VkSemaphore& renderFinishedSemaphore = vcb.GetCurrRenderSemaphore();
-    VkFence& queueSubmissionFence = vcb.GetCurrSubmissionFence();
-
-    CHECK_VKCMD(vkWaitForFences(vulkanDevice.vkDevice, 1, &queueSubmissionFence, VK_TRUE, UINT64_MAX));
-    CHECK_VKCMD(vkResetFences(vulkanDevice.vkDevice, 1, &queueSubmissionFence));
+    VkCommandBuffer vkCommandBuffer = vcb.BeginCommand();
+    VkSemaphore imageAcquiredSemaphore = vcb.GetCurrImageSemaphore();
+    VkSemaphore renderFinishedSemaphore = vcb.GetCurrRenderSemaphore();
 
     int imageIndex = swapchain->GetNextImageIndex(imageAcquiredSemaphore);
-
-    CHECK_VKCMD(vkResetCommandBuffer(vkCommandBuffer, 0));
-
-    VkCommandBufferBeginInfo info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    CHECK_VKCMD(vkBeginCommandBuffer(vkCommandBuffer, &info));
 
     VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
     VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -529,22 +519,10 @@ void VulkanRenderer::EndFrame()
 
     DrawCamera(vkCommandBuffer);
 
-    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    VkSubmitInfo vkSubmitInfo{VK_STRUCTURE_TYPE_SUBMIT_INFO};
-    vkSubmitInfo.waitSemaphoreCount = 1;
-    vkSubmitInfo.pWaitSemaphores = &imageAcquiredSemaphore;
-    vkSubmitInfo.pWaitDstStageMask = &waitStage;
-    vkSubmitInfo.commandBufferCount = 1;
-    vkSubmitInfo.pCommandBuffers = &vkCommandBuffer;
-    vkSubmitInfo.signalSemaphoreCount = 1;
-    vkSubmitInfo.pSignalSemaphores = &renderFinishedSemaphore;
-
-    CHECK_VKCMD(vkEndCommandBuffer(vkCommandBuffer));
-    CHECK_VKCMD(vkQueueSubmit(vulkanDevice.graphicsQueue, 1, &vkSubmitInfo, queueSubmissionFence)); 
+    vcb.EndCommand();
 
     // Present image
     swapchain->PresentImage(renderFinishedSemaphore, imageIndex);
-    vcb.NextFrame();
     commandQueue.clear();
 }
 

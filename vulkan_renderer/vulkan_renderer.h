@@ -3,7 +3,7 @@
 #include "vulkan/vulkan.h"
 
 #include "vk_primitives/vulkan_device.h"
-#include "vulkan_cmdbuffer.h"
+#include "vk_primitives/vulkan_cmdbuffer.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_texture.h"
 #include "imgui_plugin.h"
