@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
+#include "vulkan_pipeline_layout.h"
 
 class VulkanPipeline
 {
@@ -14,7 +15,7 @@ public:
     void LoadShader(std::string vertPath, std::string fragPath);
 
     void BuildPipeline(VkPipelineVertexInputStateCreateInfo* vertexInputInfo,
-        VkPipelineLayout pipelineLayout, VkRenderPass renderPass);
+        VulkanPipelineLayout pipelineLayout, VkRenderPass renderPass);
 
     VulkanPipeline(const VulkanPipeline&) = delete;
     VulkanPipeline& operator=(const VulkanPipeline&) = delete;

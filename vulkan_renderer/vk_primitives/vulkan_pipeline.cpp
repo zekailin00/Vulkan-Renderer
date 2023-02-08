@@ -104,14 +104,14 @@ void VulkanPipeline::LoadShader(std::string vertPath, std::string fragPath)
 
 void VulkanPipeline::BuildPipeline(
     VkPipelineVertexInputStateCreateInfo* vertexInputInfo,
-    VkPipelineLayout pipelineLayout, VkRenderPass renderPass
+    VulkanPipelineLayout pipelineLayout, VkRenderPass renderPass
 ){
     if (shaderStages.size() != 2)
         Log::Write(Log::Level::Error, 
             "[Vulkan Pipeline] Shaders loadded incorrectly.");
 
     vkPipelineInfo.pVertexInputState = vertexInputInfo;
-    vkPipelineInfo.layout = pipelineLayout;
+    vkPipelineInfo.layout = pipelineLayout.pipelineLayout;
     vkPipelineInfo.renderPass = renderPass;
 
     CHECK_VKCMD(vkCreateGraphicsPipelines(
