@@ -32,7 +32,7 @@ target_include_directories(VulkanRenderer PUBLIC
     ${IMGUI_DIR}/backends
     
     ${STB_IMAGE}
-    
+    ${CMAKE_SOURCE_DIR}/renderer
     
     .
 )

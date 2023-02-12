@@ -10,7 +10,7 @@ if (APPLE)
 # 1.3.239.0 MBP
 # 1.3.224.1 MBA
     message("-- Apple MacOS platform. Locate Vulkan manually.")
-    set(Vulkan_PATH "/Users/zekailin00/VulkanSDK/1.3.239.0")
+    set(Vulkan_PATH "/Users/zekailin00/VulkanSDK/1.3.224.1")
     set(Vulkan_INCLUDE_DIRS "${Vulkan_PATH}/macOS/include")
     set(Vulkan_LOADER "${Vulkan_PATH}/macOS/lib/libvulkan.dylib")
     #set(Vulkan_DRIVER "${Vulksn_PATH}/MoltenVK/dylib/macOS/libMoltenVK.dylib")
@@ -41,7 +41,7 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/external/glm")
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
 
 # renderer
-add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
+# add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
 
 # Vulkan Renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
@@ -64,7 +64,6 @@ target_include_directories(app PUBLIC
 target_link_libraries(app glfw ${Vulkan_LIBRARY})
 target_link_libraries(app 
     VulkanRenderer
-    renderer
     utility
 )
 

@@ -6,7 +6,7 @@
 
 #include "stb/stb_image.h"
 
-void VulkanTextureColor2D::CreateImage(VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
+void VulkanTexture::CreateImage(VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
 {
     VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
     VkDevice vkDevice = vulkanDevice.vkDevice;
@@ -51,7 +51,7 @@ void VulkanTextureColor2D::CreateImage(VkExtent2D imageExtent, VkFormat colorFor
     CHECK_VKCMD(vkCreateImageView(vkDevice, &viewInfo, nullptr, &vkImageView));
 }
 
-void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
+void VulkanTexture::LoadImageFromFile(std::string filePath)
 {
     VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
     VkDevice vkDevice = vulkanDevice.vkDevice;
@@ -167,7 +167,7 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
     vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
 }
 
-void VulkanTextureColor2D::CreateSampler(VkFilter minFilter, VkFilter magFilter)
+void VulkanTexture::CreateSampler(VkFilter minFilter, VkFilter magFilter)
 {
     VkDevice vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
 
@@ -187,7 +187,7 @@ void VulkanTextureColor2D::CreateSampler(VkFilter minFilter, VkFilter magFilter)
     CHECK_VKCMD(vkCreateSampler(vkDevice, &samplerInfo, nullptr, &vkSampler));
 }
 
-VkDescriptorImageInfo VulkanTextureColor2D::GetDescriptor(VkImageLayout vkImageLayout)
+VkDescriptorImageInfo VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 {
     vkDecriptorInfo.imageLayout = vkImageLayout;
     vkDecriptorInfo.imageView = vkImageView;
@@ -198,7 +198,7 @@ VkDescriptorImageInfo VulkanTextureColor2D::GetDescriptor(VkImageLayout vkImageL
     return vkDecriptorInfo;
 }
 
-void VulkanTextureColor2D::Destroy()
+void VulkanTexture::Destroy()
 {
     VkDevice& vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
     vkDestroyImageView(vkDevice, vkImageView, nullptr);

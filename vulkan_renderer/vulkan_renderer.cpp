@@ -469,7 +469,7 @@ void VulkanRenderer::AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent)
     cameraList.push_back(vulkanCamera);
 
     //TODO: need to integrate IMGUI vulkan backend into this renderer
-    VulkanTextureColor2D& colorImage = vulkanCamera->GetColorImage();
+    VulkanTexture& colorImage = vulkanCamera->GetColorImage();
     vulkanCamera->cameraTexture = 
         reinterpret_cast<VkDescriptorSet>(
         imguiPlugin.MakeTexture(colorImage.vkSampler, colorImage.vkImageView,    

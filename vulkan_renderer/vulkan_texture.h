@@ -1,10 +1,11 @@
 #pragma once 
 
-#include "vulkan/vulkan.h"
-
+#include <vulkan/vulkan.h>
 #include <string>
 
-struct VulkanTextureColor2D
+#include "texture.h"
+
+class VulkanTexture: public renderer::Texture
 {
 public:
     void CreateImage(VkExtent2D imageExtent, VkFormat colorFormat, 
@@ -24,9 +25,4 @@ public:
 
 private: // Access through method
     VkDescriptorImageInfo vkDecriptorInfo;
-};
-
-class VulkanTextureCubeMap
-{
-
 };
