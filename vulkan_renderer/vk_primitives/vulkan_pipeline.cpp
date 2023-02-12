@@ -89,6 +89,7 @@ VulkanPipeline::VulkanPipeline(VkDevice device)
 
 VulkanPipeline::~VulkanPipeline()
 {
+    pipelineLayout.reset();
     vkDestroyPipeline(device, pipeline, nullptr);
 }
 

@@ -45,16 +45,11 @@ public:
 public:
     VkInstance vkInstance;
     VulkanDevice vulkanDevice;
-    VulkanCmdBuffer vulkanCmdBuffer;
 
-#pragma region PipelineContext
     struct {
         VkRenderPass display;
         VkRenderPass defaultCamera;
     } vkRenderPass;
-
-    std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
-#pragma endregion PipelineContext 
 
 public:/* Services */
     void RecordCommand(RenderCommand);
@@ -91,6 +86,8 @@ private:
     VkDescriptorPool vkDescriptorPool;
 
     std::vector<VkFramebuffer> vkFramebuffers;
+    VulkanCmdBuffer vulkanCmdBuffer;
+    std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
 
     IVulkanSwapchain* swapchain = nullptr;
     ImguiPlugin imguiPlugin;
@@ -99,7 +96,6 @@ private:
 
     std::vector<VulkanCamera*> cameraList{};
     VulkanLight* mainLight;
-
 
     bool isEditorEnabled = false;
 };

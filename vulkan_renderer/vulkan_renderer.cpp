@@ -382,12 +382,15 @@ void VulkanRenderer::DeallocateResources()
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
     swapchain->Destroy();
     vulkanCmdBuffer.Destroy();
+    pipelines.clear();
+    DestroyRenderPasses();
+    DestroyFramebuffers();
+    vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
 }
 
 void VulkanRenderer::Destroy()
 {
-    //DestroyPipelines();
-    //TODO:
+    // VulkanDevice, vkInstance
 }
 
 void VulkanRenderer::ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer)
