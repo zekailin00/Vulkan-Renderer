@@ -46,7 +46,7 @@ int PipelineLayoutBuilder::PushDescriptorSetLayout(
     CHECK_VKCMD(vkCreateDescriptorSetLayout(vulkanDevice->vkDevice, 
         &descLayoutInfo, nullptr, &descSetLayout));
 
-    descSetLayouts[name] = descSetLayout;
+    descSetLayouts.push_back({name, descSetLayout});
     return descSetLayouts.size();
 }
 
@@ -67,7 +67,9 @@ std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::BuildPipelineLayout
     layoutInfo.setLayoutCount = descLayoutList.size();
     layoutInfo.pSetLayouts = descLayoutList.data();
     
-    pipelineLayout->descSetLayouts = this->descSetLayouts;
+    for(std::pair e: this->descSetLayouts)
+        pipelineLayout->descSetLayouts[e.first] = e.second;
+        
     CHECK_VKCMD(vkCreatePipelineLayout(
         vulkanDevice->vkDevice, &layoutInfo,
         nullptr, &pipelineLayout->layout));

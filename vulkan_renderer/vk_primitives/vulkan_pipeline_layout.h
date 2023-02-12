@@ -56,5 +56,5 @@ public:
 
 private:
     VulkanDevice *vulkanDevice = nullptr;
-    std::map<std::string, VkDescriptorSetLayout> descSetLayouts;
+    std::vector<std::pair<std::string, VkDescriptorSetLayout>> descSetLayouts;
 };
