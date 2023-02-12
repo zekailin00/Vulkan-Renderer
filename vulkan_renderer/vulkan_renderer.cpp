@@ -378,7 +378,6 @@ void VulkanRenderer::EndFrame()
 
 void VulkanRenderer::DeallocateResources()
 {
-    //TODO: to match allocated resources 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
     swapchain->Destroy();
     vulkanCmdBuffer.Destroy();
@@ -390,7 +389,7 @@ void VulkanRenderer::DeallocateResources()
 
 void VulkanRenderer::Destroy()
 {
-    // VulkanDevice, vkInstance
+    // TODO: VulkanDevice, vkInstance
 }
 
 void VulkanRenderer::ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer)
