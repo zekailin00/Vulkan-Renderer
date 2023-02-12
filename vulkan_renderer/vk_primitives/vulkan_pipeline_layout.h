@@ -2,30 +2,40 @@
 
 #include <vulkan/vulkan.h>
 #include <map>
+#include <memory>
 #include <string>
 
 #include "vulkan_device.h"
 
 
-struct VulkanPipelineLayout
+class VulkanPipelineLayout
 {
 
 public:
-    VkPipelineLayout pipelineLayout;
+    VkPipelineLayout layout;
     std::map<std::string, VkDescriptorSetLayout> descSetLayouts;
 
-    VulkanPipelineLayout(VulkanDevice* vulkanDevice)
-        :vulkanDevice(vulkanDevice) {}
+    VulkanPipelineLayout(
+        VulkanDevice* vulkanDevice, VkDescriptorPool descriptorPool)
+        :vulkanDevice(vulkanDevice), descriptorPool(descriptorPool) {}
     ~VulkanPipelineLayout()
     {
-        vkDestroyPipelineLayout(vulkanDevice->vkDevice, pipelineLayout, nullptr);
+        vkDestroyPipelineLayout(vulkanDevice->vkDevice, layout, nullptr);
+        for(auto e: descSetLayouts)
+        {
+            vkDestroyDescriptorSetLayout(vulkanDevice->vkDevice, e.second, nullptr);
+        }
     }
+
+    void AllocateDescriptorSet(
+        std::string name, uint32_t nFrames, VkDescriptorSet* descSet);
 
     VulkanPipelineLayout(const VulkanPipelineLayout&) = delete;
     VulkanPipelineLayout& operator=(const VulkanPipelineLayout&) = delete;
 
-private:
+private: // owned by VulkanRenderer
     VulkanDevice* vulkanDevice = nullptr;
+    VkDescriptorPool descriptorPool;
 };
 
 class PipelineLayoutBuilder
@@ -35,7 +45,8 @@ public:
     int PushDescriptorSetLayout(
         std::string name,
         std::vector<VkDescriptorSetLayoutBinding> bindings);
-    VulkanPipelineLayout BuildPipelineLayout();
+    std::unique_ptr<VulkanPipelineLayout> BuildPipelineLayout(
+        VkDescriptorPool descriptorPool);
     VkDescriptorSetLayoutBinding descriptorSetLayoutBinding(
         VkDescriptorType type, VkShaderStageFlags stageFlags,
         uint32_t binding, uint32_t descriptorCount = 1);

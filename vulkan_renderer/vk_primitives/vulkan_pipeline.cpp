@@ -5,6 +5,7 @@
 #include "logger.h"
 
 #include <string>
+#include <memory>
 
 
 VulkanPipeline::VulkanPipeline(VkDevice device)
@@ -73,10 +74,7 @@ VulkanPipeline::VulkanPipeline(VkDevice device)
     dynamicStateInfo.pDynamicStates = dynamicStateEnables.data();
     dynamicStateInfo.dynamicStateCount = dynamicStateEnables.size();
 
-    vkPipelineInfo.sType =
-        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    vkPipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-    vkPipelineInfo.pStages = shaderStages.data();
+    vkPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 
     vkPipelineInfo.pInputAssemblyState = &inputAssembly;
     vkPipelineInfo.pViewportState = &viewPortState;
@@ -100,19 +98,25 @@ void VulkanPipeline::LoadShader(std::string vertPath, std::string fragPath)
         VulkanShader::LoadFromFile(device, vertPath, VK_SHADER_STAGE_VERTEX_BIT),
         VulkanShader::LoadFromFile(device, fragPath, VK_SHADER_STAGE_FRAGMENT_BIT)
     };
+
+    vkPipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+    vkPipelineInfo.pStages = shaderStages.data();
 }
 
 void VulkanPipeline::BuildPipeline(
     VkPipelineVertexInputStateCreateInfo* vertexInputInfo,
-    VulkanPipelineLayout pipelineLayout, VkRenderPass renderPass
+    std::unique_ptr<VulkanPipelineLayout> pipelineLayout,
+    VkRenderPass renderPass
 ){
     if (shaderStages.size() != 2)
         Log::Write(Log::Level::Error, 
             "[Vulkan Pipeline] Shaders loadded incorrectly.");
 
     vkPipelineInfo.pVertexInputState = vertexInputInfo;
-    vkPipelineInfo.layout = pipelineLayout.pipelineLayout;
+    vkPipelineInfo.layout = pipelineLayout->layout;
     vkPipelineInfo.renderPass = renderPass;
+
+    pipelineLayout = std::move(pipelineLayout);
 
     CHECK_VKCMD(vkCreateGraphicsPipelines(
         device, VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &pipeline));  

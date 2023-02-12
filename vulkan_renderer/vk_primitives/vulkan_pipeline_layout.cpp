@@ -3,6 +3,17 @@
 #include "vulkan_device.h"
 #include "validation.h"
 
+void VulkanPipelineLayout::AllocateDescriptorSet(
+    std::string name, uint32_t nFrames, VkDescriptorSet* descSet)
+{
+    VkDescriptorSetAllocateInfo info{};
+    info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    info.descriptorPool = descriptorPool;
+    info.descriptorSetCount = nFrames;
+    info.pSetLayouts = &descSetLayouts[name];
+    CHECK_VKCMD(vkAllocateDescriptorSets(vulkanDevice->vkDevice, &info, descSet));
+}
+
 PipelineLayoutBuilder::PipelineLayoutBuilder(VulkanDevice* vulkanDevice)
 {
     this->vulkanDevice = vulkanDevice;
@@ -39,10 +50,11 @@ int PipelineLayoutBuilder::PushDescriptorSetLayout(
     return descSetLayouts.size();
 }
 
-//FIXME: return valid resource
-VulkanPipelineLayout PipelineLayoutBuilder::BuildPipelineLayout()
-{
-    VulkanPipelineLayout pipelineLayout(vulkanDevice);
+std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::BuildPipelineLayout(
+    VkDescriptorPool descriptorPool
+){
+    std::unique_ptr<VulkanPipelineLayout> pipelineLayout
+        = std::make_unique<VulkanPipelineLayout>(vulkanDevice, descriptorPool);
     std::vector<VkDescriptorSetLayout> descLayoutList;
 
     for(auto p = descSetLayouts.begin(); p != descSetLayouts.end(); p++)
@@ -55,9 +67,10 @@ VulkanPipelineLayout PipelineLayoutBuilder::BuildPipelineLayout()
     layoutInfo.setLayoutCount = descLayoutList.size();
     layoutInfo.pSetLayouts = descLayoutList.data();
     
+    pipelineLayout->descSetLayouts = this->descSetLayouts;
     CHECK_VKCMD(vkCreatePipelineLayout(
         vulkanDevice->vkDevice, &layoutInfo,
-        nullptr, &pipelineLayout.pipelineLayout));
+        nullptr, &pipelineLayout->layout));
     
     return pipelineLayout;
 }

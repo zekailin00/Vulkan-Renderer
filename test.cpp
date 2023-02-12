@@ -11,7 +11,9 @@ class TestApp: public Application
 
 void TestApp::Build()
 {
-    
+    static int i = 0;
+    i++;
+    std::cout << "running: " << i << std::endl; 
 }
 
 int main(int argv, char** argc)
