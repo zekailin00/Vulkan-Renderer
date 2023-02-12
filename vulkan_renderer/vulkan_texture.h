@@ -4,18 +4,33 @@
 #include <string>
 
 #include "texture.h"
+#include "vk_primitives/vulkan_device.h"
+
+
+namespace renderer
+{
 
 class VulkanTexture: public renderer::Texture
 {
+
 public:
-    void CreateImage(VkExtent2D imageExtent, VkFormat colorFormat, 
-                     VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
-    void CreateSampler(VkFilter minFilter = VK_FILTER_LINEAR,
-                       VkFilter magFilter = VK_FILTER_LINEAR);
+    static std::shared_ptr<Texture> BuildTexture(TextureBuildInfo*);
+
+    ~VulkanTexture() override;
+
+private:
+    void CreateImage(
+        VkExtent2D imageExtent, VkFormat colorFormat, 
+        VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+    void CreateSampler(
+        VkFilter minFilter = VK_FILTER_LINEAR,
+        VkFilter magFilter = VK_FILTER_LINEAR,
+        VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT);
     void LoadImageFromFile(std::string filePath);
     void Destroy();
 
-    VkDescriptorImageInfo GetDescriptor(VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    VkDescriptorImageInfo GetDescriptor(
+        VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
     VkImage vkImage = VK_NULL_HANDLE;
     VkDeviceMemory vkDeviceMemory = VK_NULL_HANDLE;
@@ -23,6 +38,7 @@ public:
     VkSampler vkSampler = VK_NULL_HANDLE;
     VkExtent2D imageExtent{};
 
-private: // Access through method
-    VkDescriptorImageInfo vkDecriptorInfo;
+    VulkanDevice* vulkanDevice = nullptr; // Owned by VulkanRenderer
 };
+
+} // namespace renderer

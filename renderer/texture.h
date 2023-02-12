@@ -33,16 +33,14 @@ class Texture
 {
 
 public:
-    static std::shared_ptr<Texture> BuildTexture(TextureBuildInfo*);
-
-    Texture();
-    ~Texture();
+    Texture() = default;
+    virtual ~Texture() = default;
 
     Texture(const Texture&) = delete;
     const Texture& operator=(const Texture&) = delete;
 
-private:
-
+public:
+    TextureBuildInfo info;
 };
     
 } // namespace renderer
