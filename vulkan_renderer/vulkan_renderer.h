@@ -2,8 +2,9 @@
 
 #include "vulkan/vulkan.h"
 
-#include "vulkan_device.h"
-#include "vulkan_cmdbuffer.h"
+#include "vk_primitives/vulkan_device.h"
+#include "vk_primitives/vulkan_cmdbuffer.h"
+#include "vk_primitives/vulkan_pipeline.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_texture.h"
 #include "imgui_plugin.h"
@@ -11,8 +12,10 @@
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
 
-#include <vector>
 #include <functional>
+#include <string>
+#include <vector>
+#include <map>
 
 
 //typedef void (*RenderCommand)(VkCommandBuffer);
@@ -42,38 +45,16 @@ public:
 public:
     VkInstance vkInstance;
     VulkanDevice vulkanDevice;
-    VulkanCmdBuffer vulkanCmdBuffer;
-
-#pragma region PipelineContext
-    struct {
-        //VkPipelineLayout display; // Only for VR and in-game quad rendering, not editor
-        VkPipelineLayout phongShading;
-    } vkPipelineLayout;
-
-    struct {
-        VkDescriptorSetLayout materialDescLayout;
-        VkDescriptorSetLayout modelDescLayout;
-        VkDescriptorSetLayout cameraDescLayout;
-        VkDescriptorSetLayout sceneDescLayout;
-    } vkDescriptorSetLayout;
 
     struct {
         VkRenderPass display;
         VkRenderPass defaultCamera;
     } vkRenderPass;
 
-    struct {
-        //VkPipeline display; // Only for VR and in-game quad rendering, not editor
-        VkPipeline phongShading;
-        VkPipeline skyBox;
-    } vkPipeline;
-#pragma endregion PipelineContext 
-
 public:/* Services */
     void RecordCommand(RenderCommand);
     void CleanupCommands();
-    VkPipelineLayout GetPhongPipelineLayout() {return vkPipelineLayout.phongShading;}
-    void AllocateDescriptorSet(VkDescriptorSet* descSet, VkDescriptorSetLayout descLayout);
+    VulkanPipelineLayout& GetPipelineLayout(std::string name);
     void AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent);
     void RemoveCamera(VulkanCamera* vulkanCamera);
     void AddLight(VulkanLight* vulkanLight);
@@ -86,29 +67,27 @@ private: /* Private Vulkan helpers */
 
     void CreateRenderPasses();
     void CreateFramebuffers();
-    void CreateDescriptorSetLayout();
-    void CreatePipelineCache();
     void CreatePipelines();
 
     void DestroyRenderPasses();
     void DestroyFramebuffers();
-    void DestroyDescriptorSetLayout();
-    void DestroyPipelineCache();
-    void DestroyPipelines();
 
     void ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer);
     void DrawCamera(VkCommandBuffer vkCommandBuffer);
 
-private:
+public:
     // Descriptor Sets do not support multiple frames in flight.
     // It can only be 1 for now.
+    // FIXME: needed to allocate descriptor sets
+    // make it public for now
     const uint32_t FRAME_IN_FLIGHT = 1;
 
+private:
     VkDescriptorPool vkDescriptorPool;
 
     std::vector<VkFramebuffer> vkFramebuffers;
-
-    VkPipelineCache vkPipelineCache;
+    VulkanCmdBuffer vulkanCmdBuffer;
+    std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
 
     IVulkanSwapchain* swapchain = nullptr;
     ImguiPlugin imguiPlugin;
@@ -116,9 +95,7 @@ private:
     std::vector<RenderCommand> commandQueue;
 
     std::vector<VulkanCamera*> cameraList{};
-    // VulkanCamera* mainCamera;
     VulkanLight* mainLight;
-    // VulkanTextureColor2D defaultEditorImage;
 
     bool isEditorEnabled = false;
 };

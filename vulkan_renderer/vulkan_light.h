@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vulkan_uniform.h"
+#include "vk_primitives/vulkan_uniform.h"
 #include "pipeline_inputs.h"
 
 #include <vulkan/vulkan.h>

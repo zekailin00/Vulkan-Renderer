@@ -1,13 +1,16 @@
 #include "vulkan_renderer.h"
 
-#include "vulkan_device.h"
-#include "vulkan_cmdbuffer.h"
-#include "vulkan_shader.h"
 #include "vulkan_swapchain.h"
 #include "pipeline_inputs.h"
 #include "vulkan_utilities.h"
 #include "vulkan_texture.h"
-#include "vulkan_vertexbuffer.h"
+
+#include "vk_primitives/vulkan_vertexbuffer.h"
+#include "vk_primitives/vulkan_device.h"
+#include "vk_primitives/vulkan_cmdbuffer.h"
+#include "vk_primitives/vulkan_shader.h"
+#include "vk_primitives/vulkan_pipeline.h"
+
 #include "validation.h"
 #include "logger.h"
 
@@ -119,13 +122,11 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     vkDescriptorPoolInfo.pPoolSizes = poolSizes.data();
     CHECK_VKCMD(vkCreateDescriptorPool(vulkanDevice.vkDevice, &vkDescriptorPoolInfo, nullptr, &vkDescriptorPool));
 
-    vulkanCmdBuffer.Initialize(FRAME_IN_FLIGHT);
+    vulkanCmdBuffer.Initialize(&vulkanDevice, FRAME_IN_FLIGHT);
     
     CreateRenderPasses();
-    CreateFramebuffers();
-    CreateDescriptorSetLayout();
-    CreatePipelineCache();
     CreatePipelines();
+    CreateFramebuffers();
 
     // Initialize ImGui Plugin
     ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo{};
@@ -285,207 +286,62 @@ void VulkanRenderer::DestroyFramebuffers()
         vkDestroyFramebuffer(vulkanDevice.vkDevice, vkFramebuffers[i], nullptr);
 }
 
-void VulkanRenderer::CreateDescriptorSetLayout()
-{
-    using namespace VulkanUtils;
-    // Descriptor set Layouts
-    {
-        // texture, struct surface;
-        // Update freq: per model node
-        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
-        {
-            descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
-            descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
-        };
-
-        VkDescriptorSetLayoutCreateInfo descriptorLayout = descriptorSetLayoutCreateInfo(
-            setLayoutBindings.data(), 
-            static_cast<uint32_t>(setLayoutBindings.size())
-        );
-        CHECK_VKCMD(vkCreateDescriptorSetLayout(vulkanDevice.vkDevice, 
-            &descriptorLayout, 
-            nullptr, 
-            &vkDescriptorSetLayout.materialDescLayout
-        ));
-    } 
-    {
-        // model{mat4 model}
-        // Update frequency: per object
-        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
-        {
-            descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0),
-        };
-
-        VkDescriptorSetLayoutCreateInfo descriptorLayout = descriptorSetLayoutCreateInfo(
-            setLayoutBindings.data(), 
-            static_cast<uint32_t>(setLayoutBindings.size())
-        );
-        CHECK_VKCMD(vkCreateDescriptorSetLayout(
-            vulkanDevice.vkDevice, 
-            &descriptorLayout, 
-            nullptr, 
-            &vkDescriptorSetLayout.modelDescLayout
-        ));
-    }
-    {
-        // camera{mat4 view; mat4 proj};  
-        // Update frequency: per camera
-        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
-        {
-            descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0),
-        };
-
-        VkDescriptorSetLayoutCreateInfo descriptorLayout = descriptorSetLayoutCreateInfo(
-            setLayoutBindings.data(), 
-            static_cast<uint32_t>(setLayoutBindings.size())
-        );
-        CHECK_VKCMD(vkCreateDescriptorSetLayout(
-            vulkanDevice.vkDevice, 
-            &descriptorLayout, 
-            nullptr, 
-            &vkDescriptorSetLayout.cameraDescLayout
-        ));
-    }
-    {
-        // light{vec3 LightPos, struct lightProp};  
-        // Update frequency: per frame
-        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
-        {
-            descriptorSetLayoutBinding(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
-        };
-
-        VkDescriptorSetLayoutCreateInfo descriptorLayout = descriptorSetLayoutCreateInfo(
-            setLayoutBindings.data(), 
-            static_cast<uint32_t>(setLayoutBindings.size())
-        );
-        CHECK_VKCMD(vkCreateDescriptorSetLayout(
-            vulkanDevice.vkDevice, 
-            &descriptorLayout, 
-            nullptr, 
-            &vkDescriptorSetLayout.sceneDescLayout
-        ));
-    }
-
-    // Pipeline layout for phong shading
-    std::vector<VkDescriptorSetLayout> descLayoutList
-    {
-        vkDescriptorSetLayout.materialDescLayout,
-        vkDescriptorSetLayout.modelDescLayout, 
-        vkDescriptorSetLayout.cameraDescLayout,
-        vkDescriptorSetLayout.sceneDescLayout, 
-    };
-
-    VkPipelineLayoutCreateInfo vkLayoutCreateInfo = VulkanUtils::pipelineLayoutCreateInfo(descLayoutList.data(), descLayoutList.size());
-    CHECK_VKCMD(vkCreatePipelineLayout(vulkanDevice.vkDevice, &vkLayoutCreateInfo, nullptr, &vkPipelineLayout.phongShading));
-}
-
-void VulkanRenderer::DestroyDescriptorSetLayout()
-{
-    vkDestroyDescriptorSetLayout(vulkanDevice.vkDevice, vkDescriptorSetLayout.modelDescLayout, nullptr);
-    vkDestroyDescriptorSetLayout(vulkanDevice.vkDevice, vkDescriptorSetLayout.sceneDescLayout, nullptr);
-    vkDestroyDescriptorSetLayout(vulkanDevice.vkDevice, vkDescriptorSetLayout.materialDescLayout, nullptr);
-    vkDestroyPipelineLayout(vulkanDevice.vkDevice, vkPipelineLayout.phongShading, nullptr);
-}
-
-void VulkanRenderer::CreatePipelineCache()
-{
-	VkPipelineCacheCreateInfo pipelineCacheInfo{VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO};
-	CHECK_VKCMD(vkCreatePipelineCache(vulkanDevice.vkDevice, &pipelineCacheInfo, nullptr, &vkPipelineCache));
-}
-
-void VulkanRenderer::DestroyPipelineCache()
-{
-    vkDestroyPipelineCache(vulkanDevice.vkDevice, vkPipelineCache, nullptr);
-}
-
 /**
  * @brief Depends on vertex input format, pipeline layout, shader, viewport, render pass.
  * 
  */
 void VulkanRenderer::CreatePipelines()
 {
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
-    inputAssembly.primitiveRestartEnable = VK_FALSE;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    std::unique_ptr<VulkanPipeline> renderPipeline = 
+        std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
+    PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
+    std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
 
-    VkPipelineRasterizationStateCreateInfo rasterState{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
-    rasterState.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterState.cullMode = VK_CULL_MODE_FRONT_BIT;
-    rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
-    rasterState.depthClampEnable = VK_FALSE;
-    rasterState.rasterizerDiscardEnable = VK_FALSE;
-    rasterState.depthBiasEnable = VK_FALSE;
-    rasterState.lineWidth = 1.0f;
 
-    VkPipelineColorBlendAttachmentState blendAttachment{};
-    blendAttachment.blendEnable = 0;
-    blendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-    blendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-    blendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-    blendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    blendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-    blendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    blendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | 
-                                     VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-
-    VkPipelineColorBlendStateCreateInfo colorBlend{VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO};
-    colorBlend.attachmentCount = 1;
-    colorBlend.pAttachments = &blendAttachment;
-    colorBlend.logicOpEnable = VK_FALSE;
-    colorBlend.logicOp = VK_LOGIC_OP_NO_OP;
-    colorBlend.blendConstants[0] = 1.0f;
-    colorBlend.blendConstants[1] = 1.0f;
-    colorBlend.blendConstants[2] = 1.0f;
-    colorBlend.blendConstants[3] = 1.0f;
-
-    VkPipelineViewportStateCreateInfo viewPortState{VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
-    viewPortState.viewportCount = 1;
-    viewPortState.scissorCount = 1;
-
-    VkPipelineDepthStencilStateCreateInfo depthStencilState{VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
-    depthStencilState.depthTestEnable = VK_TRUE;
-    depthStencilState.depthWriteEnable = VK_TRUE;
-    depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS;
-    depthStencilState.depthBoundsTestEnable = VK_FALSE;
-    depthStencilState.stencilTestEnable = VK_FALSE;
-    depthStencilState.minDepthBounds = 0.0f;
-    depthStencilState.maxDepthBounds = 1.0f;
-
-    VkPipelineMultisampleStateCreateInfo multisampleState{VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
-    multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-    std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-    VkPipelineDynamicStateCreateInfo dynamicStateInfo{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
-	dynamicStateInfo.pDynamicStates = dynamicStateEnables.data();
-	dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStateEnables.size());
-
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages =
+    renderPipeline->LoadShader("resources/vulkan_shaders/Phong/vert.spv",
+                               "resources/vulkan_shaders/Phong/frag.spv");
+    
+    layoutBuilder.PushDescriptorSetLayout("material",
     {
-        VulkanShader::LoadFromFile(vulkanDevice.vkDevice, "resources/vulkan_shaders/Phong/vert.spv", VK_SHADER_STAGE_VERTEX_BIT),
-        VulkanShader::LoadFromFile(vulkanDevice.vkDevice, "resources/vulkan_shaders/Phong/frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT),
-    };
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 3),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 4),
+    });
 
-    VkGraphicsPipelineCreateInfo vkPipelineInfo{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
-    vkPipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
-    vkPipelineInfo.pStages = shaderStages.data();
-    vkPipelineInfo.pVertexInputState = VulkanVertexbuffer::GetVertexInputState();
-    vkPipelineInfo.pInputAssemblyState = &inputAssembly;
-    vkPipelineInfo.pViewportState = &viewPortState;
-    vkPipelineInfo.pRasterizationState = &rasterState;
-    vkPipelineInfo.pMultisampleState = &multisampleState;
-    vkPipelineInfo.pDepthStencilState = &depthStencilState;
-    vkPipelineInfo.pColorBlendState = &colorBlend;
-    vkPipelineInfo.pDynamicState = &dynamicStateInfo;
-    vkPipelineInfo.layout = vkPipelineLayout.phongShading;
-    vkPipelineInfo.renderPass = vkRenderPass.defaultCamera;
-    vkPipelineInfo.subpass = 0;
+    layoutBuilder.PushDescriptorSetLayout("mesh",
+    {
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
+    });
 
-    CHECK_VKCMD(vkCreateGraphicsPipelines(vulkanDevice.vkDevice, vkPipelineCache, 1, &vkPipelineInfo, nullptr, &vkPipeline.phongShading));
-}
+    layoutBuilder.PushDescriptorSetLayout("camera",
+    {
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
+    });
 
-void VulkanRenderer::DestroyPipelines()
-{
-    vkDestroyPipeline(vulkanDevice.vkDevice, vkPipeline.phongShading, nullptr);
+    layoutBuilder.PushDescriptorSetLayout("scene",
+    {
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+    });
+
+    pipelineLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+
+    renderPipeline->BuildPipeline(
+        VulkanVertexbuffer::GetVertexInputState(),
+        std::move(pipelineLayout),
+        vkRenderPass.defaultCamera
+    );
+
+    pipelines["render"] = std::move(renderPipeline);
 }
 
 void VulkanRenderer::BeginFrame()
@@ -497,21 +353,11 @@ void VulkanRenderer::EndFrame()
 {
     VulkanCmdBuffer& vcb = vulkanCmdBuffer;
 
-    VkCommandBuffer& vkCommandBuffer = vcb.GetCurrCmdBuffer();
-    VkSemaphore& imageAcquiredSemaphore = vcb.GetCurrImageSemaphore();
-    VkSemaphore& renderFinishedSemaphore = vcb.GetCurrRenderSemaphore();
-    VkFence& queueSubmissionFence = vcb.GetCurrSubmissionFence();
-
-    CHECK_VKCMD(vkWaitForFences(vulkanDevice.vkDevice, 1, &queueSubmissionFence, VK_TRUE, UINT64_MAX));
-    CHECK_VKCMD(vkResetFences(vulkanDevice.vkDevice, 1, &queueSubmissionFence));
+    VkCommandBuffer vkCommandBuffer = vcb.BeginCommand();
+    VkSemaphore imageAcquiredSemaphore = vcb.GetCurrImageSemaphore();
+    VkSemaphore renderFinishedSemaphore = vcb.GetCurrRenderSemaphore();
 
     int imageIndex = swapchain->GetNextImageIndex(imageAcquiredSemaphore);
-
-    CHECK_VKCMD(vkResetCommandBuffer(vkCommandBuffer, 0));
-
-    VkCommandBufferBeginInfo info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
-    info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    CHECK_VKCMD(vkBeginCommandBuffer(vkCommandBuffer, &info));
 
     VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
     VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -529,37 +375,27 @@ void VulkanRenderer::EndFrame()
 
     DrawCamera(vkCommandBuffer);
 
-    VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    VkSubmitInfo vkSubmitInfo{VK_STRUCTURE_TYPE_SUBMIT_INFO};
-    vkSubmitInfo.waitSemaphoreCount = 1;
-    vkSubmitInfo.pWaitSemaphores = &imageAcquiredSemaphore;
-    vkSubmitInfo.pWaitDstStageMask = &waitStage;
-    vkSubmitInfo.commandBufferCount = 1;
-    vkSubmitInfo.pCommandBuffers = &vkCommandBuffer;
-    vkSubmitInfo.signalSemaphoreCount = 1;
-    vkSubmitInfo.pSignalSemaphores = &renderFinishedSemaphore;
-
-    CHECK_VKCMD(vkEndCommandBuffer(vkCommandBuffer));
-    CHECK_VKCMD(vkQueueSubmit(vulkanDevice.graphicsQueue, 1, &vkSubmitInfo, queueSubmissionFence)); 
+    vcb.EndCommand();
 
     // Present image
     swapchain->PresentImage(renderFinishedSemaphore, imageIndex);
-    vcb.NextFrame();
     commandQueue.clear();
 }
 
 void VulkanRenderer::DeallocateResources()
 {
-    //TODO: to match allocated resources 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
     swapchain->Destroy();
     vulkanCmdBuffer.Destroy();
+    pipelines.clear();
+    DestroyRenderPasses();
+    DestroyFramebuffers();
+    vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
 }
 
 void VulkanRenderer::Destroy()
 {
-    //DestroyPipelines();
-    //TODO:
+    // TODO: VulkanDevice, vkInstance
 }
 
 void VulkanRenderer::ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer)
@@ -578,13 +414,9 @@ void VulkanRenderer::CleanupCommands()
     commandQueue.clear();
 }
 
-void VulkanRenderer::AllocateDescriptorSet(VkDescriptorSet* descSet, VkDescriptorSetLayout descLayout)
+VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 {
-    VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-    allocInfo.descriptorPool = vkDescriptorPool;
-    allocInfo.descriptorSetCount = FRAME_IN_FLIGHT;
-    allocInfo.pSetLayouts = &descLayout;
-    CHECK_VKCMD(vkAllocateDescriptorSets(vulkanDevice.vkDevice, &allocInfo, descSet));
+    return *(pipelines[name]->pipelineLayout);
 }
 
 void VulkanRenderer::DrawCamera(VkCommandBuffer vkCommandBuffer)
@@ -605,7 +437,9 @@ void VulkanRenderer::DrawCamera(VkCommandBuffer vkCommandBuffer)
         vkRenderPassInfo.pClearValues = clearValues.data();
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline.phongShading);
+        vkCmdBindPipeline(vkCommandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines["render"]->pipeline);
 
         VkViewport viewport{};
         viewport.x = 0.0f;
@@ -618,11 +452,16 @@ void VulkanRenderer::DrawCamera(VkCommandBuffer vkCommandBuffer)
 
         VkRect2D scissor{};
         scissor.offset = {0, 0};
-        scissor.extent = {static_cast<uint32_t>(camera->extent.x), static_cast<uint32_t>(camera->extent.y)};
+        scissor.extent = {
+            static_cast<uint32_t>(camera->extent.x),
+            static_cast<uint32_t>(camera->extent.y)
+        };
         vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
 
-        camera->BindDescriptorSet(vkCommandBuffer, vkPipelineLayout.phongShading);
-        mainLight->BindDescriptorSet(vkCommandBuffer, vkPipelineLayout.phongShading);
+        camera->BindDescriptorSet(vkCommandBuffer,
+            pipelines["render"]->pipelineLayout->layout);
+        mainLight->BindDescriptorSet(vkCommandBuffer,
+            pipelines["render"]->pipelineLayout->layout);
 
         ExecuteRecordedCommands(vkCommandBuffer);
 
@@ -636,7 +475,7 @@ void VulkanRenderer::AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent)
     cameraList.push_back(vulkanCamera);
 
     //TODO: need to integrate IMGUI vulkan backend into this renderer
-    VulkanTextureColor2D& colorImage = vulkanCamera->GetColorImage();
+    VulkanTexture& colorImage = vulkanCamera->GetColorImage();
     vulkanCamera->cameraTexture = 
         reinterpret_cast<VkDescriptorSet>(
         imguiPlugin.MakeTexture(colorImage.vkSampler, colorImage.vkImageView,    

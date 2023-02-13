@@ -18,7 +18,7 @@ void VulkanCamera::Initialize(glm::vec2 extent, VkFormat vkFormat)
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
     colorImage.CreateSampler();
 
-    cameraUniform.Initialize(sizeof(ViewProjection));
+    cameraUniform.Initialize(&vulkanDevice, sizeof(ViewProjection));
 
     // Create depth image
     {
@@ -86,7 +86,9 @@ void VulkanCamera::Initialize(glm::vec2 extent, VkFormat vkFormat)
 
 
     // Create camera descriptor set
-    vkr.AllocateDescriptorSet(&cameraDescSet, vkr.vkDescriptorSetLayout.cameraDescLayout);
+    VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("render");
+    pipelineLayout.AllocateDescriptorSet("camera", vkr.FRAME_IN_FLIGHT, &cameraDescSet);
+    
     std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
 
     VkDescriptorBufferInfo propBufferInfo = cameraUniform.GetDescriptor();

@@ -9,10 +9,12 @@ void VulkanLight::Initialize()
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     VulkanDevice& vulkanDevice = vkr.vulkanDevice;
 
-    lightUniform.Initialize(sizeof(LightProperties));
+    lightUniform.Initialize(&vulkanDevice, sizeof(LightProperties));
 
     // Create light descriptor set
-    vkr.AllocateDescriptorSet(&lightDescSet, vkr.vkDescriptorSetLayout.sceneDescLayout);
+    VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("render");
+    pipelineLayout.AllocateDescriptorSet("scene", vkr.FRAME_IN_FLIGHT, &lightDescSet);
+    
     std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
 
     VkDescriptorBufferInfo propBufferInfo = lightUniform.GetDescriptor();

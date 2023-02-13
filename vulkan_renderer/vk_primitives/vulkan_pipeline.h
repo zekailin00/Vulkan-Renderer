@@ -2,7 +2,9 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <memory>
 
+#include "vulkan_pipeline_layout.h"
 
 class VulkanPipeline
 {
@@ -14,7 +16,8 @@ public:
     void LoadShader(std::string vertPath, std::string fragPath);
 
     void BuildPipeline(VkPipelineVertexInputStateCreateInfo* vertexInputInfo,
-        VkPipelineLayout pipelineLayout, VkRenderPass renderPass);
+        std::unique_ptr<VulkanPipelineLayout> pipelineLayout,
+        VkRenderPass renderPass);
 
     VulkanPipeline(const VulkanPipeline&) = delete;
     VulkanPipeline& operator=(const VulkanPipeline&) = delete;
@@ -34,5 +37,6 @@ public:
 
 public:
     VkPipeline pipeline;
+    std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
     VkDevice device;
 };

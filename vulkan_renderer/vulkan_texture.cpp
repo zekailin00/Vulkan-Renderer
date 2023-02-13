@@ -1,15 +1,21 @@
 #include "vulkan_texture.h"
 
 #include "vulkan_renderer.h"
+
 #include "validation.h"
 #include "logger.h"
-
 #include "stb/stb_image.h"
 
-void VulkanTextureColor2D::CreateImage(VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
+#include <memory>
+
+
+namespace renderer
 {
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    VkDevice vkDevice = vulkanDevice.vkDevice;
+
+void VulkanTexture::CreateImage(
+    VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
+{
+    VkDevice vkDevice = vulkanDevice->vkDevice;
     this->imageExtent = imageExtent;
 
     // Create image
@@ -33,7 +39,8 @@ void VulkanTextureColor2D::CreateImage(VkExtent2D imageExtent, VkFormat colorFor
     vkGetImageMemoryRequirements(vkDevice, vkImage, &memRequirements);
     VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    allocInfo.memoryTypeIndex = vulkanDevice->GetMemoryTypeIndex(
+        memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     CHECK_VKCMD(vkAllocateMemory(vkDevice, &allocInfo, nullptr, &vkDeviceMemory));
     CHECK_VKCMD(vkBindImageMemory(vkDevice, vkImage, vkDeviceMemory, 0));
 
@@ -51,17 +58,18 @@ void VulkanTextureColor2D::CreateImage(VkExtent2D imageExtent, VkFormat colorFor
     CHECK_VKCMD(vkCreateImageView(vkDevice, &viewInfo, nullptr, &vkImageView));
 }
 
-void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
+void VulkanTexture::LoadImageFromFile(std::string filePath)
 {
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    VkDevice vkDevice = vulkanDevice.vkDevice;
+    VkDevice vkDevice = vulkanDevice->vkDevice;
 
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load(
+        filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
-        Log::Write(Log::Level::Error, "[Vulkan Texture] Error, failed to load texture image.");
+        Log::Write(Log::Level::Error,
+            "[Vulkan Texture] Error, failed to load texture image.");
     }
 
     VkBuffer stagingBuffer;
@@ -80,7 +88,8 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
 
         VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(memRequirements.memoryTypeBits, 
+        allocInfo.memoryTypeIndex = vulkanDevice->GetMemoryTypeIndex(
+            memRequirements.memoryTypeBits, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         CHECK_VKCMD(vkAllocateMemory(vkDevice, &allocInfo, nullptr, &stagingBufferMemory));
@@ -94,12 +103,15 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
     }
 
     stbi_image_free(pixels);
-    CreateImage({static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)}, VK_FORMAT_R8G8B8A8_SRGB);
+    CreateImage(
+        {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)},
+        VK_FORMAT_R8G8B8A8_SRGB);
 
     // Transfer data from buffer to device local memory
     {
-        VulkanCmdBuffer& vcb = VulkanRenderer::GetInstance().vulkanCmdBuffer;
-        VkCommandBuffer vkCommandBuffer = vcb.SingleCmdBegin();
+        VulkanSingleCmd cmd;
+        cmd.Initialize(vulkanDevice);
+        VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
 
         VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -139,9 +151,14 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
         region.imageSubresource.baseArrayLayer = 0;
         region.imageSubresource.layerCount = 1;
         region.imageOffset = {0, 0, 0};
-        region.imageExtent = {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1};
+        region.imageExtent = {
+            static_cast<uint32_t>(texWidth),
+            static_cast<uint32_t>(texHeight), 1
+        };
 
-        vkCmdCopyBufferToImage(vkCommandBuffer, stagingBuffer, vkImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+        vkCmdCopyBufferToImage(
+            vkCommandBuffer, stagingBuffer, vkImage,
+            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -159,23 +176,25 @@ void VulkanTextureColor2D::LoadImageFromFile(std::string filePath)
             1, &barrier
         );
 
-        vcb.SingleCmdEnd(vkCommandBuffer);
+        cmd.EndCommand();
     }
 
     vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
     vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
 }
 
-void VulkanTextureColor2D::CreateSampler(VkFilter minFilter, VkFilter magFilter)
+void VulkanTexture::CreateSampler(
+    VkFilter minFilter, VkFilter magFilter,
+    VkSamplerAddressMode addressMode)
 {
-    VkDevice vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
+    VkDevice vkDevice = vulkanDevice->vkDevice;
 
     VkSamplerCreateInfo samplerInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
     samplerInfo.magFilter = magFilter;
     samplerInfo.minFilter = minFilter;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeU = addressMode;
+    samplerInfo.addressModeV = addressMode;
+    samplerInfo.addressModeW = addressMode;
     samplerInfo.anisotropyEnable = VK_FALSE;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
@@ -186,21 +205,106 @@ void VulkanTextureColor2D::CreateSampler(VkFilter minFilter, VkFilter magFilter)
     CHECK_VKCMD(vkCreateSampler(vkDevice, &samplerInfo, nullptr, &vkSampler));
 }
 
-VkDescriptorImageInfo VulkanTextureColor2D::GetDescriptor(VkImageLayout vkImageLayout)
+VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 {
     vkDecriptorInfo.imageLayout = vkImageLayout;
     vkDecriptorInfo.imageView = vkImageView;
     vkDecriptorInfo.sampler = vkSampler;
 
     if (vkDecriptorInfo.sampler == VK_NULL_HANDLE)
-        Log::Write(Log::Level::Error, "[Vulkan Texture] Error, Sampler is null when creating image view.");
-    return vkDecriptorInfo;
+        Log::Write(Log::Level::Error,
+            "[Vulkan Texture] Error, Sampler is null when creating image view.");
+    return &vkDecriptorInfo;
 }
 
-void VulkanTextureColor2D::Destroy()
+void VulkanTexture::Destroy()
 {
-    VkDevice& vkDevice = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
+    VkDevice& vkDevice = vulkanDevice->vkDevice;
+    vkDeviceWaitIdle(vkDevice); 
+    // FIXME: wait until this resource has been used by GPU
+    // Not the best way to do this.
+    vkDestroySampler(vkDevice, vkSampler, nullptr);
     vkDestroyImageView(vkDevice, vkImageView, nullptr);
     vkDestroyImage(vkDevice, vkImage, nullptr);
     vkFreeMemory(vkDevice, vkDeviceMemory, nullptr);
+    vulkanDevice = nullptr;
 }
+
+std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo)
+{
+    BuildEmptyTexture();
+
+    std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
+    texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
+
+    texture->LoadImageFromFile(buildInfo->path);
+
+    {
+        VkFilter minFilter = VK_FILTER_LINEAR;
+        switch (buildInfo->minFilter)
+        {
+        case FILTER_NEAREST:
+            minFilter = VK_FILTER_NEAREST;
+            break;
+        case FILTER_LINEAR:
+            minFilter = VK_FILTER_LINEAR;
+            break;
+        }
+
+        VkFilter maxFilter = VK_FILTER_LINEAR;
+        switch (buildInfo->maxFilter)
+        {
+        case FILTER_NEAREST:
+            maxFilter = VK_FILTER_NEAREST;
+            break;
+        case FILTER_LINEAR:
+            maxFilter = VK_FILTER_LINEAR;
+            break;
+        default:
+            break;
+        }
+
+        VkSamplerAddressMode addressMode;
+        switch (buildInfo->addressMode)
+        {
+        case REPEAT:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            break;
+        case MIRRORED_REPEAT:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+            break;
+        case CLAMP_TO_EDGE:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            break;
+        case CLAMP_TO_BORDER:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+            break;
+        default:
+            break;
+        }
+
+        texture->CreateSampler(minFilter, maxFilter, addressMode);
+    }
+    
+    texture->info = *buildInfo;
+    return texture;
+}
+
+void VulkanTexture::BuildEmptyTexture()
+{
+    static bool built = false;
+    if (!built)
+    {// FIXME: not destroyed
+        built = true;
+        nullTexture.LoadImageFromFile("resources/textures/defaultTexture.png");
+        nullTexture.CreateSampler();
+    }
+}
+
+VulkanTexture::~VulkanTexture()
+{
+    Destroy();
+    Log::Write(Log::Level::Verbose, "VulkanTexture Destoryed.\n");
+}
+
+} // namespace renderer

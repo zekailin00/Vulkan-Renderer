@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "vulkan_texture.h"
-#include "vulkan_uniform.h"
+#include "vk_primitives/vulkan_uniform.h"
 #include "pipeline_inputs.h"
 
 #include <vulkan/vulkan.h>
@@ -17,11 +17,11 @@ public:
     ViewProjection* MapCameraUniform();
     void BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout);
     VkFramebuffer GetFrameBuffer(){return framebuffer;}
-    VulkanTextureColor2D& GetColorImage() {return colorImage;}
+    VulkanTexture& GetColorImage() {return colorImage;}
 
     VkDescriptorSet cameraTexture; /*FIXME: render to texture; used by ImGui. */
 private: 
-    VulkanTextureColor2D colorImage;
+    VulkanTexture colorImage;
     VulkanUniform cameraUniform;
 
     VkDescriptorSet cameraDescSet;
