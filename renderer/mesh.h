@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <memory>
+#include <vector>
 #include <string>
 
 namespace renderer
@@ -12,17 +13,15 @@ namespace renderer
 
 struct Vertex
 {
-    glm::vec3 coord;
-    glm::vec2 uv;
-    glm::vec3 norm;
+    glm::vec3 Position;
+    glm::vec3 Normal;
+    glm::vec2 TexCoords;
 };
 
 struct BuildMeshInfo
 {
-    Vertex* vertexData;
-    int vertexCount;
-    unsigned int* indexData;
-    int indexCount;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
 };
 
 class Mesh
@@ -36,7 +35,7 @@ public:
      * BuildMesh can be called multiple time.
      * The old mesh will be removed when BuildMesh is called.
     */
-    static std::shared_ptr<Mesh> BuildMesh(BuildMeshInfo& info);
+    //static std::shared_ptr<Mesh> BuildMesh(BuildMeshInfo& info);
 
     /**
      * Add a material to the mesh.
@@ -46,16 +45,16 @@ public:
      * The old material will be deallocated 
      * if this is the only reference to the material.
     */
-    void AddMaterial(std::shared_ptr<Material> material);
+    virtual void AddMaterial(std::shared_ptr<Material> material) = 0;
 
     /**
      * Remove the current material,
      * and apply the default material to the mesh.
     */
-    void RemoveMaterial();
+    virtual void RemoveMaterial() = 0;
 
-    Mesh();
-    ~Mesh();
+    Mesh() = default;
+    virtual ~Mesh() = default;
 
     // Prevent copy operation.
     Mesh(const Mesh&) = delete;
