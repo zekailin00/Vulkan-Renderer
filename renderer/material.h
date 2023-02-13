@@ -15,7 +15,7 @@ struct MaterialProperties
     std::shared_ptr<Texture> albedoTexture = nullptr;
 
     float metallic = 0.0f;
-    std::shared_ptr<Texture> metalicTexture = nullptr;
+    std::shared_ptr<Texture> metallicTexture = nullptr;
 
     float smoothness = 0.5f;
     std::shared_ptr<Texture> smoothnessTexture = nullptr;
@@ -28,28 +28,27 @@ class Material
 
 public:
 
-    MaterialProperties* GetProperties();
-    MaterialProperties* ResetProperties();
+    virtual MaterialProperties* GetProperties() = 0;
+    virtual void ResetProperties() = 0;
 
     virtual void AddAlbedoTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddMetallicTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddSmoothnessTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddNormalTexture(std::shared_ptr<Texture> texture) = 0;
 
+    virtual void ResetAlbedoTexture() = 0;
+    virtual void ResetMetallicTexture() = 0;
+    virtual void ResetSmoothnessTexture() = 0;
+    virtual void ResetNormalTexture() = 0;
 
     Material() = default;
-    ~Material() = default;
+    virtual ~Material() = default;
 
     Material(const Material&) = delete;
     const Material& operator=(const Material&) = delete;
 
 protected:
     MaterialProperties properties;
-
-    std::shared_ptr<Texture> albedoTex;
-    std::shared_ptr<Texture> metallicTex;
-    std::shared_ptr<Texture> smoothnessTex;
-    std::shared_ptr<Texture> normalTex;
 };
 
 } // namespace renderer

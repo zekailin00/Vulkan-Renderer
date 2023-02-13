@@ -15,8 +15,13 @@ class VulkanTexture: public renderer::Texture
 
 public:
     static std::shared_ptr<Texture> BuildTexture(TextureBuildInfo*);
-
+    VkDescriptorImageInfo* GetDescriptor(
+        VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     ~VulkanTexture() override;
+
+public:
+    static VulkanTexture nullTexture;
+    static void BuildEmptyTexture();
 
 private:
     void CreateImage(
@@ -28,15 +33,13 @@ private:
         VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT);
     void LoadImageFromFile(std::string filePath);
     void Destroy();
-
-    VkDescriptorImageInfo GetDescriptor(
-        VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
     VkImage vkImage = VK_NULL_HANDLE;
     VkDeviceMemory vkDeviceMemory = VK_NULL_HANDLE;
     VkImageView vkImageView = VK_NULL_HANDLE;
     VkSampler vkSampler = VK_NULL_HANDLE;
     VkExtent2D imageExtent{};
+    VkDescriptorImageInfo vkDecriptorInfo{};
 
     VulkanDevice* vulkanDevice = nullptr; // Owned by VulkanRenderer
 };

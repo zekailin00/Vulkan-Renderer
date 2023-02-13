@@ -33,16 +33,15 @@ void VulkanUniform::Initialize(VulkanDevice* vulkanDevice, VkDeviceSize size)
     vkMapMemory(vkDevice, vkDeviceMemory, 0, vkDeviceSize, 0, &data);
 }
 
-VkDescriptorBufferInfo VulkanUniform::GetDescriptor()
+VkDescriptorBufferInfo* VulkanUniform::GetDescriptor()
 {
     if (vulkanDevice == nullptr)
         Log::Write(Log::Level::Error, "Uniform is not initialized");
 
-    VkDescriptorBufferInfo bufferInfo{};
     bufferInfo.buffer = vkBuffer;
     bufferInfo.offset = 0;
     bufferInfo.range = vkDeviceSize;
-    return bufferInfo;
+    return &bufferInfo;
 }
 
 void* VulkanUniform::Map()

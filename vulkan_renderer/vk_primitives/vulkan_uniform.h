@@ -38,7 +38,7 @@ public:
      * Get Descriptor buffer info.
      * If uniform is not initialized, error is thrown.
     */
-    VkDescriptorBufferInfo GetDescriptor();
+    VkDescriptorBufferInfo* GetDescriptor();
 
     VulkanUniform() = default;
     ~VulkanUniform() {Destroy();}
@@ -49,6 +49,7 @@ public:
     VkBuffer vkBuffer;
     VkDeviceMemory vkDeviceMemory;
     VkDeviceSize vkDeviceSize;
+    VkDescriptorBufferInfo bufferInfo{};
 
 private: // Access through methods
     VulkanDevice* vulkanDevice = nullptr; // Owned by renderer

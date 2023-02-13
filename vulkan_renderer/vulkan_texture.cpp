@@ -205,9 +205,8 @@ void VulkanTexture::CreateSampler(
     CHECK_VKCMD(vkCreateSampler(vkDevice, &samplerInfo, nullptr, &vkSampler));
 }
 
-VkDescriptorImageInfo VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
+VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 {
-    VkDescriptorImageInfo vkDecriptorInfo;
     vkDecriptorInfo.imageLayout = vkImageLayout;
     vkDecriptorInfo.imageView = vkImageView;
     vkDecriptorInfo.sampler = vkSampler;
@@ -215,7 +214,7 @@ VkDescriptorImageInfo VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
     if (vkDecriptorInfo.sampler == VK_NULL_HANDLE)
         Log::Write(Log::Level::Error,
             "[Vulkan Texture] Error, Sampler is null when creating image view.");
-    return vkDecriptorInfo;
+    return &vkDecriptorInfo;
 }
 
 void VulkanTexture::Destroy()
@@ -233,6 +232,8 @@ void VulkanTexture::Destroy()
 
 std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo)
 {
+    BuildEmptyTexture();
+
     std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
 
@@ -287,6 +288,17 @@ std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo
     
     texture->info = *buildInfo;
     return texture;
+}
+
+void VulkanTexture::BuildEmptyTexture()
+{
+    static bool built = false;
+    if (!built)
+    {// FIXME: not destroyed
+        built = true;
+        nullTexture.LoadImageFromFile("resources/textures/defaultTexture.png");
+        nullTexture.CreateSampler();
+    }
 }
 
 VulkanTexture::~VulkanTexture()

@@ -28,10 +28,18 @@ public:
 
     ~VulkanMaterial();
 
+    MaterialProperties* GetProperties() override;
+    void ResetProperties() override;
+
     void AddAlbedoTexture(std::shared_ptr<Texture> texture) override;
     void AddMetallicTexture(std::shared_ptr<Texture> texture) override;
     void AddSmoothnessTexture(std::shared_ptr<Texture> texture) override;
     void AddNormalTexture(std::shared_ptr<Texture> texture) override;
+
+    void ResetAlbedoTexture() override;
+    void ResetMetallicTexture() override;
+    void ResetSmoothnessTexture() override;
+    void ResetNormalTexture() override;
 
 private:
     void Destory();
