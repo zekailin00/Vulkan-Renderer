@@ -299,17 +299,23 @@ void VulkanRenderer::CreatePipelines()
 
 
     renderPipeline->LoadShader("resources/vulkan_shaders/Phong/vert.spv",
-                              "resources/vulkan_shaders/Phong/frag.spv");
+                               "resources/vulkan_shaders/Phong/frag.spv");
     
     layoutBuilder.PushDescriptorSetLayout("material",
     {
         layoutBuilder.descriptorSetLayoutBinding(
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
         layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1)
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 3),
+        layoutBuilder.descriptorSetLayoutBinding(
+            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 4),
     });
 
-    layoutBuilder.PushDescriptorSetLayout("model",
+    layoutBuilder.PushDescriptorSetLayout("mesh",
     {
         layoutBuilder.descriptorSetLayoutBinding(
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
