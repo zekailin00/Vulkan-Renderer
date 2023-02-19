@@ -21,7 +21,6 @@ public:
         VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     ~VulkanTexture() override;
 
-private:
     void CreateImage(
         VkExtent2D imageExtent, VkFormat colorFormat, 
         VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
@@ -30,8 +29,10 @@ private:
         VkFilter magFilter = VK_FILTER_LINEAR,
         VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT);
     void LoadImageFromFile(std::string filePath);
+    VkImageView GetImageView() {return vkImageView;}
     void Destroy();
-    
+
+private:
     VkImage vkImage = VK_NULL_HANDLE;
     VkDeviceMemory vkDeviceMemory = VK_NULL_HANDLE;
     VkImageView vkImageView = VK_NULL_HANDLE;
