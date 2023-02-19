@@ -23,6 +23,11 @@ public:
     glm::mat4 GetTransform() override;
     void SetTransform(glm::mat4 transform) override;
 
+    /**
+     * There is no builder for VulkanNode.
+     * Make a unique pointer directly
+     * and constructor does all the work.
+    */
     VulkanNode();
     ~VulkanNode() override;
 
