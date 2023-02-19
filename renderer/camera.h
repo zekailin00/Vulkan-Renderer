@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 
 namespace renderer
 {
@@ -18,7 +19,18 @@ class Camera
 {
 
 public:
-    virtual CameraProperties* GetCamProperties() = 0;
+    virtual const CameraProperties& GetCamProperties() = 0;
+    virtual void SetCamProperties(CameraProperties&) = 0;
+
+    /**
+     * TODO: Used by rendering procedure or node update function
+    */
+    virtual const glm::mat4& GetTransform() = 0;
+
+    /**
+     * TODO: Used by rendering procedure or node update function
+    */
+    virtual void SetTransform(glm::mat4&) = 0;
 
     Camera() = default;
     virtual ~Camera() = default;

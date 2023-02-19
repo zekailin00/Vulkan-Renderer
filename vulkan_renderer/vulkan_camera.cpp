@@ -4,6 +4,8 @@
 #include "validation.h"
 
 #include <array>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp> 
 
 
 namespace renderer
@@ -26,13 +28,20 @@ std::unique_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     }
 
     // Create color image
-    camera->colorImage.CreateImage(
-        {camera->swapchain->GetWidth(), camera->swapchain->GetHeight()},
+    camera->colorImage.CreateImage({
+            static_cast<unsigned int>(camera->properties.Extent.x),
+            static_cast<unsigned int>(camera->properties.Extent.y)},
         camera->swapchain->GetImageFormat(),
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
     camera->colorImage.CreateSampler();
 
     camera->cameraUniform.Initialize(camera->vulkanDevice, sizeof(ViewProjection));
+    camera->vpMap = static_cast<ViewProjection*>(camera->cameraUniform.Map());
+    camera->vpMap->projection = glm::perspective(
+        glm::radians(camera->properties.Fov),
+        camera->properties.Extent.x/camera->properties.Extent.y,
+        camera->properties.ZNear, camera->properties.ZFar);
+    camera->vpMap->view = glm::mat4(1.0f);
 
     // Create depth image
     {
@@ -131,23 +140,54 @@ std::unique_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     return camera;
 }
 
-ViewProjection* VulkanCamera::MapCameraUniform()
+// ViewProjection* VulkanCamera::MapCameraUniform()
+// {
+//     return static_cast<ViewProjection*>(cameraUniform.Map());
+// }
+
+// void VulkanCamera::BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout)
+// {
+//     vkCmdBindDescriptorSets(
+//         commandBuffer, 
+//         VK_PIPELINE_BIND_POINT_GRAPHICS, 
+//         layout, 2, 1, 
+//         &cameraDescSet, 0, nullptr
+//     );
+// }
+
+const CameraProperties& VulkanCamera::GetCamProperties()
 {
-    return static_cast<ViewProjection*>(cameraUniform.Map());
+    return this->properties;
 }
 
-void VulkanCamera::BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout)
+void VulkanCamera::SetCamProperties(CameraProperties& properties)
 {
-    vkCmdBindDescriptorSets(
-        commandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        layout, 2, 1, 
-        &cameraDescSet, 0, nullptr
-    );
+    this->properties = properties;
+    vpMap->projection = glm::perspective(
+        glm::radians(this->properties.Fov),
+        this->properties.Extent.x/this->properties.Extent.y,
+        this->properties.ZNear, this->properties.ZFar);
+}
+
+const glm::mat4& VulkanCamera::GetTransform()
+{
+    return this->vpMap->view;
+}
+
+void VulkanCamera::SetTransform(glm::mat4& transform)
+{
+    this->vpMap->view = transform;
+}
+
+VulkanCamera::~VulkanCamera()
+{
+    Destroy();
 }
 
 void VulkanCamera::Destroy()
 {
+    vkDeviceWaitIdle(vulkanDevice->vkDevice);
+
     colorImage.Destroy();
     cameraUniform.Destroy();
 
@@ -158,6 +198,10 @@ void VulkanCamera::Destroy()
     vkFreeMemory(vulkanDevice->vkDevice, depthMemory, nullptr);
 
     vkDestroyFramebuffer(vulkanDevice->vkDevice,framebuffer, nullptr);
+
+    vulkanDevice = nullptr;
+    swapchain = nullptr;
+    vpMap = nullptr;
 }
 
 } // namespace renderer

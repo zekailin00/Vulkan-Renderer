@@ -8,8 +8,6 @@
 #include "vulkan_swapchain.h"
 
 #include <vulkan/vulkan.h>
-#include <glm/glm.hpp>
-
 #include <memory>
 
 namespace renderer
@@ -26,17 +24,32 @@ class VulkanCamera: public Camera
 public:
     static std::unique_ptr<VulkanCamera> BuildCamera(CameraProperties&);
 
-    void Initialize(glm::vec2 extent, VkFormat vkFormat);
-    void Destroy();
-    ViewProjection* MapCameraUniform();
-    void BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout);
-    VkFramebuffer GetFrameBuffer(){return framebuffer;}
-    VulkanTexture& GetColorImage() {return colorImage;}
+    const CameraProperties& GetCamProperties() override;
 
-    VkDescriptorSet cameraTexture; /*FIXME: render to texture; used by ImGui. */
+    void SetCamProperties(CameraProperties&) override;
+
+    const glm::mat4& GetTransform() override;
+
+    void SetTransform(glm::mat4&) override;
+
+    void Destroy();
+
+    VulkanCamera() = default;
+    ~VulkanCamera() override;
+
+    VulkanCamera(const VulkanCamera&) = delete;
+    VulkanCamera& operator=(const VulkanCamera&) = delete;
+
+    // ViewProjection* MapCameraUniform();
+    // void BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout);
+    // VkFramebuffer GetFrameBuffer(){return framebuffer;}
+    // VulkanTexture& GetColorImage() {return colorImage;}
+    // VkDescriptorSet cameraTexture; /*FIXME: render to texture; used by ImGui. */
+
 private: 
     VulkanTexture colorImage;
     VulkanUniform cameraUniform;
+    ViewProjection* vpMap = nullptr;
 
     VkDescriptorSet cameraDescSet;
 
