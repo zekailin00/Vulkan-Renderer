@@ -14,7 +14,14 @@ class VulkanNode: public Node
 {
 
 public:
-    std::shared_ptr<Mesh> AddMesh(std::shared_ptr<Mesh> mesh) override;
+    std::shared_ptr<Mesh> GetMesh() override;
+
+    void SetMesh(std::shared_ptr<Mesh> mesh) override;
+
+    std::shared_ptr<Camera> GetCamera() override;
+
+    void SetCamera(std::shared_ptr<Camera> camera) override;
+
     Node* AddChildNode(std::unique_ptr<Node> node) override;
     std::unique_ptr<Node> RemoveChildNode(Node* node) override;
     Node* GetChildNode(unsigned int index) override;

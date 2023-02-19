@@ -13,21 +13,28 @@
 namespace renderer
 {
 
+/**
+ * Contains resourses used in renderer.
+ * Each node can contain only one mesh, camera, or light.
+ * Only one of the three pointers can be not nullptr.
+*/
 class Node
 {
 public:
-    /**
-     * Add a mesh to the current node.
-     * If the node has already contained a mesh,
-     * the old mesh will be returned;
-     * otherwise, null pointer is returned.
-    */
-    virtual std::shared_ptr<Mesh> AddMesh(std::shared_ptr<Mesh> mesh) = 0;
+
+    virtual std::shared_ptr<Mesh> GetMesh() = 0;
+
+    virtual void SetMesh(std::shared_ptr<Mesh> mesh) = 0;
+
+    virtual std::shared_ptr<Camera> GetCamera() = 0;
+
+    virtual void SetCamera(std::shared_ptr<Camera> camera) = 0;
 
     /**
      * Add a child node to the current node and return its pointer as handle.
      * If the node has already parented to another node,
      * return nullptr.
+     * TODO: currently no protection agaist tree being cyclic.
     */
     virtual Node* AddChildNode(std::unique_ptr<Node> node) = 0;
 
@@ -37,7 +44,8 @@ public:
      * so if each of the grandchildren only has only one reference,
      * they can all be freed.
      * If the node is not parented to the current node,
-     * return false.
+     * return nullptr.
+     * TODO: currently no protection agaist tree being cyclic.
     */
     virtual std::unique_ptr<Node> RemoveChildNode(Node* node) = 0;
 

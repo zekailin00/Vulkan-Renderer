@@ -1,17 +1,36 @@
 #include "vulkan_node.h"
 
+#include "vulkan_camera.h"
+
 #include <memory>
 #include <utility> // std::move
 
 namespace renderer
 {
 
-std::shared_ptr<Mesh> VulkanNode::AddMesh(std::shared_ptr<Mesh> mesh)
+std::shared_ptr<Mesh> VulkanNode::GetMesh()
 {
+    return mesh;
+}
+
+void VulkanNode::SetMesh(std::shared_ptr<Mesh> mesh)
+{
+    if (this->mesh || this->camera || this->light)
+        throw;
     this->mesh = mesh;
+}
 
-    //FIXME: read the doc and redo it and functions below 
+std::shared_ptr<Camera> VulkanNode::GetCamera()
+{
+    return camera;
+}
 
+void VulkanNode::SetCamera(std::shared_ptr<Camera> camera)
+{
+    if (this->mesh || this->camera || this->light)
+        throw;
+    this->camera = camera;
+    this->SetTransform(*this->transform); // camera
 }
 
 Node* VulkanNode::AddChildNode(std::unique_ptr<Node> node)
@@ -62,6 +81,13 @@ glm::mat4 VulkanNode::GetTransform()
 void VulkanNode::SetTransform(glm::mat4 transform)
 {
     *this->transform = transform;
+
+    if (this->camera)
+    {
+        std::shared_ptr<VulkanCamera> vkCamera =
+            std::dynamic_pointer_cast<VulkanCamera>(this->camera);
+        vkCamera->SetTransform(*this->transform);
+    }
 }
 
 VulkanNode::VulkanNode()

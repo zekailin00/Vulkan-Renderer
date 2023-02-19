@@ -11,9 +11,9 @@
 namespace renderer
 {
 
-std::unique_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& properties)
+std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& properties)
 {
-    std::unique_ptr<VulkanCamera> camera = std::make_unique<VulkanCamera>();
+    std::shared_ptr<VulkanCamera> camera = std::make_unique<VulkanCamera>();
 
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     camera->vulkanDevice = &vkr.vulkanDevice;

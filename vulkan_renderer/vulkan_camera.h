@@ -22,15 +22,22 @@ struct ViewProjection
 class VulkanCamera: public Camera
 {
 public:
-    static std::unique_ptr<VulkanCamera> BuildCamera(CameraProperties&);
+    /**
+     * Return a VulkanCamera.
+     * Note that even though it is a shared pointer.
+     * It must only be added to one node.
+     * There is no check for it, but can cause undefined error
+     * if a camera is added to multiple nodes.
+    */
+    static std::shared_ptr<VulkanCamera> BuildCamera(CameraProperties&);
 
     const CameraProperties& GetCamProperties() override;
 
     void SetCamProperties(CameraProperties&) override;
 
-    const glm::mat4& GetTransform() override;
+    const glm::mat4& GetTransform(); // Used by VulkanNode
 
-    void SetTransform(glm::mat4&) override;
+    void SetTransform(glm::mat4&); // Used by VulkanNode
 
     void Destroy();
 
