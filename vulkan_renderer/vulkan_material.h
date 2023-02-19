@@ -25,6 +25,7 @@ class VulkanMaterial: public Material
 
 public:
     static std::shared_ptr<Material> BuildMaterial(MaterialProperties* prop);
+    static std::shared_ptr<Material> GetDefaultMaterial();
 
     ~VulkanMaterial();
 
@@ -50,6 +51,8 @@ private:
     VulkanUniform uniform{};
     MaterialUniform* map = nullptr;
     VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+
+    static std::shared_ptr<VulkanMaterial> defaultMaterial;
 };
 
 } // namespace renderer

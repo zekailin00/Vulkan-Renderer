@@ -117,6 +117,18 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
     return material;
 }
 
+std::shared_ptr<Material> VulkanMaterial::GetDefaultMaterial()
+{
+    if (defaultMaterial == nullptr)
+    {
+        MaterialProperties defaultProperites{};
+        defaultMaterial = std::dynamic_pointer_cast<VulkanMaterial>
+            (BuildMaterial(&defaultProperites));
+    }
+
+    return defaultMaterial;
+}
+
 MaterialProperties* VulkanMaterial::GetProperties()
 {
     return &properties;
@@ -242,7 +254,8 @@ void VulkanMaterial::ResetAlbedoTexture()
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = VulkanTexture::nullTexture.GetDescriptor();
+        descWrite.pImageInfo = 
+            VulkanTexture::GetDefaultTexture()->GetDescriptor();
 
         vkUpdateDescriptorSets(
             this->vulkanDevice->vkDevice,
@@ -268,7 +281,8 @@ void VulkanMaterial::ResetMetallicTexture()
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = VulkanTexture::nullTexture.GetDescriptor();
+        descWrite.pImageInfo = 
+            VulkanTexture::GetDefaultTexture()->GetDescriptor();
 
         vkUpdateDescriptorSets(
             this->vulkanDevice->vkDevice,
@@ -294,7 +308,8 @@ void VulkanMaterial::ResetSmoothnessTexture()
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = VulkanTexture::nullTexture.GetDescriptor();
+        descWrite.pImageInfo = 
+            VulkanTexture::GetDefaultTexture()->GetDescriptor();
 
         vkUpdateDescriptorSets(
             this->vulkanDevice->vkDevice,
@@ -320,7 +335,8 @@ void VulkanMaterial::ResetNormalTexture()
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = VulkanTexture::nullTexture.GetDescriptor();
+        descWrite.pImageInfo = 
+            VulkanTexture::GetDefaultTexture()->GetDescriptor();
 
         vkUpdateDescriptorSets(
             this->vulkanDevice->vkDevice,

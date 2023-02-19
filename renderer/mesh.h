@@ -30,14 +30,6 @@ class Mesh
 public:
 
     /**
-     * Build the material using the supplied mesh and indices.
-     * If mesh cannot be built, false is returned;
-     * BuildMesh can be called multiple time.
-     * The old mesh will be removed when BuildMesh is called.
-    */
-    //static std::shared_ptr<Mesh> BuildMesh(BuildMeshInfo& info);
-
-    /**
      * Add a material to the mesh.
      * If no material is added, the default material is used.
      * If a material is already added,
@@ -60,7 +52,7 @@ public:
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
 
-private:
+protected:
     std::shared_ptr<Material> material;
 };
 

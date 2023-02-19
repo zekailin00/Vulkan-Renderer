@@ -1,6 +1,8 @@
 #include "vulkan_mesh.h"
 
 #include "vulkan_renderer.h"
+#include "vulkan_material.h"
+
 #include "vk_primitives/vulkan_device.h"
 #include "vk_primitives/vulkan_pipeline_layout.h"
 
@@ -47,17 +49,30 @@ std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
     vkUpdateDescriptorSets(
         vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
 
-    //TODO: material import
+    mesh->material = VulkanMaterial::GetDefaultMaterial();
+
+    return mesh;
 }
 
 void VulkanMesh::AddMaterial(std::shared_ptr<Material> material)
 {
-    
+    this->material = material;
 }
 
 void VulkanMesh::RemoveMaterial()
 {
-    
+    this->material = VulkanMaterial::GetDefaultMaterial();
+}
+
+VulkanMesh::~VulkanMesh()
+{
+    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    VulkanDevice* vulkanDevice = &vkr.vulkanDevice;
+    vkDeviceWaitIdle(vulkanDevice->vkDevice);
+
+    map = nullptr;
+    vertexbuffer.Destroy();
+    uniform.Destroy();
 }
 
 } // namespace renderer
