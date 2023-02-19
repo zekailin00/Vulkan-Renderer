@@ -419,87 +419,87 @@ VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
     return *(pipelines[name]->pipelineLayout);
 }
 
-void VulkanRenderer::DrawCamera(VkCommandBuffer vkCommandBuffer)
-{
+// void VulkanRenderer::DrawCamera(VkCommandBuffer vkCommandBuffer)
+// {
 
-    for (VulkanCamera* camera: cameraList)
-    {
-        std::array<VkClearValue, 2> clearValues{};
-        clearValues[0].color = {{128/255.0, 204/255.0, 255/255.0, 1.0f}};
-        clearValues[1].depthStencil = {1.0f, 0};
+//     for (VulkanCamera* camera: cameraList)
+//     {
+//         std::array<VkClearValue, 2> clearValues{};
+//         clearValues[0].color = {{128/255.0, 204/255.0, 255/255.0, 1.0f}};
+//         clearValues[1].depthStencil = {1.0f, 0};
 
-        VkRenderPassBeginInfo vkRenderPassInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-        vkRenderPassInfo.renderPass = vkRenderPass.defaultCamera;
-        vkRenderPassInfo.framebuffer = camera->GetFrameBuffer();
-        vkRenderPassInfo.renderArea.extent.height = static_cast<uint32_t>(camera->extent.y);
-        vkRenderPassInfo.renderArea.extent.width = static_cast<uint32_t>(camera->extent.x);
-        vkRenderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        vkRenderPassInfo.pClearValues = clearValues.data();
-        vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+//         VkRenderPassBeginInfo vkRenderPassInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+//         vkRenderPassInfo.renderPass = vkRenderPass.defaultCamera;
+//         vkRenderPassInfo.framebuffer = camera->GetFrameBuffer();
+//         vkRenderPassInfo.renderArea.extent.height = static_cast<uint32_t>(camera->extent.y);
+//         vkRenderPassInfo.renderArea.extent.width = static_cast<uint32_t>(camera->extent.x);
+//         vkRenderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+//         vkRenderPassInfo.pClearValues = clearValues.data();
+//         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(vkCommandBuffer, 
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            pipelines["render"]->pipeline);
+//         vkCmdBindPipeline(vkCommandBuffer, 
+//             VK_PIPELINE_BIND_POINT_GRAPHICS,
+//             pipelines["render"]->pipeline);
 
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = static_cast<uint32_t>(camera->extent.x);
-        viewport.height = static_cast<uint32_t>(camera->extent.y);
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
+//         VkViewport viewport{};
+//         viewport.x = 0.0f;
+//         viewport.y = 0.0f;
+//         viewport.width = static_cast<uint32_t>(camera->extent.x);
+//         viewport.height = static_cast<uint32_t>(camera->extent.y);
+//         viewport.minDepth = 0.0f;
+//         viewport.maxDepth = 1.0f;
+//         vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
 
-        VkRect2D scissor{};
-        scissor.offset = {0, 0};
-        scissor.extent = {
-            static_cast<uint32_t>(camera->extent.x),
-            static_cast<uint32_t>(camera->extent.y)
-        };
-        vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
+//         VkRect2D scissor{};
+//         scissor.offset = {0, 0};
+//         scissor.extent = {
+//             static_cast<uint32_t>(camera->extent.x),
+//             static_cast<uint32_t>(camera->extent.y)
+//         };
+//         vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
 
-        camera->BindDescriptorSet(vkCommandBuffer,
-            pipelines["render"]->pipelineLayout->layout);
-        mainLight->BindDescriptorSet(vkCommandBuffer,
-            pipelines["render"]->pipelineLayout->layout);
+//         camera->BindDescriptorSet(vkCommandBuffer,
+//             pipelines["render"]->pipelineLayout->layout);
+//         mainLight->BindDescriptorSet(vkCommandBuffer,
+//             pipelines["render"]->pipelineLayout->layout);
 
-        ExecuteRecordedCommands(vkCommandBuffer);
+//         ExecuteRecordedCommands(vkCommandBuffer);
 
-        vkCmdEndRenderPass(vkCommandBuffer);
-    }
-}
+//         vkCmdEndRenderPass(vkCommandBuffer);
+//     }
+// }
 
-void VulkanRenderer::AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent)
-{
-    vulkanCamera->Initialize(extent, swapchain->GetImageFormat());
-    cameraList.push_back(vulkanCamera);
+// void VulkanRenderer::AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent)
+// {
+//     vulkanCamera->Initialize(extent, swapchain->GetImageFormat());
+//     cameraList.push_back(vulkanCamera);
 
-    //TODO: need to integrate IMGUI vulkan backend into this renderer
-    VulkanTexture& colorImage = vulkanCamera->GetColorImage();
-    vulkanCamera->cameraTexture = 
-        reinterpret_cast<VkDescriptorSet>(
-        imguiPlugin.MakeTexture(colorImage.vkSampler, colorImage.vkImageView,    
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-}  
+//     //TODO: need to integrate IMGUI vulkan backend into this renderer
+//     VulkanTexture& colorImage = vulkanCamera->GetColorImage();
+//     vulkanCamera->cameraTexture = 
+//         reinterpret_cast<VkDescriptorSet>(
+//         imguiPlugin.MakeTexture(colorImage.vkSampler, colorImage.vkImageView,    
+//                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+// }  
 
-void VulkanRenderer::RemoveCamera(VulkanCamera* vulkanCamera)
-{
-    vulkanCamera->Destroy();
+// void VulkanRenderer::RemoveCamera(VulkanCamera* vulkanCamera)
+// {
+//     vulkanCamera->Destroy();
 
-    for(auto i = cameraList.begin(); i != cameraList.cend(); i++)
-    {
-        if (*i == vulkanCamera)
-        {
-            cameraList.erase(i);
-            return;
-        }
-    }
+//     for(auto i = cameraList.begin(); i != cameraList.cend(); i++)
+//     {
+//         if (*i == vulkanCamera)
+//         {
+//             cameraList.erase(i);
+//             return;
+//         }
+//     }
 
-    Log::Write(Log::Level::Error, "[Vulkan Render] Camera pointer not found.");
-    throw ;
-}
+//     Log::Write(Log::Level::Error, "[Vulkan Render] Camera pointer not found.");
+//     throw ;
+// }
 
-void VulkanRenderer::AddLight(VulkanLight* vulkanLight)
-{
-    mainLight = vulkanLight;
-}
+// void VulkanRenderer::AddLight(VulkanLight* vulkanLight)
+// {
+//     mainLight = vulkanLight;
+// }

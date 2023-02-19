@@ -55,9 +55,10 @@ public:/* Services */
     void RecordCommand(RenderCommand);
     void CleanupCommands();
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
-    void AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent);
-    void RemoveCamera(VulkanCamera* vulkanCamera);
-    void AddLight(VulkanLight* vulkanLight);
+    IVulkanSwapchain* GetSwapchain() {return swapchain;}
+    // void AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent);
+    // void RemoveCamera(VulkanCamera* vulkanCamera);
+    // void AddLight(VulkanLight* vulkanLight);
     //TODO: support light removal or multiple lights
 
 private: /* Private Vulkan helpers */
@@ -94,8 +95,8 @@ private:
 
     std::vector<RenderCommand> commandQueue;
 
-    std::vector<VulkanCamera*> cameraList{};
-    VulkanLight* mainLight;
+    // std::vector<VulkanCamera*> cameraList{};
+    // VulkanLight* mainLight;
 
     bool isEditorEnabled = false;
 };

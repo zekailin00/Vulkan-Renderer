@@ -9,6 +9,9 @@ namespace renderer
 std::shared_ptr<Mesh> VulkanNode::AddMesh(std::shared_ptr<Mesh> mesh)
 {
     this->mesh = mesh;
+
+    //FIXME: read the doc and redo it and functions below 
+
 }
 
 Node* VulkanNode::AddChildNode(std::unique_ptr<Node> node)
