@@ -1,9 +1,13 @@
 #pragma once
 
 #include "mesh.h"
+#include "light.h"
+#include "camera.h"
 
 #include <memory>
-#include <vector>
+#include <list>
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 
 namespace renderer
@@ -18,14 +22,14 @@ public:
      * the old mesh will be returned;
      * otherwise, null pointer is returned.
     */
-    std::shared_ptr<Mesh> AddMesh(std::shared_ptr<Mesh> mesh);
+    virtual std::shared_ptr<Mesh> AddMesh(std::shared_ptr<Mesh> mesh) = 0;
 
     /**
-     * Add a child node to the current node.
+     * Add a child node to the current node and return its pointer as handle.
      * If the node has already parented to another node,
-     * return false.
+     * return nullptr.
     */
-    bool AddChildNode(std::unique_ptr<Node> node);
+    virtual Node* AddChildNode(std::unique_ptr<Node> node) = 0;
 
     /**
      * Remove the child node.
@@ -35,25 +39,34 @@ public:
      * If the node is not parented to the current node,
      * return false.
     */
-    bool RemoveChildNode(Node* node);
+    virtual std::unique_ptr<Node> RemoveChildNode(Node* node) = 0;
 
     /**
      * Get the child node by its index in the list.
      * If the index goes out of bound,
      * it returns nullptr.
     */
-    Node* GetChildNode(unsigned int index);
+    virtual Node* GetChildNode(unsigned int index) = 0;
+
+    virtual glm::mat4 GetTransform() = 0;
+
+    virtual void SetTransform(glm::mat4 transform) = 0;
+
+    Node() = default;
+    virtual ~Node() = default;
 
     // Prevent copy operation
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
 
-private:
+protected:
     std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Light> light;
+    std::shared_ptr<Camera> camera;
 
     // https://cplusplus.com/reference/memory/unique_ptr/get/
     // Node owns its children, and returns raw pointer to users.
-    std::vector<std::unique_ptr<Node>> nodeLists;
+    std::list<std::unique_ptr<Node>> nodeLists;
 };
 
 } // namespace renderer
