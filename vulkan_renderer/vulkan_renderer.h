@@ -1,6 +1,6 @@
 #pragma once 
 
-#include "vulkan/vulkan.h"
+#include "renderer.h"
 
 #include "vk_primitives/vulkan_device.h"
 #include "vk_primitives/vulkan_cmdbuffer.h"
@@ -10,7 +10,9 @@
 #include "pipeline_inputs.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
+#include "render_technique.h"
 
+#include <vulkan/vulkan.h>
 #include <functional>
 #include <string>
 #include <vector>
@@ -23,7 +25,7 @@ namespace renderer
 //typedef void (*RenderCommand)(VkCommandBuffer);
 typedef std::function<void(VkCommandBuffer)> RenderCommand;
 
-class VulkanRenderer
+class VulkanRenderer: public Renderer
 {
 public:
     static VulkanRenderer& GetInstance()
@@ -66,6 +68,8 @@ public:/* Services */
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
     IVulkanSwapchain* GetSwapchain() {return swapchain;}
 
+    Scene* CreateScene() override;
+    Scene* GetScene() override;    
 
 private: /* Private Vulkan helpers */
     VulkanRenderer() = default;
@@ -102,6 +106,8 @@ private:
     IVulkanSwapchain* swapchain = nullptr;
 
     std::vector<RenderCommand> commandQueue;
+
+    RenderTechnique defaultTechnique{};
 };
 
 

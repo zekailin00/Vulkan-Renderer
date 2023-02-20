@@ -16,19 +16,16 @@ public:
      * Returns pointer to root node.
      * Root node is always owned by scene.
     */
-    Node* GetRootNode();
+    virtual Node* GetRootNode() = 0;
 
-    // TODO: create new unique pointer.
-    Scene();
-
-    // TODO: Recursively remove nodes.
-    ~Scene();
+    Scene() = default;
+    virtual ~Scene() = default;
 
     // Prevent copy operation.
     Scene(const Scene&) = delete;
     Scene& operator=(const Scene&) = delete;
 
-private:
+protected:
     std::unique_ptr<Node> rootNode;
 };
     

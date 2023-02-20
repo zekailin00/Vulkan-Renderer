@@ -11,10 +11,10 @@ namespace renderer
 class Renderer
 {
 public:
-    Scene* CreateScene();
-    Scene* GetScene();
+    virtual Scene* CreateScene() = 0;
+    virtual Scene* GetScene() = 0;
     
-private:
+protected:
     std::unique_ptr<Scene> scene; // Owner
 };
 
