@@ -1,6 +1,7 @@
 #include "vulkan_node.h"
 
 #include "vulkan_camera.h"
+#include "vulkan_light.h"
 
 #include <memory>
 #include <utility> // std::move
@@ -15,7 +16,8 @@ std::shared_ptr<Mesh> VulkanNode::GetMesh()
 
 void VulkanNode::SetMesh(std::shared_ptr<Mesh> mesh)
 {
-    if (this->mesh || this->camera || this->light)
+    if (mesh != nullptr &&
+        (this->mesh || this->camera || this->light))
         throw;
     this->mesh = mesh;
 }
@@ -27,9 +29,24 @@ std::shared_ptr<Camera> VulkanNode::GetCamera()
 
 void VulkanNode::SetCamera(std::shared_ptr<Camera> camera)
 {
-    if (this->mesh || this->camera || this->light)
+    if ((camera != nullptr) &&
+        (this->mesh || this->camera || this->light))
         throw;
     this->camera = camera;
+    this->SetTransform(*this->transform); // camera
+}
+
+std::shared_ptr<Light> VulkanNode::GetLight()
+{
+    return light;
+}
+
+void VulkanNode::SetLight(std::shared_ptr<Light> light)
+{
+    if (light != nullptr &&
+        (this->mesh || this->camera || this->light))
+        throw;
+    this->light = light;
     this->SetTransform(*this->transform); // camera
 }
 
@@ -87,6 +104,12 @@ void VulkanNode::SetTransform(glm::mat4 transform)
         std::shared_ptr<VulkanCamera> vkCamera =
             std::dynamic_pointer_cast<VulkanCamera>(this->camera);
         vkCamera->SetTransform(*this->transform);
+    }
+    else if (this->light)
+    {
+        std::shared_ptr<VulkanLight> vkLight =
+            std::dynamic_pointer_cast<VulkanLight>(this->light);
+        vkLight->SetTransform(*this->transform);
     }
 }
 

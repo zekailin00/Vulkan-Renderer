@@ -30,6 +30,10 @@ public:
 
     virtual void SetCamera(std::shared_ptr<Camera> camera) = 0;
 
+    virtual std::shared_ptr<Light> GetLight() = 0;
+
+    virtual void SetLight(std::shared_ptr<Light> light) = 0;
+
     /**
      * Add a child node to the current node and return its pointer as handle.
      * If the node has already parented to another node,

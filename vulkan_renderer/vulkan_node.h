@@ -22,6 +22,11 @@ public:
 
     void SetCamera(std::shared_ptr<Camera> camera) override;
 
+    std::shared_ptr<Light> GetLight() override;
+
+    void SetLight(std::shared_ptr<Light> light) override;
+
+
     Node* AddChildNode(std::unique_ptr<Node> node) override;
     std::unique_ptr<Node> RemoveChildNode(Node* node) override;
     Node* GetChildNode(unsigned int index) override;

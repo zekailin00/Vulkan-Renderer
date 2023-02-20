@@ -2,49 +2,47 @@
 
 #include "vulkan_renderer.h"
 
-#include <array>
+#include <memory>
 
-void VulkanLight::Initialize()
+namespace renderer
 {
-    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
-    VulkanDevice& vulkanDevice = vkr.vulkanDevice;
 
-    lightUniform.Initialize(&vulkanDevice, sizeof(LightProperties));
+std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
+{
+    std::shared_ptr<VulkanLight> light = std::make_shared<VulkanLight>();
 
-    // Create light descriptor set
-    VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("render");
-    pipelineLayout.AllocateDescriptorSet("scene", vkr.FRAME_IN_FLIGHT, &lightDescSet);
-    
-    std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
+    light->properties = prop;
 
-    VkDescriptorBufferInfo propBufferInfo = lightUniform.GetDescriptor();
-    descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite[0].dstSet = lightDescSet;
-    descriptorWrite[0].dstBinding = 0;
-    descriptorWrite[0].dstArrayElement = 0;
-    descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite[0].descriptorCount = 1;
-    descriptorWrite[0].pBufferInfo = &propBufferInfo;
+    // For now it only supports direction light
+    if (light->properties.type != DIRECTIONAL_LIGHT)
+        throw;
 
-    vkUpdateDescriptorSets(vkr.vulkanDevice.vkDevice, descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+    glm::vec3 direction = light->dirLight.direction;
+    light->dirLight.direction = direction / glm::length(direction);
+
+    return light;
 }
 
-LightProperties* VulkanLight::MapCameraUniform()
+void VulkanLight::SetTransform(glm::mat4& transform)
 {
-    return static_cast<LightProperties*>(lightUniform.Map());
+    glm::vec4 up{0, 1, 0, 0};
+    glm::vec3 direction = transform * up; //FIXME: needs to check direction
+    this->dirLight.direction = direction / glm::length(direction);
 }
 
-void VulkanLight::BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout)
+const LightProperties& VulkanLight::GetLightProperties()
 {
-    vkCmdBindDescriptorSets(
-        commandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        layout, 3, 1, 
-        &lightDescSet, 0, nullptr
-    );
+    return this->properties;
+}
+
+void VulkanLight::SetLightProperties(LightProperties& prop)
+{
+    this->properties = prop;
 }
 
 void VulkanLight::Destroy()
 {
-    lightUniform.Destroy();
+    /* Vulkan resources are not handled here. Do nothing. */
 }
+
+} // namespace renderer
