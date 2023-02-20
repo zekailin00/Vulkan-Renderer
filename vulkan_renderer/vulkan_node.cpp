@@ -3,6 +3,7 @@
 #include "vulkan_renderer.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
+#include "vk_primitives/vulkan_pipeline_layout.h"
 
 #include <memory>
 #include <utility> // std::move
@@ -116,11 +117,15 @@ void VulkanNode::SetTransform(glm::mat4 transform)
 
 VulkanNode::VulkanNode()
 {
-    this->vulkanDevice = &VulkanRenderer::GetInstance().vulkanDevice;
+    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    this->vulkanDevice = &vkr.vulkanDevice;
     uniform.Initialize(this->vulkanDevice, sizeof(glm::mat4));
     transform = static_cast<glm::mat4*>(uniform.Map());
+
+    VulkanPipelineLayout& layout = vkr.GetPipelineLayout("render");
+    layout.AllocateDescriptorSet("mesh", vkr.FRAME_IN_FLIGHT, &descSet);
     
-    VkWriteDescriptorSet descriptorWrite;
+    VkWriteDescriptorSet descriptorWrite{};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = this->descSet;
     descriptorWrite.dstBinding = 0;

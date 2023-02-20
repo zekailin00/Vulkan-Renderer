@@ -5,6 +5,11 @@
 #include "logger.h"
 
 
+renderer::Node* Application::GetRootNode()
+{
+    return renderer->GetScene()->GetRootNode();
+}
+
 Application::Application()
 {
     std::cout << "Current path is " << std::filesystem::current_path() << '\n';

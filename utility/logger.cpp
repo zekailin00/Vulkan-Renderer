@@ -17,7 +17,7 @@ void Write(Level severity, const std::string& msg)
 
     std::cout << msg << std::endl;
     if (severity == Log::Level::Error)
-        exit(1);
+        throw;
     return;
 }
 }  // namespace Log

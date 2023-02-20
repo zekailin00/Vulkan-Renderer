@@ -1,19 +1,26 @@
 #include "application.h"
-#include "renderer.h"
-#include "vulkan_renderer.h"
 
 #include <iostream>
 
+using namespace renderer;
 
 class TestApp: public Application
 {
     void OnCreated() override;
     void OnUpdated() override;
     void OnDestroy() override;
+
+
+
 };
 
 void TestApp::OnCreated()
 {
+    Node* root = renderer->CreateScene()->GetRootNode();
+    std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
+
+    Node* nodePtr;
+    nodePtr = root->AddChildNode(std::move(node));
 
 }
 

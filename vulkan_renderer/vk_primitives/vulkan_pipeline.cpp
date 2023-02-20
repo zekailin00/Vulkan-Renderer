@@ -117,7 +117,7 @@ void VulkanPipeline::BuildPipeline(
     vkPipelineInfo.layout = pipelineLayout->layout;
     vkPipelineInfo.renderPass = renderPass;
 
-    pipelineLayout = std::move(pipelineLayout);
+    this->pipelineLayout = std::move(pipelineLayout);
 
     CHECK_VKCMD(vkCreateGraphicsPipelines(
         device, VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &pipeline));  
