@@ -19,7 +19,7 @@ void ImguiPlugin::InitializePlugin(ImGui_ImplVulkan_InitInfo& imguiVulkanInitInf
     io.Fonts->AddFontFromFileTTF("resources/KGPrimaryPenmanship.ttf", 18.0f);
 
     VulkanSingleCmd cmd{};
-    cmd.Initialize(&VulkanRenderer::GetInstance().vulkanDevice);
+    cmd.Initialize(&renderer::VulkanRenderer::GetInstance().vulkanDevice);
     VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
     
     ImGui_ImplVulkan_CreateFontsTexture(vkCommandBuffer);

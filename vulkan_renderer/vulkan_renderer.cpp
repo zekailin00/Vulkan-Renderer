@@ -38,6 +38,10 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 }
 #endif
 
+
+namespace renderer
+{
+
 void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** extensions)
 {
     VkResult err;
@@ -144,8 +148,8 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     imguiVulkanInitInfo.QueueFamily = vulkanDevice.graphicsIndex;
     imguiVulkanInitInfo.Subpass = 0;
 
-    // Use any command buffer. vkDeviceWaitIdle will wait until all are executed.
-    imguiPlugin.InitializePlugin(imguiVulkanInitInfo, vkRenderPass.display);
+    // // Use any command buffer. vkDeviceWaitIdle will wait until all are executed.
+    // imguiPlugin.InitializePlugin(imguiVulkanInitInfo, vkRenderPass.display);
 
     Log::Write(Log::Level::Info, "Size of RenderCommand: " + std::to_string(sizeof(RenderCommand)));
 }
@@ -346,7 +350,7 @@ void VulkanRenderer::CreatePipelines()
 
 void VulkanRenderer::BeginFrame()
 {
-    imguiPlugin.BeginFrame();
+    // imguiPlugin.BeginFrame();
 }
 
 void VulkanRenderer::EndFrame()
@@ -359,6 +363,7 @@ void VulkanRenderer::EndFrame()
 
     int imageIndex = swapchain->GetNextImageIndex(imageAcquiredSemaphore);
 
+    // Initialize swapchain image
     VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
     VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
     vkRenderPassinfo.renderPass = vkRenderPass.display;
@@ -369,11 +374,11 @@ void VulkanRenderer::EndFrame()
     vkRenderPassinfo.pClearValues = &clearValue;
     vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    imguiPlugin.EndFrame(vkCommandBuffer);
+    // imguiPlugin.EndFrame(vkCommandBuffer);
 
     vkCmdEndRenderPass(vkCommandBuffer);
 
-    DrawCamera(vkCommandBuffer);
+    // DrawCamera(vkCommandBuffer);
 
     vcb.EndCommand();
 
@@ -503,3 +508,6 @@ VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 // {
 //     mainLight = vulkanLight;
 // }
+
+
+} // namespace renderer

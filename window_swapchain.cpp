@@ -6,7 +6,7 @@
 
 void WindowSwapchain::Initialize()
 {
-    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     //TODO: select other available swapchain properties by the caller
     // Swapchain settings
@@ -60,7 +60,7 @@ void WindowSwapchain::Initialize()
 
 void WindowSwapchain::Destroy()
 {
-    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     for (size_t i = 0; i < imageViews.size(); i++) 
         vkDestroyImageView(vkr.vulkanDevice.vkDevice, imageViews[i], nullptr);
@@ -71,7 +71,7 @@ void WindowSwapchain::Destroy()
 uint32_t WindowSwapchain::GetNextImageIndex(VkSemaphore imageAcquiredSemaphores)
 {
     uint32_t imageIndex; 
-    VkDevice vkd = VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
+    VkDevice vkd = renderer::VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
     VkResult result = vkAcquireNextImageKHR(vkd, vkSwapchain, UINT64_MAX, imageAcquiredSemaphores, VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
         swapchainRebuild = true;
@@ -88,7 +88,7 @@ void WindowSwapchain::PresentImage(VkSemaphore renderFinishedSemaphores, uint32_
     vkPresentInfo.swapchainCount = 1;
     vkPresentInfo.pSwapchains = &vkSwapchain;
     vkPresentInfo.pImageIndices = &imageIndex;
-    VkResult result = vkQueuePresentKHR(VulkanRenderer::GetInstance().vulkanDevice.graphicsQueue, &vkPresentInfo);
+    VkResult result = vkQueuePresentKHR(renderer::VulkanRenderer::GetInstance().vulkanDevice.graphicsQueue, &vkPresentInfo);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
         swapchainRebuild = true;
 }
@@ -102,7 +102,7 @@ void WindowSwapchain::RebuildSwapchain()
 
 void WindowSwapchain::GetSwapChainProperties()
 {
-    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &vkSurfaceCapabilities);
 

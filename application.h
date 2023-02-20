@@ -10,9 +10,12 @@ public:
     ~Application();
 
     void Run();
-    virtual void Build() = 0;
+protected:
+    virtual void OnCreated() = 0;
+    virtual void OnUpdated() = 0;
+    virtual void OnDestroy() = 0;
 
 private:
     GlfwWindow* window = nullptr;
-    VulkanRenderer* renderer = nullptr;
+    renderer::VulkanRenderer* renderer = nullptr;
 };
