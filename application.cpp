@@ -9,7 +9,7 @@ Application::Application()
 {
     std::cout << "Current path is " << std::filesystem::current_path() << '\n';
     GlfwWindow& window = GlfwWindow::GetInstance();
-    VulkanRenderer& renderer = VulkanRenderer::GetInstance();
+    renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
 
     renderer.InitializeDevice(window.extensionsCount, window.extensions);
     window.InitializeWindow();
@@ -35,11 +35,13 @@ Application::~Application()
 
 void Application::Run()
 {
+    OnCreated();
     while (!window->ShouldClose()) 
     {
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-        Build();
+        OnUpdated();
         renderer->EndFrame();
     }
+    OnDestroy();
 }

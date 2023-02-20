@@ -26,7 +26,7 @@ GlfwWindow::GlfwWindow()
 
 void GlfwWindow::InitializeWindow()
 {
-    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(1280, 720, "Vulkan Renderer", NULL, NULL);
@@ -49,7 +49,7 @@ void GlfwWindow::InitializeWindow()
 
 void GlfwWindow::RegisterPeripherals()
 {
-    ImGui_ImplGlfw_InitForVulkan(window, true);
+    // ImGui_ImplGlfw_InitForVulkan(window, true);
 }
 
 bool GlfwWindow::ShouldClose()
@@ -73,16 +73,16 @@ void GlfwWindow::BeginFrame()
             glfwWaitEvents();
         }
 
-        VulkanRenderer::GetInstance().RebuildSwapchain();
+        renderer::VulkanRenderer::GetInstance().RebuildSwapchain();
         windowSwapchain.swapchainRebuild = false;
     }
 
-    ImGui_ImplGlfw_NewFrame();     
+    // ImGui_ImplGlfw_NewFrame();     
 }
 
 void GlfwWindow::CloseWindow()
 {
-    ImGui_ImplGlfw_Shutdown();
+    // ImGui_ImplGlfw_Shutdown();
 }
 
 void GlfwWindow::Destroy()

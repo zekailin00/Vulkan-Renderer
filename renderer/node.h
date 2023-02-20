@@ -1,31 +1,46 @@
 #pragma once
 
 #include "mesh.h"
+#include "light.h"
+#include "camera.h"
 
 #include <memory>
-#include <vector>
+#include <list>
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 
 namespace renderer
 {
 
+/**
+ * Contains resourses used in renderer.
+ * Each node can contain only one mesh, camera, or light.
+ * Only one of the three pointers can be not nullptr.
+*/
 class Node
 {
 public:
-    /**
-     * Add a mesh to the current node.
-     * If the node has already contained a mesh,
-     * the old mesh will be returned;
-     * otherwise, null pointer is returned.
-    */
-    std::shared_ptr<Mesh> AddMesh(std::shared_ptr<Mesh> mesh);
+
+    virtual std::shared_ptr<Mesh> GetMesh() = 0;
+
+    virtual void SetMesh(std::shared_ptr<Mesh> mesh) = 0;
+
+    virtual std::shared_ptr<Camera> GetCamera() = 0;
+
+    virtual void SetCamera(std::shared_ptr<Camera> camera) = 0;
+
+    virtual std::shared_ptr<Light> GetLight() = 0;
+
+    virtual void SetLight(std::shared_ptr<Light> light) = 0;
 
     /**
-     * Add a child node to the current node.
+     * Add a child node to the current node and return its pointer as handle.
      * If the node has already parented to another node,
-     * return false.
+     * return nullptr.
+     * TODO: currently no protection agaist tree being cyclic.
     */
-    bool AddChildNode(std::unique_ptr<Node> node);
+    virtual Node* AddChildNode(std::unique_ptr<Node> node) = 0;
 
     /**
      * Remove the child node.
@@ -33,27 +48,37 @@ public:
      * so if each of the grandchildren only has only one reference,
      * they can all be freed.
      * If the node is not parented to the current node,
-     * return false.
+     * return nullptr.
+     * TODO: currently no protection agaist tree being cyclic.
     */
-    bool RemoveChildNode(Node* node);
+    virtual std::unique_ptr<Node> RemoveChildNode(Node* node) = 0;
 
     /**
      * Get the child node by its index in the list.
      * If the index goes out of bound,
      * it returns nullptr.
     */
-    Node* GetChildNode(unsigned int index);
+    virtual Node* GetChildNode(unsigned int index) = 0;
+
+    virtual glm::mat4 GetTransform() = 0;
+
+    virtual void SetTransform(glm::mat4 transform) = 0;
+
+    Node() = default;
+    virtual ~Node() = default;
 
     // Prevent copy operation
     Node(const Node&) = delete;
     Node& operator=(const Node&) = delete;
 
-private:
+protected:
     std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Light> light;
+    std::shared_ptr<Camera> camera;
 
     // https://cplusplus.com/reference/memory/unique_ptr/get/
     // Node owns its children, and returns raw pointer to users.
-    std::vector<std::unique_ptr<Node>> nodeLists;
+    std::list<std::unique_ptr<Node>> nodeLists;
 };
 
 } // namespace renderer

@@ -5,6 +5,7 @@
 
 #include "texture.h"
 
+
 namespace renderer
 {
 
@@ -27,7 +28,6 @@ class Material
 {
 
 public:
-
     virtual MaterialProperties* GetProperties() = 0;
     virtual void ResetProperties() = 0;
 

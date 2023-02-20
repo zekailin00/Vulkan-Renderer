@@ -7,7 +7,6 @@
 #include "vk_primitives/vulkan_pipeline.h"
 #include "vulkan_swapchain.h"
 #include "vulkan_texture.h"
-#include "imgui_plugin.h"
 #include "pipeline_inputs.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
@@ -17,13 +16,14 @@
 #include <vector>
 #include <map>
 
+namespace renderer
+{
+
 
 //typedef void (*RenderCommand)(VkCommandBuffer);
 typedef std::function<void(VkCommandBuffer)> RenderCommand;
 
-struct EditorViewport;
-
-class VulkanRenderer 
+class VulkanRenderer
 {
 public:
     static VulkanRenderer& GetInstance()
@@ -33,7 +33,6 @@ public:
     }
 
     /* Update loop APIs */
-
     void InitializeDevice(uint32_t extensionsCount, const char** extensions);
     void AllocateResources(IVulkanSwapchain* swapchain);
     void BeginFrame();
@@ -50,18 +49,27 @@ public:
         VkRenderPass display;
         VkRenderPass defaultCamera;
     } vkRenderPass;
+    /**
+     * FIXME:
+     * How to refactor renderpass
+     * * a single renderpass can be used for multiple framebuffers and multiple pipelines
+     * so to handle it:
+     * create an abstract base class as render context (framebuffer)
+     * each child of abstract base class has to implement a renderpass
+     * so that each instance(framebuffer) share one same renderpass, 
+     * and can pass the renderpass to pipeline builder.
+    */
 
 public:/* Services */
     void RecordCommand(RenderCommand);
     void CleanupCommands();
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
-    void AddCamera(VulkanCamera* vulkanCamera, glm::vec2 extent);
-    void RemoveCamera(VulkanCamera* vulkanCamera);
-    void AddLight(VulkanLight* vulkanLight);
-    //TODO: support light removal or multiple lights
+    IVulkanSwapchain* GetSwapchain() {return swapchain;}
+
 
 private: /* Private Vulkan helpers */
     VulkanRenderer() = default;
+    ~VulkanRenderer() = default;
     VulkanRenderer(VulkanRenderer const&) = delete;
     void operator=(VulkanRenderer const&) = delete;
 
@@ -73,7 +81,6 @@ private: /* Private Vulkan helpers */
     void DestroyFramebuffers();
 
     void ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer);
-    void DrawCamera(VkCommandBuffer vkCommandBuffer);
 
 public:
     // Descriptor Sets do not support multiple frames in flight.
@@ -85,17 +92,17 @@ public:
 private:
     VkDescriptorPool vkDescriptorPool;
 
+    // Framebuffers are created from images returned from the window system
     std::vector<VkFramebuffer> vkFramebuffers;
+    
     VulkanCmdBuffer vulkanCmdBuffer;
+
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
 
     IVulkanSwapchain* swapchain = nullptr;
-    ImguiPlugin imguiPlugin;
 
     std::vector<RenderCommand> commandQueue;
-
-    std::vector<VulkanCamera*> cameraList{};
-    VulkanLight* mainLight;
-
-    bool isEditorEnabled = false;
 };
+
+
+} // namespace renderer

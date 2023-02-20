@@ -4,131 +4,204 @@
 #include "validation.h"
 
 #include <array>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp> 
 
-void VulkanCamera::Initialize(glm::vec2 extent, VkFormat vkFormat)
+
+namespace renderer
 {
+
+std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& properties)
+{
+    std::shared_ptr<VulkanCamera> camera = std::make_unique<VulkanCamera>();
+
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
-    VulkanDevice& vulkanDevice = vkr.vulkanDevice;
-    this->extent = extent;
+    camera->vulkanDevice = &vkr.vulkanDevice;
+    camera->swapchain = vkr.GetSwapchain();
+
+    camera->properties = properties;
+    if (camera->properties.UseFrameExtent)
+    {
+        camera->properties.Extent.x = camera->swapchain->GetWidth();
+        camera->properties.Extent.y = camera->swapchain->GetHeight();
+        //TODO: needs to be tested, extent values from swapchain interface.
+    }
 
     // Create color image
-    colorImage.CreateImage(
-        {static_cast<uint32_t>(extent.x), static_cast<uint32_t>(extent.y)},
-        vkFormat,
+    camera->colorImage.CreateImage({
+            static_cast<unsigned int>(camera->properties.Extent.x),
+            static_cast<unsigned int>(camera->properties.Extent.y)},
+        camera->swapchain->GetImageFormat(),
         VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
-    colorImage.CreateSampler();
+    camera->colorImage.CreateSampler();
 
-    cameraUniform.Initialize(&vulkanDevice, sizeof(ViewProjection));
+    camera->cameraUniform.Initialize(camera->vulkanDevice, sizeof(ViewProjection));
+    camera->vpMap = static_cast<ViewProjection*>(camera->cameraUniform.Map());
+    camera->vpMap->projection = glm::perspective(
+        glm::radians(camera->properties.Fov),
+        camera->properties.Extent.x/camera->properties.Extent.y,
+        camera->properties.ZNear, camera->properties.ZFar);
+    camera->vpMap->view = glm::mat4(1.0f);
 
     // Create depth image
     {
         VkImageCreateInfo imageInfo{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
         imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = static_cast<uint32_t>(extent.x);
-        imageInfo.extent.height = static_cast<uint32_t>(extent.y);
+        imageInfo.extent.width = camera->properties.Extent.x;
+        imageInfo.extent.height = camera->properties.Extent.y;
         imageInfo.extent.depth = 1;
         imageInfo.mipLevels = 1;
         imageInfo.arrayLayers = 1;
-        imageInfo.format = vulkanDevice.GetDepthFormat();
+        imageInfo.format = camera->vulkanDevice->GetDepthFormat();
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT ;
         imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        CHECK_VKCMD(vkCreateImage(vulkanDevice.vkDevice, &imageInfo, nullptr, &depthImage));
+        CHECK_VKCMD(vkCreateImage(
+            camera->vulkanDevice->vkDevice, &imageInfo, nullptr, &camera->depthImage));
 
         VkMemoryRequirements memRequirements{};
-        vkGetImageMemoryRequirements(vulkanDevice.vkDevice, depthImage, &memRequirements);
+        vkGetImageMemoryRequirements(
+            camera->vulkanDevice->vkDevice, camera->depthImage, &memRequirements);
         VkMemoryAllocateInfo allocInfo{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-        CHECK_VKCMD(vkAllocateMemory(vulkanDevice.vkDevice, &allocInfo, nullptr, &depthMemory));
-        CHECK_VKCMD(vkBindImageMemory(vulkanDevice.vkDevice, depthImage, depthMemory, 0));
+        allocInfo.memoryTypeIndex = camera->vulkanDevice->GetMemoryTypeIndex(
+            memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        CHECK_VKCMD(vkAllocateMemory(
+            camera->vulkanDevice->vkDevice, &allocInfo, nullptr, &camera->depthMemory));
+        CHECK_VKCMD(vkBindImageMemory(
+            camera->vulkanDevice->vkDevice, camera->depthImage, camera->depthMemory, 0));
 
         VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-        depthViewInfo.image = depthImage;
+        depthViewInfo.image = camera->depthImage;
         depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        depthViewInfo.format = vulkanDevice.GetDepthFormat();;
+        depthViewInfo.format = camera->vulkanDevice->GetDepthFormat();;
         depthViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         depthViewInfo.subresourceRange.baseMipLevel = 0;
         depthViewInfo.subresourceRange.levelCount = 1;
         depthViewInfo.subresourceRange.baseArrayLayer = 0;
         depthViewInfo.subresourceRange.layerCount = 1;
 
-        CHECK_VKCMD(vkCreateImageView(vulkanDevice.vkDevice, &depthViewInfo, nullptr, &depthImageView));
+        CHECK_VKCMD(vkCreateImageView(
+            camera->vulkanDevice->vkDevice, &depthViewInfo,
+            nullptr, &camera->depthImageView));
 
         VkImageViewCreateInfo stencilViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-        stencilViewInfo.image = depthImage;
+        stencilViewInfo.image = camera->depthImage;
         stencilViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        stencilViewInfo.format = vulkanDevice.GetDepthFormat();;
+        stencilViewInfo.format = camera->vulkanDevice->GetDepthFormat();
         stencilViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
         stencilViewInfo.subresourceRange.baseMipLevel = 0;
         stencilViewInfo.subresourceRange.levelCount = 1;
         stencilViewInfo.subresourceRange.baseArrayLayer = 0;
         stencilViewInfo.subresourceRange.layerCount = 1;
 
-        CHECK_VKCMD(vkCreateImageView(vulkanDevice.vkDevice, &stencilViewInfo, nullptr, &stencilImageView));
+        CHECK_VKCMD(vkCreateImageView(
+            camera->vulkanDevice->vkDevice, &stencilViewInfo,
+            nullptr, &camera->stencilImageView));
     }
 
-    std::vector<VkImageView> attachments = {colorImage.vkImageView, depthImageView};
-    VkFramebufferCreateInfo vkFramebufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+    std::vector<VkImageView> attachments =
+        {camera->colorImage.GetImageView(), camera->depthImageView};
+    VkFramebufferCreateInfo vkFramebufferCreateInfo{
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     vkFramebufferCreateInfo.renderPass = vkr.vkRenderPass.defaultCamera;
     vkFramebufferCreateInfo.attachmentCount = attachments.size();
     vkFramebufferCreateInfo.pAttachments = attachments.data();
-    vkFramebufferCreateInfo.width = static_cast<uint32_t>(extent.x);
-    vkFramebufferCreateInfo.height = static_cast<uint32_t>(extent.y);
+    vkFramebufferCreateInfo.width = camera->properties.Extent.x;
+    vkFramebufferCreateInfo.height = camera->properties.Extent.y; //TODO:CHECK
     vkFramebufferCreateInfo.layers = 1;
 
     CHECK_VKCMD(vkCreateFramebuffer(
-        vulkanDevice.vkDevice, 
+        camera->vulkanDevice->vkDevice, 
         &vkFramebufferCreateInfo, nullptr,
-        &framebuffer));
+        &camera->framebuffer));
 
 
     // Create camera descriptor set
     VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("render");
-    pipelineLayout.AllocateDescriptorSet("camera", vkr.FRAME_IN_FLIGHT, &cameraDescSet);
+    pipelineLayout.AllocateDescriptorSet(
+        "camera", vkr.FRAME_IN_FLIGHT, &camera->cameraDescSet);
     
     std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
 
-    VkDescriptorBufferInfo propBufferInfo = cameraUniform.GetDescriptor();
     descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite[0].dstSet = cameraDescSet;
+    descriptorWrite[0].dstSet = camera->cameraDescSet;
     descriptorWrite[0].dstBinding = 0;
     descriptorWrite[0].dstArrayElement = 0;
     descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrite[0].descriptorCount = 1;
-    descriptorWrite[0].pBufferInfo = &propBufferInfo;
+    descriptorWrite[0].pBufferInfo = camera->cameraUniform.GetDescriptor();
 
-    vkUpdateDescriptorSets(vkr.vulkanDevice.vkDevice, descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+    vkUpdateDescriptorSets(camera->vulkanDevice->vkDevice,
+        descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+
+    return camera;
 }
 
-ViewProjection* VulkanCamera::MapCameraUniform()
+// ViewProjection* VulkanCamera::MapCameraUniform()
+// {
+//     return static_cast<ViewProjection*>(cameraUniform.Map());
+// }
+
+// void VulkanCamera::BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout)
+// {
+//     vkCmdBindDescriptorSets(
+//         commandBuffer, 
+//         VK_PIPELINE_BIND_POINT_GRAPHICS, 
+//         layout, 2, 1, 
+//         &cameraDescSet, 0, nullptr
+//     );
+// }
+
+const CameraProperties& VulkanCamera::GetCamProperties()
 {
-    return static_cast<ViewProjection*>(cameraUniform.Map());
+    return this->properties;
 }
 
-void VulkanCamera::BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout)
+void VulkanCamera::SetCamProperties(CameraProperties& properties)
 {
-    vkCmdBindDescriptorSets(
-        commandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        layout, 2, 1, 
-        &cameraDescSet, 0, nullptr
-    );
+    this->properties = properties;
+    vpMap->projection = glm::perspective(
+        glm::radians(this->properties.Fov),
+        this->properties.Extent.x/this->properties.Extent.y,
+        this->properties.ZNear, this->properties.ZFar);
+}
+
+const glm::mat4& VulkanCamera::GetTransform()
+{
+    return this->vpMap->view;
+}
+
+void VulkanCamera::SetTransform(glm::mat4& transform)
+{
+    this->vpMap->view = transform;
+}
+
+VulkanCamera::~VulkanCamera()
+{
+    Destroy();
 }
 
 void VulkanCamera::Destroy()
 {
+    vkDeviceWaitIdle(vulkanDevice->vkDevice);
+
     colorImage.Destroy();
     cameraUniform.Destroy();
 
-    VulkanDevice& vulkanDevice = VulkanRenderer::GetInstance().vulkanDevice;
-    vkDestroyImageView(vulkanDevice.vkDevice, depthImageView, nullptr);
-    vkDestroyImageView(vulkanDevice.vkDevice, stencilImageView, nullptr);
+    vkDestroyImageView(vulkanDevice->vkDevice, depthImageView, nullptr);
+    vkDestroyImageView(vulkanDevice->vkDevice, stencilImageView, nullptr);
 
-    vkDestroyImage(vulkanDevice.vkDevice, depthImage, nullptr);
-    vkFreeMemory(vulkanDevice.vkDevice, depthMemory, nullptr);
+    vkDestroyImage(vulkanDevice->vkDevice, depthImage, nullptr);
+    vkFreeMemory(vulkanDevice->vkDevice, depthMemory, nullptr);
 
-    vkDestroyFramebuffer(vulkanDevice.vkDevice,framebuffer, nullptr);
+    vkDestroyFramebuffer(vulkanDevice->vkDevice,framebuffer, nullptr);
+
+    vulkanDevice = nullptr;
+    swapchain = nullptr;
+    vpMap = nullptr;
 }
+
+} // namespace renderer

@@ -232,8 +232,6 @@ void VulkanTexture::Destroy()
 
 std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo)
 {
-    BuildEmptyTexture();
-
     std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
 
@@ -290,15 +288,16 @@ std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo
     return texture;
 }
 
-void VulkanTexture::BuildEmptyTexture()
+std::shared_ptr<VulkanTexture> VulkanTexture::GetDefaultTexture()
 {
-    static bool built = false;
-    if (!built)
-    {// FIXME: not destroyed
-        built = true;
-        nullTexture.LoadImageFromFile("resources/textures/defaultTexture.png");
-        nullTexture.CreateSampler();
+    if (defaultTexture == nullptr)
+    {
+        defaultTexture = std::make_shared<VulkanTexture>();
+        defaultTexture->LoadImageFromFile("resources/textures/defaultTexture.png");
+        defaultTexture->CreateSampler();
     }
+
+    return defaultTexture;
 }
 
 VulkanTexture::~VulkanTexture()

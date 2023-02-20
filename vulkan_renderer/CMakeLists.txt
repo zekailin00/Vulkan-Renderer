@@ -39,6 +39,7 @@ target_include_directories(VulkanRenderer PUBLIC
 target_link_libraries(VulkanRenderer 
     ${Vulkan_LIBRARY}
     utility
+    glm
 )
 
 

@@ -1,19 +1,32 @@
 #include "application.h"
 #include "renderer.h"
+#include "vulkan_renderer.h"
 
 #include <iostream>
 
 
 class TestApp: public Application
 {
-    void Build() override;
+    void OnCreated() override;
+    void OnUpdated() override;
+    void OnDestroy() override;
 };
 
-void TestApp::Build()
+void TestApp::OnCreated()
+{
+
+}
+
+void TestApp::OnUpdated()
 {
     // static int i = 0;
     // i++;
     // std::cout << "running: " << i << std::endl; 
+}
+
+void TestApp::OnDestroy()
+{
+
 }
 
 int main(int argv, char** argc)
