@@ -12,6 +12,8 @@
 namespace renderer
 {
 
+std::shared_ptr<VulkanTexture> VulkanTexture::defaultTexture;
+
 void VulkanTexture::CreateImage(
     VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
 {

@@ -9,6 +9,8 @@
 namespace renderer
 {
 
+std::shared_ptr<VulkanMaterial> VulkanMaterial::defaultMaterial;
+
 std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop)
 {
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();

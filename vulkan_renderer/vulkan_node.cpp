@@ -1,5 +1,6 @@
 #include "vulkan_node.h"
 
+#include "vulkan_renderer.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
 

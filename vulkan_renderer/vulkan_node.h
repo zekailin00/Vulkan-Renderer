@@ -5,7 +5,6 @@
 #include "vk_primitives/vulkan_uniform.h"
 #include "vk_primitives/vulkan_device.h"
 
-#include "vulkan_renderer.h"
 
 namespace renderer
 {
