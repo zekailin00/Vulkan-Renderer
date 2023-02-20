@@ -4,6 +4,7 @@
 #include "pipeline_inputs.h"
 #include "vulkan_utilities.h"
 #include "vulkan_texture.h"
+#include "vulkan_scene.h"
 
 #include "vk_primitives/vulkan_vertexbuffer.h"
 #include "vk_primitives/vulkan_device.h"
@@ -23,6 +24,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <memory>
 #include <stddef.h> // offset(type, member)
 
 #define VULKAN_DEBUG_REPORT
@@ -355,6 +357,9 @@ void VulkanRenderer::BeginFrame()
 
 void VulkanRenderer::EndFrame()
 {
+    if (scene)
+        defaultTechnique.ProcessScene(static_cast<VulkanNode*>(scene->GetRootNode()));
+
     VulkanCmdBuffer& vcb = vulkanCmdBuffer;
 
     VkCommandBuffer vkCommandBuffer = vcb.BeginCommand();
@@ -374,7 +379,7 @@ void VulkanRenderer::EndFrame()
     vkRenderPassinfo.pClearValues = &clearValue;
     vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    // imguiPlugin.EndFrame(vkCommandBuffer);
+    defaultTechnique.ExecuteCommand(vkCommandBuffer);
 
     vkCmdEndRenderPass(vkCommandBuffer);
 
@@ -423,6 +428,20 @@ VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 {
     return *(pipelines[name]->pipelineLayout);
 }
+
+Scene* VulkanRenderer::CreateScene()
+{
+    this->scene = std::make_unique<VulkanScene>();
+    return &(*this->scene);
+}
+
+Scene* VulkanRenderer::GetScene()
+{
+    if (!scene)
+        throw;
+    return &(*this->scene);
+}
+
 
 // void VulkanRenderer::DrawCamera(VkCommandBuffer vkCommandBuffer)
 // {
