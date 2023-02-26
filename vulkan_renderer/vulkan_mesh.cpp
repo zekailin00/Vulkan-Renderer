@@ -64,6 +64,11 @@ void VulkanMesh::RemoveMaterial()
     this->material = VulkanMaterial::GetDefaultMaterial();
 }
 
+VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()
+{
+    return this->vertexbuffer;
+}
+
 VulkanMesh::~VulkanMesh()
 {
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();

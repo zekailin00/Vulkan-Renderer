@@ -394,6 +394,8 @@ void VulkanRenderer::EndFrame()
 
 void VulkanRenderer::DeallocateResources()
 {
+    this->scene.reset();
+
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
     swapchain->Destroy();
     vulkanCmdBuffer.Destroy();

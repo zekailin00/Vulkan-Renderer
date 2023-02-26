@@ -6,8 +6,12 @@
 #include "vk_primitives/vulkan_device.h"
 
 
+
 namespace renderer
 {
+
+// Forward declaration
+class RenderTechnique;
 
 class VulkanNode: public Node
 {
@@ -41,6 +45,8 @@ public:
     */
     VulkanNode();
     ~VulkanNode() override;
+
+    friend RenderTechnique;
 
 private:
     VulkanUniform uniform{};
