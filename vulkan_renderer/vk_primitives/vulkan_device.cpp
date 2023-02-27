@@ -71,7 +71,7 @@ void VulkanDevice::InitializeLogicalDevice(std::vector<const char*> extensions)
         if (std::strcmp(extensionProperty.extensionName, "VK_KHR_portability_subset") == 0)
             extensions.push_back("VK_KHR_portability_subset");
         if (std::strcmp(extensionProperty.extensionName, VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME) == 0)
-            extensions.push_back(VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME);
+            extensions.push_back(VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME); // std430 layout 
     }
 
 
