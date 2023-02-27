@@ -39,7 +39,8 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     camera->vpMap = static_cast<ViewProjection*>(camera->cameraUniform.Map());
     camera->vpMap->projection = glm::perspective(
         glm::radians(camera->properties.Fov),
-        camera->properties.Extent.x/camera->properties.Extent.y,
+        static_cast<float>(camera->properties.Extent.x)
+            /static_cast<float>(camera->properties.Extent.y),
         camera->properties.ZNear, camera->properties.ZFar);
     camera->vpMap->view = glm::mat4(1.0f);
 
@@ -165,7 +166,8 @@ void VulkanCamera::SetCamProperties(CameraProperties& properties)
     this->properties = properties;
     vpMap->projection = glm::perspective(
         glm::radians(this->properties.Fov),
-        this->properties.Extent.x/this->properties.Extent.y,
+        static_cast<float>(this->properties.Extent.x)
+            /static_cast<float>(this->properties.Extent.y),
         this->properties.ZNear, this->properties.ZFar);
 }
 

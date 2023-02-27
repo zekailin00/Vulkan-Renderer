@@ -69,6 +69,11 @@ VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()
     return this->vertexbuffer;
 }
 
+VulkanMaterial& VulkanMesh::GetVulkanMaterial()
+{
+    return *std::static_pointer_cast<VulkanMaterial>(this->material);;
+}
+
 VulkanMesh::~VulkanMesh()
 {
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();

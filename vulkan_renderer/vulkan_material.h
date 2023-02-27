@@ -42,6 +42,8 @@ public:
     void ResetSmoothnessTexture() override;
     void ResetNormalTexture() override;
 
+    VkDescriptorSet* GetDescriptorSet() {return &descriptorSet;}
+
 private:
     void Destory();
 
