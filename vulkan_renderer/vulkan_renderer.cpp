@@ -133,6 +133,7 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     CreateRenderPasses();
     CreatePipelines();
     CreateFramebuffers();
+    defaultTechnique.Initialize(&vulkanDevice);
 
     // Initialize ImGui Plugin
     ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo{};
@@ -429,6 +430,11 @@ void VulkanRenderer::CleanupCommands()
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 {
     return *(pipelines[name]->pipelineLayout);
+}
+
+VulkanPipeline& VulkanRenderer::GetPipeline(std::string name)
+{
+    return *(pipelines[name].get());
 }
 
 Scene* VulkanRenderer::CreateScene()

@@ -66,6 +66,7 @@ public:/* Services */
     void RecordCommand(RenderCommand);
     void CleanupCommands();
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
+    VulkanPipeline& GetPipeline(std::string name);
     IVulkanSwapchain* GetSwapchain() {return swapchain;}
 
     Scene* CreateScene() override;
