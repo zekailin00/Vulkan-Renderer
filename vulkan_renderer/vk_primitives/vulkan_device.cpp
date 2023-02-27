@@ -67,8 +67,13 @@ void VulkanDevice::InitializeLogicalDevice(std::vector<const char*> extensions)
     //TODO: check all extensions are supported.
     // Enable portability for Apple support if it is included.
     for(auto extensionProperty: vkExtensionProperties)
+    {
         if (std::strcmp(extensionProperty.extensionName, "VK_KHR_portability_subset") == 0)
             extensions.push_back("VK_KHR_portability_subset");
+        if (std::strcmp(extensionProperty.extensionName, VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME) == 0)
+            extensions.push_back(VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME);
+    }
+
 
     VkDeviceCreateInfo vkDeviceCreateInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
     vkDeviceCreateInfo.queueCreateInfoCount = 1;
