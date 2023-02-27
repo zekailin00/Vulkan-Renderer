@@ -324,12 +324,25 @@ void VulkanRenderer::CreatePipelines()
 
     layoutBuilder.PushDescriptorSetLayout("mesh",
     {
+        /*
+        layout (set = 1, binding = 0) uniform MeshCoordinates
+        {
+            mat4 model;
+        } m;
+        */
         layoutBuilder.descriptorSetLayoutBinding(
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
     });
 
     layoutBuilder.PushDescriptorSetLayout("camera",
     {
+        /*
+        layout (set = 2, binding = 0) uniform ViewProjection 
+        {
+            mat4 view;
+            mat4 projection;        
+        } vp;
+        */
         layoutBuilder.descriptorSetLayoutBinding(
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
     });
@@ -369,6 +382,8 @@ void VulkanRenderer::EndFrame()
 
     int imageIndex = swapchain->GetNextImageIndex(imageAcquiredSemaphore);
 
+    defaultTechnique.ExecuteCommand(vkCommandBuffer);
+
     // Initialize swapchain image
     VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
     VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -380,11 +395,7 @@ void VulkanRenderer::EndFrame()
     vkRenderPassinfo.pClearValues = &clearValue;
     vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    defaultTechnique.ExecuteCommand(vkCommandBuffer);
-
     vkCmdEndRenderPass(vkCommandBuffer);
-
-    // DrawCamera(vkCommandBuffer);
 
     vcb.EndCommand();
 

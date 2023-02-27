@@ -42,6 +42,7 @@ public:
      * if a light is added to multiple nodes.
     */
     static std::shared_ptr<VulkanLight> BuildLight(LightProperties&);
+    static std::shared_ptr<VulkanLight> GetDefaultLight();
 
     void SetTransform(glm::mat4& transform); // Used by VulkanNode
 
@@ -56,9 +57,13 @@ public:
 
     void Destroy();
 
+public:
+    DirLight dirLight{}; //FIXME:
+
 private:
     LightProperties properties{};
-    DirLight dirLight{};
+
+    static std::shared_ptr<VulkanLight> defaultLight;
 };
 
 } // namespace renderer
