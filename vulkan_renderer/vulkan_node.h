@@ -35,7 +35,7 @@ public:
     Node* GetChildNode(unsigned int index) override;
 
 
-    glm::mat4 GetTransform() override;
+    const glm::mat4& GetTransform() override;
     void SetTransform(glm::mat4 transform) override;
 
     /**
@@ -53,6 +53,8 @@ private:
     VkDescriptorSet descSet = VK_NULL_HANDLE;
     VulkanDevice* vulkanDevice = nullptr;
     glm::mat4* transform = nullptr;
+
+    glm::mat4 localTransform;
 };
 
 } // namespace renderer
