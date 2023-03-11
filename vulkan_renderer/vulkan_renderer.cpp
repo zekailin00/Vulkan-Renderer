@@ -299,69 +299,104 @@ void VulkanRenderer::DestroyFramebuffers()
  */
 void VulkanRenderer::CreatePipelines()
 {
-    std::unique_ptr<VulkanPipeline> renderPipeline = 
-        std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
-    PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
-    std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
+    {    
+        std::unique_ptr<VulkanPipeline> renderPipeline = 
+            std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
+        PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
+        std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
 
 
-    renderPipeline->LoadShader("resources/vulkan_shaders/Phong/vert.spv",
-                               "resources/vulkan_shaders/Phong/frag.spv");
-    
-    layoutBuilder.PushDescriptorSetLayout("material",
-    {
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2),
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 3),
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 4),
-    });
+        renderPipeline->LoadShader("resources/vulkan_shaders/Phong/vert.spv",
+                                "resources/vulkan_shaders/Phong/frag.spv");
 
-    layoutBuilder.PushDescriptorSetLayout("mesh",
-    {
-        /*
-        layout (set = 1, binding = 0) uniform MeshCoordinates
+        layoutBuilder.PushDescriptorSetLayout("material",
         {
-            mat4 model;
-        } m;
-        */
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
-    });
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 2),
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 3),
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 4),
+        });
 
-    layoutBuilder.PushDescriptorSetLayout("camera",
-    {
-        /*
-        layout (set = 2, binding = 0) uniform ViewProjection 
+        layoutBuilder.PushDescriptorSetLayout("mesh",
         {
-            mat4 view;
-            mat4 projection;        
-        } vp;
-        */
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
-    });
+            /*
+            layout (set = 1, binding = 0) uniform MeshCoordinates
+            {
+                mat4 model;
+            } m;
+            */
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
+        });
 
-    layoutBuilder.PushDescriptorSetLayout("scene",
+        layoutBuilder.PushDescriptorSetLayout("camera",
+        {
+            /*
+            layout (set = 2, binding = 0) uniform ViewProjection 
+            {
+                mat4 view;
+                mat4 projection;
+            } vp;
+            */
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
+        });
+
+        layoutBuilder.PushDescriptorSetLayout("scene",
+        {
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+        });
+
+        pipelineLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+
+        renderPipeline->BuildPipeline(
+            VulkanVertexbuffer::GetVertexInputState(),
+            std::move(pipelineLayout),
+            vkRenderPass.defaultCamera
+        );
+
+        pipelines["render"] = std::move(renderPipeline);
+    }
+
     {
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
-    });
+        std::unique_ptr<VulkanPipeline> quadPipeline = 
+            std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
+        PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
+        std::unique_ptr<VulkanPipelineLayout> quadLayout;
 
-    pipelineLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+        quadPipeline->LoadShader("resources/vulkan_shaders/quad/vert.spv",
+                                "resources/vulkan_shaders/quad/frag.spv");
+        
+        layoutBuilder.PushDescriptorSetLayout("texture",
+        {
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
+        });
 
-    renderPipeline->BuildPipeline(
-        VulkanVertexbuffer::GetVertexInputState(),
-        std::move(pipelineLayout),
-        vkRenderPass.defaultCamera
-    );
+        quadLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
 
-    pipelines["render"] = std::move(renderPipeline);
+        VkPipelineVertexInputStateCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        info.vertexAttributeDescriptionCount = 0;
+        info.vertexBindingDescriptionCount = 0;
+
+        quadPipeline->BuildPipeline(
+            &info,
+            std::move(quadLayout),
+            vkRenderPass.display
+        );
+
+        pipelines["display"] = std::move(quadPipeline);
+    }
 }
 
 void VulkanRenderer::BeginFrame()
@@ -395,6 +430,34 @@ void VulkanRenderer::EndFrame()
     vkRenderPassinfo.pClearValues = &clearValue;
     vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
+    VkDescriptorSet descSet = defaultTechnique.GetDisplayDescSet();
+
+    vkCmdBindPipeline(vkCommandBuffer, 
+        VK_PIPELINE_BIND_POINT_GRAPHICS,
+        GetPipeline("display").pipeline);
+
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = swapchain->GetWidth();
+    viewport.height = swapchain->GetHeight();
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = {0, 0};
+    scissor.extent = {
+        swapchain->GetWidth(), 
+        swapchain->GetHeight()
+    };
+    vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
+
+    vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        pipelines["display"]->pipelineLayout->layout,
+        0, 1, &descSet, 0, nullptr);
+
+    vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
     vkCmdEndRenderPass(vkCommandBuffer);
 
     vcb.EndCommand();

@@ -2,10 +2,12 @@
 
 #include "vulkan_mesh.h"
 #include "vulkan_renderer.h"
+#include "vulkan_texture.h"
 #include "vk_primitives/vulkan_pipeline_layout.h"
 
 #include <glm/glm.hpp>
 #include <array>
+#include <vector>
 #include <memory>
 
 namespace renderer
@@ -27,13 +29,37 @@ void RenderTechnique::ProcessScene(VulkanNode* root)
 void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 {
     if(cameraList.empty())
+    {
+        this->display = defaultDisplay;
         return;
+    }
 
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     VkPipelineLayout layout = vkr.GetPipelineLayout("render").layout;
 
+    std::vector<VkImageMemoryBarrier> barriers;
+    VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    barrier.srcAccessMask = 0;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+    if (!cameraList.empty())
+        this->display = cameraList[0]->colorTexDescSet;
+
+
     for (std::shared_ptr<VulkanCamera> camera: cameraList)
     {
+        barrier.image = camera->colorImage.GetImage();
+        barriers.push_back(barrier);
+
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {{0/255.0, 0/255.0, 0/255.0, 1.0f}};
         clearValues[1].depthStencil = {1.0f, 0};
@@ -107,7 +133,12 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         vkCmdEndRenderPass(commandBuffer);
     }
 
-
+    vkCmdPipelineBarrier(commandBuffer,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0, 0, nullptr, 0, nullptr,
+        barriers.size(), barriers.data() 
+    );
 }
 
 void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
@@ -157,21 +188,40 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     sceneUniform.Initialize(vulkanDevice, sizeof(SceneData) * 5);
     sceneMap = static_cast<SceneData*>(sceneUniform.Map());
-
-    VulkanPipelineLayout& layout = vkr.GetPipelineLayout("render");
-    layout.AllocateDescriptorSet("scene", vkr.FRAME_IN_FLIGHT, &sceneDescSet);
     
-    VkWriteDescriptorSet descriptorWrite{};
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = this->sceneDescSet;
-    descriptorWrite.dstBinding = 0;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pBufferInfo = this->sceneUniform.GetDescriptor();
+    {
+        VulkanPipelineLayout& layout = vkr.GetPipelineLayout("render");
+        layout.AllocateDescriptorSet("scene", vkr.FRAME_IN_FLIGHT, &sceneDescSet);
 
-    vkUpdateDescriptorSets(
-        vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = this->sceneDescSet;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = this->sceneUniform.GetDescriptor();
+
+        vkUpdateDescriptorSets(
+            vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
+    }
+
+    {
+        VulkanPipelineLayout& layout = vkr.GetPipelineLayout("display");
+        layout.AllocateDescriptorSet("texture", vkr.FRAME_IN_FLIGHT, &defaultDisplay);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = this->defaultDisplay;
+        descriptorWrite.dstBinding = 1;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
+
+        vkUpdateDescriptorSets(
+            vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
+    }
 }
 
 void RenderTechnique::DrawCamera(VkCommandBuffer vkCommandBuffer)

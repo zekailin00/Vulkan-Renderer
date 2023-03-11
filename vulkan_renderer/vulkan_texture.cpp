@@ -294,9 +294,8 @@ std::shared_ptr<VulkanTexture> VulkanTexture::GetDefaultTexture()
 {
     if (defaultTexture == nullptr)
     {
-        defaultTexture = std::make_shared<VulkanTexture>();
-        defaultTexture->LoadImageFromFile("resources/textures/defaultTexture.png");
-        defaultTexture->CreateSampler();
+        struct TextureBuildInfo info{};
+        defaultTexture = std::dynamic_pointer_cast<VulkanTexture>(BuildTexture(&info));
     }
 
     return defaultTexture;

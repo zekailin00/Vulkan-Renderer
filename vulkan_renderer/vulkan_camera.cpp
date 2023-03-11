@@ -121,22 +121,44 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
 
 
     // Create camera descriptor set
-    VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("render");
-    pipelineLayout.AllocateDescriptorSet(
-        "camera", vkr.FRAME_IN_FLIGHT, &camera->cameraDescSet);
-    
-    std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
+    {
+        VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("render");
+        pipelineLayout.AllocateDescriptorSet(
+            "camera", vkr.FRAME_IN_FLIGHT, &camera->cameraDescSet);
+        
+        std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
 
-    descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite[0].dstSet = camera->cameraDescSet;
-    descriptorWrite[0].dstBinding = 0;
-    descriptorWrite[0].dstArrayElement = 0;
-    descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    descriptorWrite[0].descriptorCount = 1;
-    descriptorWrite[0].pBufferInfo = camera->cameraUniform.GetDescriptor();
+        descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite[0].dstSet = camera->cameraDescSet;
+        descriptorWrite[0].dstBinding = 0;
+        descriptorWrite[0].dstArrayElement = 0;
+        descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite[0].descriptorCount = 1;
+        descriptorWrite[0].pBufferInfo = camera->cameraUniform.GetDescriptor();
 
-    vkUpdateDescriptorSets(camera->vulkanDevice->vkDevice,
-        descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+        vkUpdateDescriptorSets(camera->vulkanDevice->vkDevice,
+            descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+    }
+
+    // Create rendered texture descriptor set
+    {
+        VulkanPipelineLayout& pipelineLayout = vkr.GetPipelineLayout("display");
+        pipelineLayout.AllocateDescriptorSet(
+            "texture", vkr.FRAME_IN_FLIGHT, &camera->colorTexDescSet);
+        
+        std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
+
+        descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite[0].dstSet = camera->colorTexDescSet;
+        descriptorWrite[0].dstBinding = 0;
+        descriptorWrite[0].dstArrayElement = 0;
+        descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite[0].descriptorCount = 1;
+        descriptorWrite[0].pImageInfo = camera->colorImage.GetDescriptor();
+
+        vkUpdateDescriptorSets(camera->vulkanDevice->vkDevice,
+            descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+    }
 
     return camera;
 }

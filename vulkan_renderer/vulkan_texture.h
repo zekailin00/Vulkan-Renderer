@@ -30,6 +30,7 @@ public:
         VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT);
     void LoadImageFromFile(std::string filePath);
     VkImageView GetImageView() {return vkImageView;}
+    VkImage GetImage() {return vkImage;}
     void Destroy();
 
 private:

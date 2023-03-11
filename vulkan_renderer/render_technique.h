@@ -26,6 +26,7 @@ public:
     void Initialize(VulkanDevice* vulkanDevice);
     void ProcessScene(VulkanNode* node);
     void ExecuteCommand(VkCommandBuffer commandBuffer);
+    VkDescriptorSet GetDisplayDescSet() {return display;}
 
 private:
     void ScanNode(VulkanNode* node, const glm::mat4& transform);
@@ -59,6 +60,8 @@ private:
     VkDescriptorSet sceneDescSet;
     SceneData *sceneMap = nullptr; // 5 directional light elements
 
+    VkDescriptorSet display; // The image that will be displayed in application
+    VkDescriptorSet defaultDisplay; // Image that will be displayed when no camera is created.
 };
 
 } // namespace renderer
