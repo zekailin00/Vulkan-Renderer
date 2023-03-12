@@ -10,3 +10,6 @@
 [submodule "external/stb/include/stb"]
 	path = external/stb/include/stb
 	url = git@github.com:zekailin00/stb-copy.git
+[submodule "external/tiny_obj_loader/tiny-obj-loader-submodule"]
+	path = external/tiny_obj_loader/tiny-obj-loader-submodule
+	url = git@github.com:zekailin00/tiny-obj-loader-submodule.git
