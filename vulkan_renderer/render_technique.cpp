@@ -46,10 +46,10 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.srcAccessMask = 0;
-    barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
     if (!cameraList.empty())
         this->display = cameraList[0]->colorTexDescSet;
@@ -133,6 +133,9 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         vkCmdEndRenderPass(commandBuffer);
     }
 
+    renderMesh.clear();
+    cameraList.clear();
+
     vkCmdPipelineBarrier(commandBuffer,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
@@ -213,7 +216,7 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
         VkWriteDescriptorSet descriptorWrite{};
         descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite.dstSet = this->defaultDisplay;
-        descriptorWrite.dstBinding = 1;
+        descriptorWrite.dstBinding = 0;
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrite.descriptorCount = 1;
@@ -222,6 +225,8 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
         vkUpdateDescriptorSets(
             vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
     }
+
+    this->display = defaultDisplay;
 }
 
 void RenderTechnique::DrawCamera(VkCommandBuffer vkCommandBuffer)

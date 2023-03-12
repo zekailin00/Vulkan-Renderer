@@ -51,63 +51,79 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
         descWrites.push_back(descWrite);
     }
 
-    if (material->map->useAlbedoTex)
     {
-        std::shared_ptr<VulkanTexture> vkt =
-            std::dynamic_pointer_cast<VulkanTexture>(
-            material->properties.albedoTexture);
         VkWriteDescriptorSet descWrite{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
         descWrite.dstSet = material->descriptorSet;
         descWrite.dstBinding = 1;
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = vkt->GetDescriptor();
+
+        if (material->map->useAlbedoTex)
+        {
+            std::shared_ptr<VulkanTexture> vkt = std::dynamic_pointer_cast<VulkanTexture>(
+                material->properties.albedoTexture);
+            descWrite.pImageInfo = vkt->GetDescriptor();
+        } else {
+            descWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
+        }
         descWrites.push_back(descWrite);
     }
 
-    if (material->map->useMetallicTex)
     {
-        std::shared_ptr<VulkanTexture> vkt =
-            std::dynamic_pointer_cast<VulkanTexture>(
-            material->properties.metallicTexture);
         VkWriteDescriptorSet descWrite{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
         descWrite.dstSet = material->descriptorSet;
         descWrite.dstBinding = 2;
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = vkt->GetDescriptor();
+
+        if (material->map->useMetallicTex)
+        {
+            std::shared_ptr<VulkanTexture> vkt = std::dynamic_pointer_cast<VulkanTexture>(
+                material->properties.metallicTexture);
+            descWrite.pImageInfo = vkt->GetDescriptor();
+        } else {
+            descWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
+        }
         descWrites.push_back(descWrite);
     }
 
-    if (material->map->useSmoothnessTex)
     {
-        std::shared_ptr<VulkanTexture> vkt =
-            std::dynamic_pointer_cast<VulkanTexture>(
-            material->properties.smoothnessTexture);
         VkWriteDescriptorSet descWrite{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
         descWrite.dstSet = material->descriptorSet;
         descWrite.dstBinding = 3;
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = vkt->GetDescriptor();
+
+        if (material->map->useSmoothnessTex)
+        {
+            std::shared_ptr<VulkanTexture> vkt = std::dynamic_pointer_cast<VulkanTexture>(
+                material->properties.smoothnessTexture);
+            descWrite.pImageInfo = vkt->GetDescriptor();
+        } else {
+            descWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
+        }
         descWrites.push_back(descWrite);
     }
 
-    if (material->map->useNormalTex)
     {
-        std::shared_ptr<VulkanTexture> vkt =
-            std::dynamic_pointer_cast<VulkanTexture>(
-            material->properties.normalTexture);
         VkWriteDescriptorSet descWrite{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
         descWrite.dstSet = material->descriptorSet;
         descWrite.dstBinding = 4;
         descWrite.dstArrayElement = 0;
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
-        descWrite.pImageInfo = vkt->GetDescriptor();
+
+        if (material->map->useNormalTex)
+        {
+            std::shared_ptr<VulkanTexture> vkt = std::dynamic_pointer_cast<VulkanTexture>(
+                material->properties.normalTexture);
+            descWrite.pImageInfo = vkt->GetDescriptor();
+        } else {
+            descWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
+        }
         descWrites.push_back(descWrite);
     }
 

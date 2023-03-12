@@ -200,7 +200,7 @@ const glm::mat4& VulkanCamera::GetTransform()
 
 void VulkanCamera::SetTransform(glm::mat4& transform)
 {
-    this->vpMap->view = transform;
+    this->vpMap->view = glm::inverse(transform);
 }
 
 VulkanCamera::~VulkanCamera()

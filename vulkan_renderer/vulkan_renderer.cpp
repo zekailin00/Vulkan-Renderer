@@ -377,9 +377,7 @@ void VulkanRenderer::CreatePipelines()
         layoutBuilder.PushDescriptorSetLayout("texture",
         {
             layoutBuilder.descriptorSetLayoutBinding(
-                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
-            layoutBuilder.descriptorSetLayoutBinding(
-                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 1),
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
         });
 
         quadLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
@@ -388,6 +386,9 @@ void VulkanRenderer::CreatePipelines()
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         info.vertexAttributeDescriptionCount = 0;
         info.vertexBindingDescriptionCount = 0;
+
+        quadPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
+        quadPipeline->rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
 
         quadPipeline->BuildPipeline(
             &info,
