@@ -12,9 +12,12 @@
 namespace renderer
 {
 
+std::shared_ptr<VulkanTexture> VulkanTexture::defaultTexture;
+
 void VulkanTexture::CreateImage(
     VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
 {
+    vulkanDevice = &VulkanRenderer::GetInstance().vulkanDevice;
     VkDevice vkDevice = vulkanDevice->vkDevice;
     this->imageExtent = imageExtent;
 
@@ -292,9 +295,8 @@ std::shared_ptr<VulkanTexture> VulkanTexture::GetDefaultTexture()
 {
     if (defaultTexture == nullptr)
     {
-        defaultTexture = std::make_shared<VulkanTexture>();
-        defaultTexture->LoadImageFromFile("resources/textures/defaultTexture.png");
-        defaultTexture->CreateSampler();
+        struct TextureBuildInfo info{};
+        defaultTexture = std::dynamic_pointer_cast<VulkanTexture>(BuildTexture(&info));
     }
 
     return defaultTexture;

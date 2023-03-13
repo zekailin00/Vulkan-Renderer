@@ -1,7 +1,9 @@
 #include "vulkan_node.h"
 
+#include "vulkan_renderer.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
+#include "vk_primitives/vulkan_pipeline_layout.h"
 
 #include <memory>
 #include <utility> // std::move
@@ -33,7 +35,6 @@ void VulkanNode::SetCamera(std::shared_ptr<Camera> camera)
         (this->mesh || this->camera || this->light))
         throw;
     this->camera = camera;
-    this->SetTransform(*this->transform); // camera
 }
 
 std::shared_ptr<Light> VulkanNode::GetLight()
@@ -47,7 +48,6 @@ void VulkanNode::SetLight(std::shared_ptr<Light> light)
         (this->mesh || this->camera || this->light))
         throw;
     this->light = light;
-    this->SetTransform(*this->transform); // camera
 }
 
 Node* VulkanNode::AddChildNode(std::unique_ptr<Node> node)
@@ -90,36 +90,28 @@ Node* VulkanNode::GetChildNode(unsigned int index)
     return nullptr;
 }
 
-glm::mat4 VulkanNode::GetTransform()
+const glm::mat4& VulkanNode::GetTransform()
 {
-    return *transform;
+    return localTransform;
 }
 
 void VulkanNode::SetTransform(glm::mat4 transform)
 {
-    *this->transform = transform;
-
-    if (this->camera)
-    {
-        std::shared_ptr<VulkanCamera> vkCamera =
-            std::dynamic_pointer_cast<VulkanCamera>(this->camera);
-        vkCamera->SetTransform(*this->transform);
-    }
-    else if (this->light)
-    {
-        std::shared_ptr<VulkanLight> vkLight =
-            std::dynamic_pointer_cast<VulkanLight>(this->light);
-        vkLight->SetTransform(*this->transform);
-    }
+    this->localTransform = transform;
 }
 
 VulkanNode::VulkanNode()
 {
-    this->vulkanDevice = &VulkanRenderer::GetInstance().vulkanDevice;
+    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    this->vulkanDevice = &vkr.vulkanDevice;
     uniform.Initialize(this->vulkanDevice, sizeof(glm::mat4));
     transform = static_cast<glm::mat4*>(uniform.Map());
+    localTransform = glm::mat4(1.0f);
+
+    VulkanPipelineLayout& layout = vkr.GetPipelineLayout("render");
+    layout.AllocateDescriptorSet("mesh", vkr.FRAME_IN_FLIGHT, &descSet);
     
-    VkWriteDescriptorSet descriptorWrite;
+    VkWriteDescriptorSet descriptorWrite{};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = this->descSet;
     descriptorWrite.dstBinding = 0;

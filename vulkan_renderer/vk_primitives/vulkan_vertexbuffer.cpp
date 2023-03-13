@@ -19,6 +19,7 @@ void VulkanVertexbuffer::Initialize(VulkanDevice* vulkanDevice,
     
     this->indexBufferSize = indexBufferSize;
     this->vertexBufferSize = vertexBufferSize;
+    this->indexCount = indexBufferSize / sizeof(unsigned int);
 
     {
         VkBufferCreateInfo bufferInfo{VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
@@ -76,6 +77,11 @@ void* VulkanVertexbuffer::MapIndex()
 void* VulkanVertexbuffer::MapVertex()
 {
     return vertexData;
+}
+
+uint32_t VulkanVertexbuffer::GetIndexCount()
+{
+    return indexCount;
 }
 
 void VulkanVertexbuffer::Destroy()

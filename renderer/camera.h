@@ -8,11 +8,11 @@ namespace renderer
 
 struct CameraProperties
 {
-    bool      UseFrameExtent = true;
-    glm::vec2 Extent         = {1920, 1080};
-    float     Fov            = 45.0f;
-    float     ZNear          = 0.1f;
-    float     ZFar           = 100.0f;
+    bool       UseFrameExtent = true;
+    glm::uvec2 Extent         = {1920, 1080};
+    float      Fov            = 45.0f;
+    float      ZNear          = 0.1f;
+    float      ZFar           = 100.0f;
 };
 
 class Camera

@@ -19,6 +19,8 @@ struct ViewProjection
     glm::mat4 projection;
 };
 
+class RenderTechnique;
+
 class VulkanCamera: public Camera
 {
 public:
@@ -48,17 +50,20 @@ public:
     VulkanCamera& operator=(const VulkanCamera&) = delete;
 
     // ViewProjection* MapCameraUniform();
-    // void BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout);
-    // VkFramebuffer GetFrameBuffer(){return framebuffer;}
+    VkFramebuffer GetFrameBuffer(){return framebuffer;}
+    VkDescriptorSet* GetDescriptorSet(){return &cameraDescSet;}
     // VulkanTexture& GetColorImage() {return colorImage;}
     // VkDescriptorSet cameraTexture; /*FIXME: render to texture; used by ImGui. */
+
+    friend RenderTechnique; // Have access to colorTexDescSet
 
 private: 
     VulkanTexture colorImage;
     VulkanUniform cameraUniform;
     ViewProjection* vpMap = nullptr;
 
-    VkDescriptorSet cameraDescSet;
+    VkDescriptorSet cameraDescSet; // Camera vp descriptor set
+    VkDescriptorSet colorTexDescSet; // Rendered texture descriptor set
 
     VkImage depthImage{VK_NULL_HANDLE};
     VkDeviceMemory depthMemory{VK_NULL_HANDLE};

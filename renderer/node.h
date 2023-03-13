@@ -60,8 +60,14 @@ public:
     */
     virtual Node* GetChildNode(unsigned int index) = 0;
 
-    virtual glm::mat4 GetTransform() = 0;
+    /**
+     * Get local transform.
+    */
+    virtual const glm::mat4& GetTransform() = 0;
 
+    /**
+     * Set local transform.
+    */
     virtual void SetTransform(glm::mat4 transform) = 0;
 
     Node() = default;

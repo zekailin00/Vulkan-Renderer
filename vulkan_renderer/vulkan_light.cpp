@@ -7,6 +7,8 @@
 namespace renderer
 {
 
+std::shared_ptr<VulkanLight> VulkanLight::defaultLight;
+
 std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
 {
     std::shared_ptr<VulkanLight> light = std::make_shared<VulkanLight>();
@@ -21,6 +23,19 @@ std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
     light->dirLight.direction = direction / glm::length(direction);
 
     return light;
+}
+
+std::shared_ptr<VulkanLight> VulkanLight::GetDefaultLight()
+{
+    if (defaultLight)
+        return defaultLight;
+
+    LightProperties prop{};
+    prop.type = LightType::DIRECTIONAL_LIGHT;
+    prop.color = {255,255,255};
+
+    VulkanLight::defaultLight = BuildLight(prop);
+    return defaultLight;
 }
 
 void VulkanLight::SetTransform(glm::mat4& transform)

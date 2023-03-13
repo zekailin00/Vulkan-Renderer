@@ -34,10 +34,10 @@ std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
     mesh->uniform.Initialize(vulkanDevice, sizeof(glm::mat4));
     mesh->map = static_cast<glm::mat4*>(mesh->uniform.Map());
 
-    VulkanPipelineLayout& layout = vkr.GetPipelineLayout("renderer");
+    VulkanPipelineLayout& layout = vkr.GetPipelineLayout("render");
     layout.AllocateDescriptorSet("mesh", vkr.FRAME_IN_FLIGHT, &mesh->descSet);
 
-    VkWriteDescriptorSet descriptorWrite;
+    VkWriteDescriptorSet descriptorWrite{};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = mesh->descSet;
     descriptorWrite.dstBinding = 0;
@@ -62,6 +62,16 @@ void VulkanMesh::AddMaterial(std::shared_ptr<Material> material)
 void VulkanMesh::RemoveMaterial()
 {
     this->material = VulkanMaterial::GetDefaultMaterial();
+}
+
+VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()
+{
+    return this->vertexbuffer;
+}
+
+VulkanMaterial& VulkanMesh::GetVulkanMaterial()
+{
+    return *std::static_pointer_cast<VulkanMaterial>(this->material);;
 }
 
 VulkanMesh::~VulkanMesh()

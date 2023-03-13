@@ -24,6 +24,9 @@ public:
 
     ~VulkanMesh() override;
 
+    VulkanVertexbuffer& GetVertexbuffer();
+    VulkanMaterial& GetVulkanMaterial();
+
 private:
     VulkanVertexbuffer vertexbuffer{};
     VulkanUniform uniform{};

@@ -5,10 +5,13 @@
 #include "vk_primitives/vulkan_uniform.h"
 #include "vk_primitives/vulkan_device.h"
 
-#include "vulkan_renderer.h"
+
 
 namespace renderer
 {
+
+// Forward declaration
+class RenderTechnique;
 
 class VulkanNode: public Node
 {
@@ -32,7 +35,7 @@ public:
     Node* GetChildNode(unsigned int index) override;
 
 
-    glm::mat4 GetTransform() override;
+    const glm::mat4& GetTransform() override;
     void SetTransform(glm::mat4 transform) override;
 
     /**
@@ -43,11 +46,15 @@ public:
     VulkanNode();
     ~VulkanNode() override;
 
+    friend RenderTechnique;
+
 private:
     VulkanUniform uniform{};
     VkDescriptorSet descSet = VK_NULL_HANDLE;
     VulkanDevice* vulkanDevice = nullptr;
     glm::mat4* transform = nullptr;
+
+    glm::mat4 localTransform;
 };
 
 } // namespace renderer

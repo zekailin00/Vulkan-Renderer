@@ -38,6 +38,8 @@ public:
     */
     void* MapVertex();
 
+    uint32_t GetIndexCount();
+
 
     static VkPipelineVertexInputStateCreateInfo* GetVertexInputState();
 
@@ -59,6 +61,7 @@ private:
     void* indexData{nullptr};
     VkDeviceSize vertexBufferSize{0};
     VkDeviceSize indexBufferSize{0};
+    uint32_t indexCount = 0;
 
     static VkPipelineVertexInputStateCreateInfo vertexInputState;
     static std::vector<VkVertexInputAttributeDescription> inputAttributeDesc;

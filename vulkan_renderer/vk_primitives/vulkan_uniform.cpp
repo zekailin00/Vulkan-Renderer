@@ -8,6 +8,7 @@
 void VulkanUniform::Initialize(VulkanDevice* vulkanDevice, VkDeviceSize size)
 {
     if (this->vulkanDevice != nullptr)
+        Destroy();
     this->vulkanDevice = vulkanDevice;
     VkDevice vkDevice = vulkanDevice->vkDevice;
     vkDeviceSize = size;

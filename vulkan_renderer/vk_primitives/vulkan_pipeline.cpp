@@ -20,8 +20,8 @@ VulkanPipeline::VulkanPipeline(VkDevice device)
     rasterState.sType = 
         VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterState.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterState.cullMode = VK_CULL_MODE_FRONT_BIT;
-    rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterState.depthClampEnable = VK_FALSE;
     rasterState.rasterizerDiscardEnable = VK_FALSE;
     rasterState.depthBiasEnable = VK_FALSE;
@@ -117,7 +117,7 @@ void VulkanPipeline::BuildPipeline(
     vkPipelineInfo.layout = pipelineLayout->layout;
     vkPipelineInfo.renderPass = renderPass;
 
-    pipelineLayout = std::move(pipelineLayout);
+    this->pipelineLayout = std::move(pipelineLayout);
 
     CHECK_VKCMD(vkCreateGraphicsPipelines(
         device, VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &pipeline));  
