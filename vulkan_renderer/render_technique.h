@@ -62,6 +62,11 @@ private:
 
     VkDescriptorSet display; // The image that will be displayed in application
     VkDescriptorSet defaultDisplay; // Image that will be displayed when no camera is created.
+
+    bool defaultSkybox = true;
+    VkDescriptorSet skyboxTex;
+    std::shared_ptr<VulkanMesh> skyboxMesh = nullptr;
+    std::shared_ptr<VulkanTextureCube> textureCube = nullptr;
 };
 
 } // namespace renderer

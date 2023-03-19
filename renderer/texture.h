@@ -37,12 +37,12 @@ struct TextureBuildInfo
 
 struct TextureCubeBuildInfo
 {
-    std::string x_pos_path = "resources/textures/skybox/right.png";
-    std::string x_neg_path = "resources/textures/skybox/left.png";
-    std::string y_pos_path = "resources/textures/skybox/top.png";
-    std::string y_neg_path = "resources/textures/skybox/bottom.png";
-    std::string z_pos_path = "resources/textures/skybox/back.png";
-    std::string z_neg_path = "resources/textures/skybox/front.png";
+    std::string x_pos_path = "resources/textures/skybox/right.jpg";
+    std::string x_neg_path = "resources/textures/skybox/left.jpg";
+    std::string y_pos_path = "resources/textures/skybox/top.jpg";
+    std::string y_neg_path = "resources/textures/skybox/bottom.jpg";
+    std::string z_pos_path = "resources/textures/skybox/back.jpg";
+    std::string z_neg_path = "resources/textures/skybox/front.jpg";
     TextureAddressMode addressMode = REPEAT;
     TextureFilter minFilter = FILTER_LINEAR;
     TextureFilter maxFilter = FILTER_LINEAR;

@@ -429,13 +429,14 @@ void VulkanRenderer::CreatePipelines()
 
         skyboxLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
 
-        skyboxPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
+        skyboxPipeline->rasterState.cullMode = VK_CULL_MODE_NONE;
         skyboxPipeline->rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        skyboxPipeline->depthStencilState.depthTestEnable = VK_FALSE;
 
         skyboxPipeline->BuildPipeline(
             VulkanVertexbuffer::GetVertexInputState(),
             std::move(skyboxLayout),
-            vkRenderPass.display
+            vkRenderPass.defaultCamera
         );
 
         pipelines["skybox"] = std::move(skyboxPipeline);
