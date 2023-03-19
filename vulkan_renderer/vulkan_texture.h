@@ -10,7 +10,7 @@
 namespace renderer
 {
 
-class VulkanTexture: public renderer::Texture
+class VulkanTexture: public Texture
 {
 
 public:
@@ -46,4 +46,34 @@ private:
     VulkanDevice* vulkanDevice = nullptr; // Owned by VulkanRenderer
 };
 
+
+class VulkanTextureCube: public TextureCube
+{
+
+public:
+    static std::shared_ptr<TextureCube> BuildTexture(TextureCubeBuildInfo&);
+    static std::shared_ptr<VulkanTextureCube> GetDefaultTexture();
+
+    VkDescriptorImageInfo* GetDescriptor(
+        VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    ~VulkanTextureCube() override;
+
+    VkImage GetImage() {return vkImage;}
+    void Destroy();
+
+private:
+    void LoadImagesFromFile(TextureCubeBuildInfo&);
+    
+private:
+    VkImage vkImage = VK_NULL_HANDLE;
+    VkImageView vkImageView = VK_NULL_HANDLE;
+    VkDeviceMemory vkDeviceMemory = VK_NULL_HANDLE;
+    VkSampler vkSampler = VK_NULL_HANDLE;
+    VkExtent2D imageExtent{};
+    VkDescriptorImageInfo vkDecriptorInfo{};
+
+    static std::shared_ptr<VulkanTextureCube> defaultTexture;
+
+    VulkanDevice* vulkanDevice = nullptr; // Owned by VulkanRenderer
+};
 } // namespace renderer
