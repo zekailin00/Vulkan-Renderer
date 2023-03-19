@@ -473,7 +473,7 @@ void VulkanTextureCube::LoadImagesFromFile(TextureCubeBuildInfo& buildInfo)
     std::string files[6] = {
         buildInfo.z_pos_path, buildInfo.z_neg_path,
         buildInfo.y_pos_path, buildInfo.y_neg_path,
-        buildInfo.x_pos_path, buildInfo.z_neg_path
+        buildInfo.x_pos_path, buildInfo.x_neg_path
     };
 
     for (int i = 0; i < 6; i++)
