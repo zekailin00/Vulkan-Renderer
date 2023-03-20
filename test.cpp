@@ -67,9 +67,10 @@ void TestApp::OnCreated()
 
         nodePtr->SetMesh(mesh_test);
         MaterialProperties matProp{};
-        matProp.albedo = {1, 0.5, 0.5};
-        matProp.metallic = 0.5f;
-        matProp.smoothness = 0.9f;
+        // matProp.albedo = {1, 0.5, 0.5};
+        matProp.albedoTexture = VulkanTexture::GetDefaultTexture();
+        matProp.metallic = 0.1f;
+        matProp.smoothness = 0.1f;
         material_uv_test = VulkanMaterial::BuildMaterial(&matProp);
         mesh_test->AddMaterial(material_uv_test);
 
@@ -106,7 +107,7 @@ void TestApp::OnCreated()
         nodePtr = root->AddChildNode(std::move(node));
 
         renderer::LightProperties prop{};
-        prop.color = {10, 10, 10};
+        prop.color = {30, 5, 5};
         prop.type = DIRECTIONAL_LIGHT;
         std::shared_ptr<Light> light = VulkanLight::BuildLight(prop);
 
@@ -183,6 +184,7 @@ void TestApp::OnUpdated(float ts)
 
     lightNode->SetTransform(view);
     lightDebug->SetTransform(view);
+    //camNode->SetTransform(view);
 }
 
 void TestApp::OnDestroy()

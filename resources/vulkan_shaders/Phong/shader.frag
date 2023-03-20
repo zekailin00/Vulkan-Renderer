@@ -140,7 +140,7 @@ void main()
 	}
 
 	// Combine with ambient
-	vec3 color = albedoFrag * 0.05;
+	vec3 color = albedoFrag * 0.02;
 	color += Lo;
 
     // HDR mapping
