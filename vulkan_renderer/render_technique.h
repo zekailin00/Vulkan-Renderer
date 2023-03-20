@@ -45,7 +45,6 @@ private:
     struct SceneData
     {
         uint32_t nLight; // dirLight index has to be less that nLight
-        uint32_t skyBox;
         DirLight dirLight[5];
     };
 

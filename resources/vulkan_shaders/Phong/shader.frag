@@ -30,16 +30,12 @@ layout (set = 0, binding = 4) uniform sampler2D NormalTexture;
 struct DirLight
 {
     vec3 direction;
-  
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec3 color;
 } dirLight;
 
 layout (set = 3, binding = 0, std430) uniform SceneProperties
 {
     uint lightCount;
-    uint skyBox;
     DirLight lights[5];
 
 } scene;
@@ -95,9 +91,13 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness, vec3 albedo, 
 		// F = Fresnel factor (Reflectance depending on angle of incidence)
 		vec3 F = F_Schlick(dotNV, metallic, albedo);
 
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - metallic;
+
 		vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.00001);
 
-		color += spec * dotNL * lightColor;
+		color += (kD * albedo / PI + spec) * dotNL * lightColor;
 	}
 
 	return color;
@@ -118,9 +118,9 @@ void main()
         metallicFrag = texture(MetallicTexture, TexCoords).x;
 
     if (meshProperties.useSmoothnessTex == 0)
-        metallicFrag = max(0, 1 - meshProperties.smoothness);
+        roughnessFrag = clamp(1 - meshProperties.smoothness, 0.0, 1.0);
     else
-        metallicFrag = texture(MetallicTexture, TexCoords).x;
+        roughnessFrag = clamp(1 - texture(SmoothnessTexture, TexCoords).x, 0.0, 1.0);
 
     if (meshProperties.useAlbedoTex == 0)
         albedoFrag = meshProperties.albedo;
@@ -130,14 +130,17 @@ void main()
 	// Specular contribution
 	vec3 Lo = vec3(0.0);
 	for (int i = 0; i < scene.lightCount; i++) {
-		vec3 L = normalize(-scene.lights[i].direction);
-        vec3 lightColor = scene.lights[i].ambient;
+		vec3 L = normalize(-vec3(-1,-1,-1)); //FIXME:
+        vec3 lightColor = vec3(1,1,1); //FIXME:
 		Lo += BRDF(L, V, N, metallicFrag, roughnessFrag, albedoFrag, lightColor);
 	}
 
 	// Combine with ambient
-	vec3 color = albedoFrag * 0.02;
+	vec3 color = albedoFrag * 0.1;
 	color += Lo;
+
+    // HDR mapping
+    color = color / (color + vec3(1.0));
 
 	// Gamma correct
 	color = pow(color, vec3(0.4545));
