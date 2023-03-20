@@ -10,9 +10,12 @@ namespace renderer
 
 struct MaterialUniform
 {
-    glm::vec3 albedo = {255, 255, 255};
+    glm::vec4 albedo = {255, 255, 255, 0};
+
     float metallic = 0.0f;
     float smoothness = 0.5f;
+    float _1;
+    float _2;
 
     float useAlbedoTex = 0.0f;
     float useMetallicTex = 0.0f;

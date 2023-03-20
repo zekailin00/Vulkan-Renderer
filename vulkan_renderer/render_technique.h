@@ -43,8 +43,8 @@ private:
     };
 
     struct SceneData
-    {
-        uint32_t nLight; // dirLight index has to be less that nLight
+    { // only the first element is nLight is used.
+        glm::uvec4 nLight; // dirLight index has to be less that nLight
         DirLight dirLight[5];
     };
 

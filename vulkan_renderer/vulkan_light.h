@@ -12,9 +12,9 @@ namespace renderer
 
 struct DirLight
 {
-    glm::vec3 direction{-1, -1, -1};
+    glm::vec4 direction{-1, -1, -1, 0};
   
-    glm::vec3 color{1, 1, 1};
+    glm::vec4 color{1, 1, 1, 0};
 };
 struct PointLight
 {// TODO: not used yet

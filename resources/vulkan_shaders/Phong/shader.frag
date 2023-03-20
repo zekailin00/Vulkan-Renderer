@@ -12,9 +12,12 @@ layout (location = 0) out vec4 FragColor;
 
 layout (set = 0, binding = 0, std430) uniform MeshProperties
 {
-    vec3  albedo;
+    vec4  albedo;
+
     float metallic;
     float smoothness;
+    float _1;
+    float _2;
 
     float useAlbedoTex;
     float useMetallicTex;
@@ -29,13 +32,13 @@ layout (set = 0, binding = 4) uniform sampler2D NormalTexture;
 
 struct DirLight
 {
-    vec3 direction;
-    vec3 color;
+    vec4 direction;
+    vec4 color;
 } dirLight;
 
 layout (set = 3, binding = 0, std430) uniform SceneProperties
 {
-    uint lightCount;
+    uvec4 lightCount; // only 1st is used
     DirLight lights[5];
 
 } scene;
@@ -104,7 +107,7 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness, vec3 albedo, 
 }
 
 void main()
-{		  
+{
 	vec3 N = normalize(Normal);
 	vec3 V = normalize(ViewPos - FragPos);
 
@@ -123,20 +126,20 @@ void main()
         roughnessFrag = clamp(1 - texture(SmoothnessTexture, TexCoords).x, 0.0, 1.0);
 
     if (meshProperties.useAlbedoTex == 0)
-        albedoFrag = meshProperties.albedo;
+        albedoFrag = meshProperties.albedo.rgb;
     else
         albedoFrag = texture(AlbedoTexture, TexCoords).rgb;
 
 	// Specular contribution
 	vec3 Lo = vec3(0.0);
-	for (int i = 0; i < scene.lightCount; i++) {
-		vec3 L = normalize(-vec3(-1,-1,-1)); //FIXME:
-        vec3 lightColor = vec3(1,1,1); //FIXME:
+	for (int i = 0; i < scene.lightCount.x; i++) {
+		vec3 L = normalize(-scene.lights[i].direction.xyz);
+        vec3 lightColor = scene.lights[i].color.rgb;
 		Lo += BRDF(L, V, N, metallicFrag, roughnessFrag, albedoFrag, lightColor);
 	}
 
 	// Combine with ambient
-	vec3 color = albedoFrag * 0.1;
+	vec3 color = albedoFrag * 0.05;
 	color += Lo;
 
     // HDR mapping

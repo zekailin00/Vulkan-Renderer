@@ -25,7 +25,7 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
     material->map->useMetallicTex = (prop->metallicTexture != nullptr);
     material->map->useSmoothnessTex = (prop->smoothnessTexture != nullptr);
     material->map->useNormalTex = (prop->normalTexture != nullptr);
-    material->map->albedo = prop->albedo;
+    material->map->albedo = glm::vec4(prop->albedo, 0);
     material->map->metallic = prop->metallic;
     material->map->smoothness = prop->smoothness;
 
@@ -283,7 +283,7 @@ void VulkanMaterial::ResetAlbedoTexture()
     }
 
     this->properties.albedo = {255, 255, 255};
-    this->map->albedo = this->properties.albedo;
+    this->map->albedo = glm::vec4(this->properties.albedo, 0);
     this->map->useAlbedoTex = 0.0f;
 }
 
