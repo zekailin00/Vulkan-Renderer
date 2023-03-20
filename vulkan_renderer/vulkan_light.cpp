@@ -22,6 +22,7 @@ std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
     glm::vec3 direction = light->dirLight.direction;
     light->dirLight.direction = 
         glm::vec4(direction / glm::length(direction), 0);
+    light->dirLight.color = glm::vec4(prop.color, 0);
 
     return light;
 }
@@ -32,8 +33,6 @@ std::shared_ptr<VulkanLight> VulkanLight::GetDefaultLight()
         return defaultLight;
 
     LightProperties prop{};
-    prop.type = LightType::DIRECTIONAL_LIGHT;
-    prop.color = {255,255,255};
 
     VulkanLight::defaultLight = BuildLight(prop);
     return defaultLight;

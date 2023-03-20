@@ -134,6 +134,7 @@ void main()
 	vec3 Lo = vec3(0.0);
 	for (int i = 0; i < scene.lightCount.x; i++) {
 		vec3 L = normalize(-scene.lights[i].direction.xyz);
+		L.y = -L.y;
         vec3 lightColor = scene.lights[i].color.rgb;
 		Lo += BRDF(L, V, N, metallicFrag, roughnessFrag, albedoFrag, lightColor);
 	}
