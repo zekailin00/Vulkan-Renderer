@@ -16,7 +16,7 @@ public:
     
 protected:
     virtual void OnCreated() = 0;
-    virtual void OnUpdated() = 0;
+    virtual void OnUpdated(float ts) = 0;
     virtual void OnDestroy() = 0;
 
 protected:

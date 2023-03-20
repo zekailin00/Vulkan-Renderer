@@ -1,3 +1,8 @@
 **/build
-**/resources
+**/resources/models
+**/resources/test
+**/resources/textures
+**.spv
+**.png
+**.ttf
 **/.vscode

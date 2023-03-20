@@ -23,8 +23,10 @@ class TestApp: public Application
     std::shared_ptr<Material> material_uv_test;
     std::shared_ptr<Material> material_color;
 
+    Node* camNode = nullptr;
+
     void OnCreated() override;
-    void OnUpdated() override;
+    void OnUpdated(float ts) override;
     void OnDestroy() override;
 
 };
@@ -49,6 +51,7 @@ void TestApp::OnCreated()
         view = glm::rotate(view, -0.3f, glm::vec3(0.0f, 1.0f, 0.0f));
         view = glm::translate(view, glm::vec3(-2.0f, 2.0f, 10));
         nodePtr->SetTransform(view);
+        camNode = nodePtr;
     }
 
     {
@@ -119,11 +122,21 @@ void TestApp::OnCreated()
 
 }
 
-void TestApp::OnUpdated()
+void TestApp::OnUpdated(float ts)
 {
-    // static int i = 0;
-    // i++;
-    // std::cout << "running: " << i << std::endl; 
+    glm::mat4 view;
+    static float totalTime = 0;
+    totalTime += ts;
+
+    view = glm::rotate(glm::mat4(1.0f), 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+    view = glm::rotate(view, totalTime/1.5f, glm::vec3(0.0f, 1.0f, 0.0f));
+    view = glm::translate(view, glm::vec3(0.0f, 2.0f, 10.0f));
+
+    // std::cout << view[0][0] << " | " << view[1][0] << " | " << view[2][0] << " | "<< view[3][0] << std::endl;
+    // std::cout << view[0][1] << " | " << view[1][1] << " | " << view[2][1] << " | "<< view[3][1] << std::endl;
+    // std::cout << view[0][2] << " | " << view[1][2] << " | " << view[2][2] << " | "<< view[3][2] << std::endl;
+    // std::cout << view[0][3] << " | " << view[1][3] << " | " << view[2][3] << " | "<< view[3][3] << std::endl;
+    camNode->SetTransform(view);
 }
 
 void TestApp::OnDestroy()

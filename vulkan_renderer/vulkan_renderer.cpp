@@ -398,6 +398,49 @@ void VulkanRenderer::CreatePipelines()
 
         pipelines["display"] = std::move(quadPipeline);
     }
+
+    {
+        std::unique_ptr<VulkanPipeline> skyboxPipeline = 
+            std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
+        PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
+        std::unique_ptr<VulkanPipelineLayout> skyboxLayout;
+
+        skyboxPipeline->LoadShader("resources/vulkan_shaders/skybox/vert.spv",
+                                    "resources/vulkan_shaders/skybox/frag.spv");
+        
+        layoutBuilder.PushDescriptorSetLayout("textureCube",
+        {
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+        });
+
+        layoutBuilder.PushDescriptorSetLayout("camera",
+        {
+            /*
+            layout (set = 2, binding = 0) uniform ViewProjection 
+            {
+                mat4 view;
+                mat4 projection;
+            } vp;
+            */
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
+        });
+
+        skyboxLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+
+        skyboxPipeline->rasterState.cullMode = VK_CULL_MODE_NONE;
+        skyboxPipeline->rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        skyboxPipeline->depthStencilState.depthTestEnable = VK_FALSE;
+
+        skyboxPipeline->BuildPipeline(
+            VulkanVertexbuffer::GetVertexInputState(),
+            std::move(skyboxLayout),
+            vkRenderPass.defaultCamera
+        );
+
+        pipelines["skybox"] = std::move(skyboxPipeline);
+    }
 }
 
 void VulkanRenderer::BeginFrame()

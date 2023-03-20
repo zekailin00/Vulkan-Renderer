@@ -3,6 +3,7 @@
 
 #include "application.h"
 #include "logger.h"
+#include "timestep.h"
 
 
 renderer::Node* Application::GetRootNode()
@@ -41,11 +42,15 @@ Application::~Application()
 void Application::Run()
 {
     OnCreated();
+    
+    Timer timer{};
     while (!window->ShouldClose()) 
     {
+        Timestep ts = timer.GetTimestep();
+
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-        OnUpdated();
+        OnUpdated(ts);
         renderer->EndFrame();
     }
     OnDestroy();

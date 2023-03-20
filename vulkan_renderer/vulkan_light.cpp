@@ -20,7 +20,8 @@ std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
         throw;
 
     glm::vec3 direction = light->dirLight.direction;
-    light->dirLight.direction = direction / glm::length(direction);
+    light->dirLight.direction = 
+        glm::vec4(direction / glm::length(direction), 0);
 
     return light;
 }
@@ -42,7 +43,8 @@ void VulkanLight::SetTransform(glm::mat4& transform)
 {
     glm::vec4 up{0, 1, 0, 0};
     glm::vec3 direction = transform * up; //FIXME: needs to check direction
-    this->dirLight.direction = direction / glm::length(direction);
+    this->dirLight.direction = 
+        glm::vec4(direction / glm::length(direction), 0);
 }
 
 const LightProperties& VulkanLight::GetLightProperties()

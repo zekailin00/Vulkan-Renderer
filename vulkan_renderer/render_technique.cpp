@@ -10,16 +10,23 @@
 #include <vector>
 #include <memory>
 
+
+//FIXME: obj loader is not in the renderer
+
+void ObjLoader(std::string& meshPath,
+    std::vector<renderer::Vertex>& modelVertices,
+    std::vector<unsigned int>& modelIndices); 
+
 namespace renderer
 {
 
 void RenderTechnique::ProcessScene(VulkanNode* root)
 {
     glm::mat4 identity = glm::mat4(1);
-    sceneMap->nLight = 0;
+    sceneMap->nLight.x = 0;
     ScanNode(root, identity);
 
-    if(sceneMap->nLight == 0)
+    if(sceneMap->nLight.x == 0)
     {
         sceneMap->dirLight[0] = VulkanLight::GetDefaultLight()->dirLight;
         sceneMap->nLight++;
@@ -75,10 +82,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         vkRenderPassInfo.pClearValues = clearValues.data();
         vkCmdBeginRenderPass(commandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(commandBuffer, 
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
-            vkr.GetPipeline("render").pipeline);
-
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
@@ -96,7 +99,37 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         };
         vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-        // FIXME: bind location
+        { //skybox
+            VkPipelineLayout layout = vkr.GetPipelineLayout("skybox").layout;
+
+            vkCmdBindPipeline(commandBuffer, 
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                vkr.GetPipeline("skybox").pipeline);
+
+            vkCmdBindDescriptorSets(
+                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                layout, 1, 1, camera->GetDescriptorSet(), 0, nullptr
+            );
+
+            vkCmdBindDescriptorSets(
+                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                layout, 0, 1, &this->skyboxTex, 0, nullptr
+            );
+
+            VkDeviceSize offset = 0;
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1,
+                &skyboxMesh->GetVertexbuffer().vertexBuffer, &offset);
+            vkCmdBindIndexBuffer(commandBuffer,
+                skyboxMesh->GetVertexbuffer().indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(commandBuffer, 
+                skyboxMesh->GetVertexbuffer().GetIndexCount(), 1, 0, 0, 0);
+        }
+
+        vkCmdBindPipeline(commandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            vkr.GetPipeline("render").pipeline);
+
+
         vkCmdBindDescriptorSets(
             commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
             layout, 2, 1, camera->GetDescriptorSet(), 0, nullptr
@@ -146,7 +179,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
 void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
 {
-    glm::mat4 globTransform = node->GetTransform() * transform;
+    glm::mat4 globTransform = transform * node->GetTransform();
     *node->transform = globTransform;
 
     if (node->mesh)
@@ -165,9 +198,9 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
             std::dynamic_pointer_cast<VulkanLight>(node->light);
         light->SetTransform(globTransform);
 
-        if (sceneMap->nLight != 5)
+        if (sceneMap->nLight.x != 5)
         {
-            uint32_t i = sceneMap->nLight++;
+            uint32_t i = sceneMap->nLight.x++;
             sceneMap->dirLight[i] = light->dirLight;
         }
     }
@@ -189,7 +222,7 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
 void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
 {
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
-    sceneUniform.Initialize(vulkanDevice, sizeof(SceneData) * 5);
+    sceneUniform.Initialize(vulkanDevice, sizeof(SceneData));
     sceneMap = static_cast<SceneData*>(sceneUniform.Map());
     
     {
@@ -227,6 +260,38 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
     }
 
     this->display = defaultDisplay;
+
+    { //setup default skybox
+        skyboxMesh = std::make_shared<VulkanMesh>();
+        BuildMeshInfo info{};
+
+        std::string path = "resources/models/cube/cube.obj";
+        ObjLoader(path, info.vertices, info.indices); 
+
+        skyboxMesh = std::dynamic_pointer_cast<VulkanMesh>(VulkanMesh::BuildMesh(info));
+
+        defaultSkybox = true;
+
+        TextureCubeBuildInfo texInfo{};
+        textureCube = std::dynamic_pointer_cast<VulkanTextureCube>(
+            VulkanTextureCube::BuildTexture(texInfo));
+        
+
+        VulkanPipelineLayout& layout = vkr.GetPipelineLayout("skybox");
+        layout.AllocateDescriptorSet("textureCube", vkr.FRAME_IN_FLIGHT, &skyboxTex);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = this->skyboxTex;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = VulkanTextureCube::GetDefaultTexture()->GetDescriptor();
+
+        vkUpdateDescriptorSets(
+            vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
+    }
 }
 
 void RenderTechnique::DrawCamera(VkCommandBuffer vkCommandBuffer)

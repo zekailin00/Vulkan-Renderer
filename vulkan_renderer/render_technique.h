@@ -43,9 +43,8 @@ private:
     };
 
     struct SceneData
-    {
-        uint32_t nLight; // dirLight index has to be less that nLight
-        uint32_t skyBox;
+    { // only the first element is nLight is used.
+        glm::uvec4 nLight; // dirLight index has to be less that nLight
         DirLight dirLight[5];
     };
 
@@ -62,6 +61,11 @@ private:
 
     VkDescriptorSet display; // The image that will be displayed in application
     VkDescriptorSet defaultDisplay; // Image that will be displayed when no camera is created.
+
+    bool defaultSkybox = true;
+    VkDescriptorSet skyboxTex;
+    std::shared_ptr<VulkanMesh> skyboxMesh = nullptr;
+    std::shared_ptr<VulkanTextureCube> textureCube = nullptr;
 };
 
 } // namespace renderer
