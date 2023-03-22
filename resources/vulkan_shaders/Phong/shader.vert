@@ -32,5 +32,4 @@ void main()
     oTexCoords = TexCoords;
     oViewPos = vec3(vp.view[3][0], vp.view[3][1], vp.view[3][2]);
     gl_Position = vp.projection * vp.view * vec4(oFragPos, 1);
-    gl_Position.y = -gl_Position.y;
 }

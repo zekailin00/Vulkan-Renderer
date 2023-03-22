@@ -22,5 +22,4 @@ void main()
 	newView[3][2] = 0;
 
 	gl_Position = vp.projection * newView * vec4(Position.xyz, 1.0);
-	gl_Position.y = -gl_Position.y;
 }
