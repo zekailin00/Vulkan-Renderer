@@ -15,7 +15,7 @@ enum LightType
 struct LightProperties
 {
     LightType type = DIRECTIONAL_LIGHT;
-    glm::uvec3 color = {255, 255, 255};
+    glm::uvec3 color = {10, 10, 10}; // [0, inf] intensity HDR
 };
 
 class Light
