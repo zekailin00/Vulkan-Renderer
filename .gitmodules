@@ -13,3 +13,6 @@
 [submodule "external/tiny_obj_loader/tiny-obj-loader-submodule"]
 	path = external/tiny_obj_loader/tiny-obj-loader-submodule
 	url = git@github.com:zekailin00/tiny-obj-loader-submodule.git
+[submodule "external/jsoncpp"]
+	path = external/jsoncpp
+	url = git@github.com:open-source-parsers/jsoncpp.git
