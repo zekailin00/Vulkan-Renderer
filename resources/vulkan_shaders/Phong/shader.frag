@@ -70,7 +70,7 @@ vec3 F_Schlick(float cosTheta, float metallic, vec3 albedo)
 {
 	vec3 F0 = mix(vec3(0.04), albedo, metallic);
 	vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0); 
-	return F;    
+	return vec3(0,0,0); //FIXME: certain pixels are black
 }
 
 
@@ -95,7 +95,7 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness, vec3 albedo, 
 		vec3 F = F_Schlick(dotNV, metallic, albedo);
 
         vec3 kS = F;
-        vec3 kD = vec3(1.0) - kS;
+        vec3 kD = albedo - kS;
         kD *= 1.0 - metallic;
 
 		vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.00001);
@@ -150,34 +150,3 @@ void main()
 
 	FragColor = vec4(color, 1.0);
 }
-
-
-
-// void main()
-// {
-//     // ambient
-//     vec3 ambient;
-//     if (meshProperties.useAlbedoTex == 0)
-//         ambient = sceneProperties.lights[0].ambient * meshProperties.albedo;
-//     else
-//         ambient = sceneProperties.lights[0].ambient * texture(AlbedoTexture, TexCoords).rgb;
-
-  	
-//     // diffuse 
-//     vec3 norm = normalize(Normal);
-//     vec3 lightDir = sceneProperties.lights[0].direction;
-//     float diff = max(dot(norm, lightDir), 0.0);
-//     vec3 diffuse = sceneProperties.lights[0].diffuse * diff * texture(AlbedoTexture, TexCoords).rgb;  
-    
-//     // // specular
-//     // vec3 viewDir = normalize(ViewPos - FragPos);
-//     // vec3 reflectDir = reflect(-lightDir, norm);  
-//     // float spec = pow(max(dot(viewDir, reflectDir), 0.0001), meshProperties.specularShininess);
-//     // vec3 specular = meshProperties.specular * 0.0;
-
-//     vec3 result = diffuse + ambient; // + specular;
-//     FragColor = vec4(result, 1);
-// } 
-
-
-

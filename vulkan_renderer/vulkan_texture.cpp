@@ -62,13 +62,9 @@ void VulkanTexture::CreateImage(
     CHECK_VKCMD(vkCreateImageView(vkDevice, &viewInfo, nullptr, &vkImageView));
 }
 
-void VulkanTexture::LoadImageFromFile(std::string filePath)
+void VulkanTexture::LoadImageFromBuffer(unsigned char *pixels, int texWidth, int texHeight)
 {
     VkDevice vkDevice = vulkanDevice->vkDevice;
-
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load(
-        filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
@@ -209,6 +205,15 @@ void VulkanTexture::CreateSampler(
     CHECK_VKCMD(vkCreateSampler(vkDevice, &samplerInfo, nullptr, &vkSampler));
 }
 
+void VulkanTexture::LoadImageFromFile(std::string filePath)
+{
+    int texWidth, texHeight, texChannels;
+    stbi_uc* pixels = stbi_load(
+        filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+    LoadImageFromBuffer(pixels, texWidth, texHeight);
+}
+
 VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 {
     vkDecriptorInfo.imageLayout = vkImageLayout;
@@ -232,6 +237,66 @@ void VulkanTexture::Destroy()
     vkDestroyImage(vkDevice, vkImage, nullptr);
     vkFreeMemory(vkDevice, vkDeviceMemory, nullptr);
     vulkanDevice = nullptr;
+}
+
+std::shared_ptr<Texture> VulkanTexture::BuildTextureFromBuffer(
+    unsigned char* buffer, int width, int height, TextureBuildInfo* buildInfo)
+{
+    std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
+    texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
+    texture->textureType = TextureType::TEX_DEFAULT;
+
+    texture->LoadImageFromBuffer(buffer, width, height);
+
+    {
+        VkFilter minFilter = VK_FILTER_LINEAR;
+        switch (buildInfo->minFilter)
+        {
+        case FILTER_NEAREST:
+            minFilter = VK_FILTER_NEAREST;
+            break;
+        case FILTER_LINEAR:
+            minFilter = VK_FILTER_LINEAR;
+            break;
+        }
+
+        VkFilter maxFilter = VK_FILTER_LINEAR;
+        switch (buildInfo->maxFilter)
+        {
+        case FILTER_NEAREST:
+            maxFilter = VK_FILTER_NEAREST;
+            break;
+        case FILTER_LINEAR:
+            maxFilter = VK_FILTER_LINEAR;
+            break;
+        default:
+            break;
+        }
+
+        VkSamplerAddressMode addressMode;
+        switch (buildInfo->addressMode)
+        {
+        case REPEAT:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            break;
+        case MIRRORED_REPEAT:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+            break;
+        case CLAMP_TO_EDGE:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            break;
+        case CLAMP_TO_BORDER:
+            addressMode = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+            break;
+        default:
+            break;
+        }
+
+        texture->CreateSampler(minFilter, maxFilter, addressMode);
+    }
+    
+    texture->info = *buildInfo;
+    return texture;
 }
 
 std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo)
@@ -315,7 +380,7 @@ std::shared_ptr<TextureCube> VulkanTextureCube::BuildTexture(TextureCubeBuildInf
 {
     std::shared_ptr<VulkanTextureCube> texture = std::make_shared<VulkanTextureCube>();
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
-    texture->textureType = TextureType::TEX_DEFAULT;
+    texture->textureType = TextureType::TEX_CUBEMAP;
 
     texture->LoadImagesFromFile(buildInfo);
 
