@@ -7,6 +7,9 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
+#include "vulkan_renderer/loaders/gltfloader.h"
+
+
 using namespace renderer;
 
 
@@ -42,6 +45,18 @@ void TestApp::OnCreated()
     Node* nodePtr;
 
     glm::mat4 view;
+
+    {
+        GltfModel model;
+        model.LoadModel("/Users/zekailin00/Desktop/rusk.json");
+        Node *rusk = root->AddChildNode(std::move(model.node));
+
+        view = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 5.0f));
+        view = glm::rotate(view, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, 2.8f, glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, -0.3f, 0.3f));
+        rusk->SetTransform(view);
+    }
 
     {
         node = std::make_unique<VulkanNode>();
@@ -198,6 +213,8 @@ void TestApp::OnCreated()
 
 void TestApp::OnUpdated(float ts)
 {
+
+    std::cout << "Frame frate: " << 1/ts << "| ts: " << ts << "\r"; 
     glm::mat4 view;
     static float totalTime = 0;
     totalTime += ts;
