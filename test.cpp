@@ -7,6 +7,9 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
+#include "vulkan_renderer/loaders/gltfloader.h"
+
+
 using namespace renderer;
 
 
@@ -24,6 +27,10 @@ class TestApp: public Application
     std::shared_ptr<Material> material_color;
 
     Node* camNode = nullptr;
+    Node* lightNode = nullptr;
+    Node* lightDebug = nullptr;
+    Node* lightNode2 = nullptr;
+    Node* lightDebug2 = nullptr;
 
     void OnCreated() override;
     void OnUpdated(float ts) override;
@@ -40,6 +47,18 @@ void TestApp::OnCreated()
     glm::mat4 view;
 
     {
+        GltfModel model;
+        model.LoadModel("/Users/zekailin00/Desktop/rusk.json");
+        Node *rusk = root->AddChildNode(std::move(model.node));
+
+        view = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 5.0f));
+        view = glm::rotate(view, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, 2.8f, glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, -0.3f, 0.3f));
+        rusk->SetTransform(view);
+    }
+
+    {
         node = std::make_unique<VulkanNode>();
         nodePtr = root->AddChildNode(std::move(node));
 
@@ -47,9 +66,9 @@ void TestApp::OnCreated()
         this->camera = VulkanCamera::BuildCamera(prop);
         nodePtr->SetCamera(this->camera);
 
-        view = glm::rotate(glm::mat4(1.0f), -0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-        view = glm::rotate(view, -0.3f, glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::translate(view, glm::vec3(-2.0f, 2.0f, 10));
+        view = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, 2.8f, glm::vec3(0.0f, 1.0f, 0.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 2.0f, 10));
         nodePtr->SetTransform(view);
         camNode = nodePtr;
     }
@@ -65,14 +84,55 @@ void TestApp::OnCreated()
 
         nodePtr->SetMesh(mesh_test);
         MaterialProperties matProp{};
-        matProp.albedo = {1, 0.5, 0.5};
+        matProp.albedoTexture = VulkanTexture::GetDefaultTexture();
+        matProp.metallic = 0.8f;
+        matProp.smoothness = 0.5f;
         material_uv_test = VulkanMaterial::BuildMaterial(&matProp);
         mesh_test->AddMaterial(material_uv_test);
 
         view = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         view = glm::rotate(view, 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::translate(view, glm::vec3(0.0f, 1.0f, -1.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 3.0f, 2.0f));
         nodePtr->SetTransform(view);
+    }
+
+    {
+        node = std::make_unique<VulkanNode>();
+        nodePtr = root->AddChildNode(std::move(node));
+
+        BuildMeshInfo meshInfo{};
+        std::string path = "resources/models/debug/arrow_debug.obj";
+        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        mesh_test = VulkanMesh::BuildMesh(meshInfo);
+
+        nodePtr->SetMesh(mesh_test);
+        MaterialProperties matProp{};
+        matProp.albedo = {1, 0, 0};
+        material_uv_test = VulkanMaterial::BuildMaterial(&matProp);
+        mesh_test->AddMaterial(material_uv_test);
+
+        view = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        nodePtr->SetTransform(view);
+        lightDebug = nodePtr;
+
+    }
+
+    {
+        node = std::make_unique<VulkanNode>();
+        nodePtr = root->AddChildNode(std::move(node));
+
+        renderer::LightProperties prop{};
+        prop.color = {30, 5, 5};
+        prop.type = DIRECTIONAL_LIGHT;
+        std::shared_ptr<Light> light = VulkanLight::BuildLight(prop);
+
+        nodePtr->SetLight(light);
+
+        view = glm::rotate(glm::mat4(1.0f), 1.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+        view = glm::rotate(view, 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        nodePtr->SetTransform(view);
+        lightNode = nodePtr;
     }
 
     {
@@ -87,7 +147,8 @@ void TestApp::OnCreated()
         nodePtr->SetMesh(mesh_monster);
         MaterialProperties matProp{};
         matProp.albedo = {0, 0.8, 0.8};
-        // matProp.albedoTexture = VulkanTexture::GetDefaultTexture();
+        matProp.metallic = 0.0f;
+        matProp.smoothness = 1.0f;
         material_color = VulkanMaterial::BuildMaterial(&matProp);
         mesh_monster->AddMaterial(material_color);
 
@@ -109,7 +170,6 @@ void TestApp::OnCreated()
         nodePtr->SetMesh(mesh_monster);
         MaterialProperties matProp{};
         matProp.albedo = {0, 0.8, 0.8};
-        // matProp.albedoTexture = VulkanTexture::GetDefaultTexture();
         material_color = VulkanMaterial::BuildMaterial(&matProp);
         mesh_monster->AddMaterial(material_color);
 
@@ -119,24 +179,55 @@ void TestApp::OnCreated()
         nodePtr->SetTransform(view);
     }
 
+    {
+        node = std::make_unique<VulkanNode>();
+        nodePtr = root->AddChildNode(std::move(node));
 
+        renderer::LightProperties prop{};
+        prop.color = {5, 5, 30};
+        prop.type = DIRECTIONAL_LIGHT;
+        std::shared_ptr<Light> light = VulkanLight::BuildLight(prop);
+
+        nodePtr->SetLight(light);
+        lightNode2 = nodePtr;
+    }
+
+    {
+        node = std::make_unique<VulkanNode>();
+        nodePtr = root->AddChildNode(std::move(node));
+
+        BuildMeshInfo meshInfo{};
+        std::string path = "resources/models/debug/arrow_debug.obj";
+        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        mesh_test = VulkanMesh::BuildMesh(meshInfo);
+
+        nodePtr->SetMesh(mesh_test);
+        MaterialProperties matProp{};
+        matProp.albedo = {0, 0, 1};
+        material_uv_test = VulkanMaterial::BuildMaterial(&matProp);
+        mesh_test->AddMaterial(material_uv_test);
+
+        lightDebug2 = nodePtr;
+    }
 }
 
 void TestApp::OnUpdated(float ts)
 {
+
+    std::cout << "Frame frate: " << 1/ts << "| ts: " << ts << "\r"; 
     glm::mat4 view;
     static float totalTime = 0;
     totalTime += ts;
 
-    view = glm::rotate(glm::mat4(1.0f), 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
-    view = glm::rotate(view, totalTime/1.5f, glm::vec3(0.0f, 1.0f, 0.0f));
-    view = glm::translate(view, glm::vec3(0.0f, 2.0f, 10.0f));
+    view = glm::rotate(glm::mat4(1.0f), totalTime/1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    // std::cout << view[0][0] << " | " << view[1][0] << " | " << view[2][0] << " | "<< view[3][0] << std::endl;
-    // std::cout << view[0][1] << " | " << view[1][1] << " | " << view[2][1] << " | "<< view[3][1] << std::endl;
-    // std::cout << view[0][2] << " | " << view[1][2] << " | " << view[2][2] << " | "<< view[3][2] << std::endl;
-    // std::cout << view[0][3] << " | " << view[1][3] << " | " << view[2][3] << " | "<< view[3][3] << std::endl;
-    camNode->SetTransform(view);
+    lightNode->SetTransform(view);
+    lightDebug->SetTransform(view);
+
+    view = glm::rotate(glm::mat4(1.0f), 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
+    view = glm::rotate(view, totalTime/1.0f + 3.14f, glm::vec3(0.0f, 0.0f, 1.0f));
+    lightNode2->SetTransform(view);
+    lightDebug2->SetTransform(view);
 }
 
 void TestApp::OnDestroy()

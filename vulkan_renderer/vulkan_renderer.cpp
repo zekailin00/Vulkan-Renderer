@@ -355,6 +355,7 @@ void VulkanRenderer::CreatePipelines()
         });
 
         pipelineLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+        renderPipeline->rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
 
         renderPipeline->BuildPipeline(
             VulkanVertexbuffer::GetVertexInputState(),
@@ -388,7 +389,7 @@ void VulkanRenderer::CreatePipelines()
         info.vertexBindingDescriptionCount = 0;
 
         quadPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
-        quadPipeline->rasterState.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        quadPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
         quadPipeline->BuildPipeline(
             &info,

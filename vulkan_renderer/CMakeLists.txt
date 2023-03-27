@@ -6,6 +6,8 @@ file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 file(GLOB PRIM_HEADERS "vk_primitives/*.h")
 file(GLOB PRIM_SOURCE "vk_primitives/*.cpp")
+file(GLOB LOADER_HEADERS "loaders/*.h")
+file(GLOB LOADER_SOURCE "loaders/*.cpp")
 
 # Dear ImGui
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
@@ -19,6 +21,8 @@ add_library(VulkanRenderer
     ${LOCAL_SOURCE}
     ${PRIM_HEADERS}
     ${PRIM_SOURCE}
+    ${LOADER_HEADERS}
+    ${LOADER_SOURCE}
 
     ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
     ${IMGUI_SOURCE}
@@ -36,9 +40,11 @@ target_include_directories(VulkanRenderer PUBLIC
     
     .
 )
-target_link_libraries(VulkanRenderer 
+
+target_link_libraries(VulkanRenderer PUBLIC
     ${Vulkan_LIBRARY}
     utility
+    jsoncpp_static
     glm
 )
 
