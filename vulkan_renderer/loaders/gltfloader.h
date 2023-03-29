@@ -17,11 +17,13 @@ namespace renderer
 
 class GltfModel
 {
-    Json::Value gltf;
-
 public:
     GltfModel LoadModel(std::string path);
-    std::unique_ptr<VulkanNode> node;
+    std::unique_ptr<Node> GetNode();
+
+    std::vector<std::shared_ptr<VulkanTexture>> textureList;
+    std::vector<std::shared_ptr<VulkanMaterial>> materialList;
+    std::vector<std::shared_ptr<VulkanMesh>> meshList;
 
 private:
     void LoadBuffers();
@@ -31,10 +33,9 @@ private:
     void ProcessNode(Node& parentNode, int nodeIndex);
 
 private:
-   std::vector<std::vector<unsigned char>> bufferList;
-   std::vector<std::shared_ptr<VulkanTexture>> textureList;
-   std::vector<std::shared_ptr<VulkanMaterial>> materialList;
-   std::vector<std::shared_ptr<VulkanMesh>> meshList;
+    Json::Value gltf;
+    std::unique_ptr<VulkanNode> node;
+    std::vector<std::vector<unsigned char>> bufferList;
 };
 
 enum SamplerType

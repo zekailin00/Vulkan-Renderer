@@ -4,18 +4,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader/tiny_obj_loader.h>
-
-#include "vulkan_renderer/loaders/gltfloader.h"
-
 
 using namespace renderer;
-
-
-void ObjLoader(std::string& meshPath,
-    std::vector<renderer::Vertex>& modelVertices,
-    std::vector<unsigned int>& modelIndices);
 
 class TestApp: public Application
 {
@@ -49,7 +39,7 @@ void TestApp::OnCreated()
     {
         GltfModel model;
         model.LoadModel("/Users/zekailin00/Desktop/rusk.json");
-        Node *rusk = root->AddChildNode(std::move(model.node));
+        Node *rusk = root->AddChildNode(model.GetNode());
 
         view = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 5.0f));
         view = glm::rotate(view, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -79,7 +69,7 @@ void TestApp::OnCreated()
 
         BuildMeshInfo meshInfo{};
         std::string path = "resources/models/ext/test.obj";
-        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         mesh_test = VulkanMesh::BuildMesh(meshInfo);
 
         nodePtr->SetMesh(mesh_test);
@@ -102,7 +92,7 @@ void TestApp::OnCreated()
 
         BuildMeshInfo meshInfo{};
         std::string path = "resources/models/debug/arrow_debug.obj";
-        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         mesh_test = VulkanMesh::BuildMesh(meshInfo);
 
         nodePtr->SetMesh(mesh_test);
@@ -141,7 +131,7 @@ void TestApp::OnCreated()
 
         BuildMeshInfo meshInfo{};
         std::string path = "resources/models/ext/armadillo.obj";
-        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         mesh_monster = VulkanMesh::BuildMesh(meshInfo);
 
         nodePtr->SetMesh(mesh_monster);
@@ -164,7 +154,7 @@ void TestApp::OnCreated()
 
         BuildMeshInfo meshInfo{};
         std::string path = "resources/models/ext/monkey.obj";
-        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         mesh_monster = VulkanMesh::BuildMesh(meshInfo);
 
         nodePtr->SetMesh(mesh_monster);
@@ -198,7 +188,7 @@ void TestApp::OnCreated()
 
         BuildMeshInfo meshInfo{};
         std::string path = "resources/models/debug/arrow_debug.obj";
-        ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         mesh_test = VulkanMesh::BuildMesh(meshInfo);
 
         nodePtr->SetMesh(mesh_test);
@@ -240,57 +230,4 @@ int main(int argv, char** argc)
     TestApp app{};
     app.Run();
     std::cout << "Hello world." << std::endl;
-}
-
-
-void ObjLoader(std::string& meshPath,
-    std::vector<renderer::Vertex>& modelVertices,
-    std::vector<unsigned int>& modelIndices)
-{
-    tinyobj::attrib_t attributes;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    std::string warning, error;
-
-    if (!tinyobj::LoadObj(&attributes, &shapes, &materials,
-        &warning, &error, meshPath.c_str()))
-    {
-        throw;
-    }
-
-    for (tinyobj::shape_t shape : shapes) {
-        for (const tinyobj::index_t& index : shape.mesh.indices) {
-            renderer::Vertex vertex{};
-
-            int vertIndex = index.vertex_index;
-            int normIndex = index.normal_index;
-            int texIndex = index.texcoord_index; 
-
-            vertex.Position = {
-                attributes.vertices[vertIndex * 3 + 0],
-                attributes.vertices[vertIndex * 3 + 1],
-                attributes.vertices[vertIndex * 3 + 2],
-            };
-
-            vertex.Normal = {
-                attributes.normals[normIndex * 3 + 0],
-                attributes.normals[normIndex * 3 + 1],
-                attributes.normals[normIndex * 3 + 2],
-            };
-
-
-            if (texIndex < 0)
-            {
-                vertex.TexCoords = {0, 0};
-            } else {
-                vertex.TexCoords = {
-                    attributes.texcoords[texIndex * 2 + 0],
-                    1 - attributes.texcoords[texIndex * 2 + 1],
-                };
-            }
-
-            modelVertices.push_back(vertex);
-            modelIndices.push_back(static_cast<unsigned int>(modelIndices.size()));
-        }
-    }
 }

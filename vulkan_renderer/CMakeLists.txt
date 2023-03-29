@@ -37,6 +37,7 @@ target_include_directories(VulkanRenderer PUBLIC
     
     ${STB_IMAGE}
     ${CMAKE_SOURCE_DIR}/renderer
+    ${TINY_OBJ_DIR}
     
     .
 )

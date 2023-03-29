@@ -50,30 +50,27 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/external/jsoncpp")
 add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
 
 # Target settings
-add_executable(app
+add_library(renderer
     ${LOCAL_HEADERS}
     ${LOCAL_SOURCE}
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
 )
 
 # Target settings
-target_include_directories(app PUBLIC
+target_include_directories(renderer PUBLIC
     ${Vulkan_INCLUDE_DIRS}
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
-    ${TINY_OBJ_DIR}
     .
 )
 
-target_link_libraries(app glfw ${Vulkan_LIBRARY})
-target_link_libraries(app 
+target_link_libraries(renderer glfw ${Vulkan_LIBRARY})
+target_link_libraries(renderer
     VulkanRenderer
     utility
 )
 
 # Build settings
-set_property(TARGET app PROPERTY CXX_STANDARD 17)
+set_property(TARGET renderer PROPERTY CXX_STANDARD 17)
 
-add_custom_command(TARGET app POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:app>/resources)
+add_subdirectory("${CMAKE_SOURCE_DIR}/samples")

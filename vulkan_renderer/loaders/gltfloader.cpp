@@ -16,6 +16,7 @@ namespace renderer
 
 GltfModel GltfModel::LoadModel(std::string path)
 {
+    std::cout << "Loading model: " << path << std::endl;
     std::ifstream jsonIn;
     jsonIn.open(path);
     jsonIn >> gltf;
@@ -38,6 +39,13 @@ GltfModel GltfModel::LoadModel(std::string path)
     
     GltfModel model{};
     return model;
+}
+
+std::unique_ptr<Node> GltfModel::GetNode()
+{
+    if (this->node == nullptr)
+        throw;
+    return std::move(this->node);
 }
 
 void GltfModel::LoadBuffers()

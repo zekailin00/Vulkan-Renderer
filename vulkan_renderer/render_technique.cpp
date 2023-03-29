@@ -4,18 +4,13 @@
 #include "vulkan_renderer.h"
 #include "vulkan_texture.h"
 #include "vk_primitives/vulkan_pipeline_layout.h"
+#include "loaders/gltfloader.h"
 
 #include <glm/glm.hpp>
 #include <array>
 #include <vector>
 #include <memory>
 
-
-//FIXME: obj loader is not in the renderer
-
-void ObjLoader(std::string& meshPath,
-    std::vector<renderer::Vertex>& modelVertices,
-    std::vector<unsigned int>& modelIndices); 
 
 namespace renderer
 {
@@ -265,10 +260,11 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
         skyboxMesh = std::make_shared<VulkanMesh>();
         BuildMeshInfo info{};
 
-        std::string path = "resources/models/cube/cube.obj";
-        ObjLoader(path, info.vertices, info.indices); 
+        std::string path = "resources/models/gltf/cube.gltf";
+        GltfModel cube{};
+        cube.LoadModel(path);
 
-        skyboxMesh = std::dynamic_pointer_cast<VulkanMesh>(VulkanMesh::BuildMesh(info));
+        skyboxMesh = cube.meshList[0];
 
         defaultSkybox = true;
 

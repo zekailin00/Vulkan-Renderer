@@ -12,6 +12,9 @@
 #include "vulkan_light.h"
 #include "render_technique.h"
 
+#include "loaders/objloader.h"
+#include "loaders/gltfloader.h"
+
 #include <vulkan/vulkan.h>
 #include <functional>
 #include <string>
