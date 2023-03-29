@@ -186,8 +186,7 @@ void GltfModel::LoadMaterials()
                 if (!gltfPbr["metallicFactor"].isNull())
                     prop.metallic = gltfPbr["metallicFactor"].asFloat();
                 if (!gltfPbr["roughnessFactor"].isNull())
-                    prop.smoothness = glm::min(0.0f, glm::max(1.0f, 
-                        1.0f - gltfPbr["roughnessFactor"].asFloat()));
+                    prop.roughness = glm::min(0.0f, glm::max(1.0f, gltfPbr["roughnessFactor"].asFloat()));
             }
 
             std::shared_ptr<Material> material = VulkanMaterial::BuildMaterial(&prop);

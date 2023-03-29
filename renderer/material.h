@@ -18,8 +18,8 @@ struct MaterialProperties
     float metallic = 0.1f;
     std::shared_ptr<Texture> metallicTexture = nullptr;
 
-    float smoothness = 0.1f;
-    std::shared_ptr<Texture> smoothnessTexture = nullptr;
+    float roughness = 0.9f;
+    std::shared_ptr<Texture> roughnessTexture = nullptr;
 
     std::shared_ptr<Texture> normalTexture = nullptr;
 };
@@ -33,12 +33,12 @@ public:
 
     virtual void AddAlbedoTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddMetallicTexture(std::shared_ptr<Texture> texture) = 0;
-    virtual void AddSmoothnessTexture(std::shared_ptr<Texture> texture) = 0;
+    virtual void AddRoughnessTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddNormalTexture(std::shared_ptr<Texture> texture) = 0;
 
     virtual void ResetAlbedoTexture() = 0;
     virtual void ResetMetallicTexture() = 0;
-    virtual void ResetSmoothnessTexture() = 0;
+    virtual void ResetRoughnessTexture() = 0;
     virtual void ResetNormalTexture() = 0;
 
     Material() = default;

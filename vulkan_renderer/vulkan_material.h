@@ -12,14 +12,14 @@ struct MaterialUniform
 {
     glm::vec4 albedo = {255, 255, 255, 0};
 
-    float metallic = 0.0f;
-    float smoothness = 0.5f;
+    float metallic = 0.1f;
+    float roughness = 0.9f;
     float _1;
     float _2;
 
     float useAlbedoTex = 0.0f;
     float useMetallicTex = 0.0f;
-    float useSmoothnessTex = 0.0f;
+    float useRoughnessTex = 0.0f;
     float useNormalTex = 0.0f;
 };
 
@@ -37,12 +37,12 @@ public:
 
     void AddAlbedoTexture(std::shared_ptr<Texture> texture) override;
     void AddMetallicTexture(std::shared_ptr<Texture> texture) override;
-    void AddSmoothnessTexture(std::shared_ptr<Texture> texture) override;
+    void AddRoughnessTexture(std::shared_ptr<Texture> texture) override;
     void AddNormalTexture(std::shared_ptr<Texture> texture) override;
 
     void ResetAlbedoTexture() override;
     void ResetMetallicTexture() override;
-    void ResetSmoothnessTexture() override;
+    void ResetRoughnessTexture() override;
     void ResetNormalTexture() override;
 
     VkDescriptorSet* GetDescriptorSet() {return &descriptorSet;}

@@ -15,19 +15,19 @@ layout (set = 0, binding = 0, std430) uniform MeshProperties
     vec4  albedo;
 
     float metallic;
-    float smoothness;
+    float roughness;
     float _1;
     float _2;
 
     float useAlbedoTex;
     float useMetallicTex;
-    float useSmoothnessTex;
+    float useRoughnessTex;
     float useNormalTex;
 } meshProperties;
 
 layout (set = 0, binding = 1) uniform sampler2D AlbedoTexture;
 layout (set = 0, binding = 2) uniform sampler2D MetallicTexture;
-layout (set = 0, binding = 3) uniform sampler2D SmoothnessTexture;
+layout (set = 0, binding = 3) uniform sampler2D RoughnessTexture;
 layout (set = 0, binding = 4) uniform sampler2D NormalTexture;
 
 struct DirLight
@@ -120,10 +120,10 @@ void main()
     else
         metallicFrag = texture(MetallicTexture, TexCoords).x;
 
-    if (meshProperties.useSmoothnessTex == 0)
-        roughnessFrag = clamp(1 - meshProperties.smoothness, 0.0, 1.0);
+    if (meshProperties.useRoughnessTex == 0)
+        roughnessFrag = clamp(meshProperties.roughness, 0.0, 1.0);
     else
-        roughnessFrag = clamp(1 - texture(SmoothnessTexture, TexCoords).x, 0.0, 1.0);
+        roughnessFrag = clamp(texture(RoughnessTexture, TexCoords).x, 0.0, 1.0);
 
     if (meshProperties.useAlbedoTex == 0)
         albedoFrag = meshProperties.albedo.rgb;

@@ -76,7 +76,7 @@ void TestApp::OnCreated()
         MaterialProperties matProp{};
         matProp.albedoTexture = VulkanTexture::GetDefaultTexture();
         matProp.metallic = 0.8f;
-        matProp.smoothness = 0.5f;
+        matProp.roughness = 0.5f;
         material_uv_test = VulkanMaterial::BuildMaterial(&matProp);
         mesh_test->AddMaterial(material_uv_test);
 
@@ -138,7 +138,7 @@ void TestApp::OnCreated()
         MaterialProperties matProp{};
         matProp.albedo = {0, 0.8, 0.8};
         matProp.metallic = 0.0f;
-        matProp.smoothness = 1.0f;
+        matProp.roughness = 0.0f;
         material_color = VulkanMaterial::BuildMaterial(&matProp);
         mesh_monster->AddMaterial(material_color);
 

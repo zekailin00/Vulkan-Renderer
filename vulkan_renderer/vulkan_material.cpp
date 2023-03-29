@@ -23,11 +23,11 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
 
     material->map->useAlbedoTex = (prop->albedoTexture != nullptr);
     material->map->useMetallicTex = (prop->metallicTexture != nullptr);
-    material->map->useSmoothnessTex = (prop->smoothnessTexture != nullptr);
+    material->map->useRoughnessTex = (prop->roughnessTexture != nullptr);
     material->map->useNormalTex = (prop->normalTexture != nullptr);
     material->map->albedo = glm::vec4(prop->albedo, 0);
     material->map->metallic = prop->metallic;
-    material->map->smoothness = prop->smoothness;
+    material->map->roughness = prop->roughness;
 
     material->properties = *prop;
     
@@ -97,10 +97,10 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
         descWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descWrite.descriptorCount = 1;
 
-        if (material->map->useSmoothnessTex)
+        if (material->map->useRoughnessTex)
         {
             std::shared_ptr<VulkanTexture> vkt = std::dynamic_pointer_cast<VulkanTexture>(
-                material->properties.smoothnessTexture);
+                material->properties.roughnessTexture);
             descWrite.pImageInfo = vkt->GetDescriptor();
         } else {
             descWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
@@ -156,7 +156,7 @@ void VulkanMaterial::ResetProperties()
 {
     ResetAlbedoTexture();
     ResetMetallicTexture();
-    ResetSmoothnessTexture();
+    ResetRoughnessTexture();
     ResetNormalTexture();
 }
 
@@ -210,15 +210,15 @@ void VulkanMaterial::AddMetallicTexture(std::shared_ptr<Texture> texture)
         this->vulkanDevice->vkDevice, 1, &descWrite, 0, nullptr);
 }
 
-void VulkanMaterial::AddSmoothnessTexture(std::shared_ptr<Texture> texture)
+void VulkanMaterial::AddRoughnessTexture(std::shared_ptr<Texture> texture)
 {
-    if(this->properties.smoothnessTexture != nullptr)
+    if(this->properties.roughnessTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
     }
 
-    map->useSmoothnessTex = 1.0f;
-    properties.smoothnessTexture = texture;
+    map->useRoughnessTex = 1.0f;
+    properties.roughnessTexture = texture;
 
     std::shared_ptr<VulkanTexture> vkt =
         std::dynamic_pointer_cast<VulkanTexture>(texture);
@@ -309,14 +309,14 @@ void VulkanMaterial::ResetMetallicTexture()
         this->properties.metallicTexture = nullptr;
     }
 
-    this->properties.metallic = 0.0f;
+    this->properties.metallic = 0.1f;
     this->map->metallic = this->properties.metallic;
     this->map->useMetallicTex = 0.0f; 
 }
 
-void VulkanMaterial::ResetSmoothnessTexture()
+void VulkanMaterial::ResetRoughnessTexture()
 {
-    if (this->properties.smoothnessTexture != nullptr)
+    if (this->properties.roughnessTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
 
@@ -333,12 +333,12 @@ void VulkanMaterial::ResetSmoothnessTexture()
             this->vulkanDevice->vkDevice,
             1, &descWrite, 0, nullptr);
 
-        this->properties.smoothnessTexture = nullptr;
+        this->properties.roughnessTexture = nullptr;
     }
 
-    this->properties.smoothness = 0.5f;
-    this->map->smoothness = this->properties.smoothness;
-    this->map->useSmoothnessTex = 0.0f;
+    this->properties.roughness = 0.9f;
+    this->map->roughness = this->properties.roughness;
+    this->map->useRoughnessTex = 0.0f;
 }
 
 void VulkanMaterial::ResetNormalTexture()
