@@ -67,8 +67,6 @@ void VulkanCmdBuffer::DestroySynchPrimitives()
 
 VkCommandBuffer VulkanCmdBuffer::BeginCommand()
 {
-    CHECK_VKCMD(vkWaitForFences(
-        vulkanDevice->vkDevice, 1, &queueSubmissionFences[currentFrame], VK_TRUE, UINT64_MAX));
     CHECK_VKCMD(vkResetFences(
         vulkanDevice->vkDevice, 1, &queueSubmissionFences[currentFrame]));
     CHECK_VKCMD(vkResetCommandBuffer(
@@ -95,6 +93,8 @@ void VulkanCmdBuffer::EndCommand()
 
     CHECK_VKCMD(vkEndCommandBuffer(vkCommandBuffers[currentFrame]));
     CHECK_VKCMD(vkQueueSubmit(vulkanDevice->graphicsQueue, 1, &vkSubmitInfo, queueSubmissionFences[currentFrame]));
+    CHECK_VKCMD(vkWaitForFences(
+        vulkanDevice->vkDevice, 1, &queueSubmissionFences[currentFrame], VK_TRUE, UINT64_MAX));
     currentFrame = (currentFrame + 1) % frameInFlight;
 }
 

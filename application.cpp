@@ -43,7 +43,7 @@ void Application::Run()
 {
     OnCreated();
     
-    Timer timer{60}; //FIXME: running as fast as possible breaks uniform coherency!!
+    Timer timer{};
     while (!window->ShouldClose()) 
     {
         Timestep ts = timer.GetTimestep();
