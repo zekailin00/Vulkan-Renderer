@@ -15,10 +15,10 @@ struct MaterialProperties
     glm::vec3 albedo = {1, 1, 1}; //  // [0, 1] for RGB
     std::shared_ptr<Texture> albedoTexture = nullptr;
 
-    float metallic = 0.1f;
+    float metallic = 0.0f;
     std::shared_ptr<Texture> metallicTexture = nullptr;
 
-    float roughness = 0.9f;
+    float roughness = 1.0f;
     std::shared_ptr<Texture> roughnessTexture = nullptr;
 
     std::shared_ptr<Texture> normalTexture = nullptr;

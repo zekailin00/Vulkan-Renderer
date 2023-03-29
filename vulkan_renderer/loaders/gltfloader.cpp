@@ -217,6 +217,9 @@ void GltfModel::LoadMaterials()
                         {
                             stbi_uc *pixel = &pixels[4*p];
                             pixel[0] = pixel[1];
+                            pixel[1] = pixel[1];
+                            pixel[2] = pixel[1];
+                            pixel[3] = pixel[1];
                         }
 
                         TextureBuildInfo info{};
@@ -239,6 +242,9 @@ void GltfModel::LoadMaterials()
                         {
                             stbi_uc *pixel = &pixels[4*p];
                             pixel[0] = pixel[2];
+                            pixel[1] = pixel[2];
+                            pixel[2] = pixel[2];
+                            pixel[3] = pixel[2];
                         }
 
                         TextureBuildInfo info{};

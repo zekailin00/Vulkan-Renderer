@@ -70,7 +70,7 @@ vec3 F_Schlick(float cosTheta, float metallic, vec3 albedo)
 {
 	vec3 F0 = mix(vec3(0.04), albedo, metallic);
 	vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0); 
-	return vec3(0,0,0); //FIXME: certain pixels are black
+	return F;
 }
 
 

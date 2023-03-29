@@ -24,6 +24,7 @@ class TestApp: public Application
     Node* lightDebug = nullptr;
     Node* lightNode2 = nullptr;
     Node* lightDebug2 = nullptr;
+    Node *rusk;
 
     void OnCreated() override;
     void OnUpdated(float ts) override;
@@ -42,7 +43,9 @@ void TestApp::OnCreated()
     {
         GltfModel model;
         model.LoadModel("/Users/zekailin00/Desktop/rusk.gltf");
-        Node *rusk = root->AddChildNode(model.GetNode());
+        node = std::make_unique<VulkanNode>();
+        nodePtr = root->AddChildNode(std::move(node));
+        rusk = nodePtr->AddChildNode(model.GetNode());
 
         rough = model.roughTexList[0];
         metal = model.metalTexList[0];
@@ -51,7 +54,7 @@ void TestApp::OnCreated()
         view = glm::rotate(view, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
         view = glm::rotate(view, 2.8f, glm::vec3(0.0f, 1.0f, 0.0f));
         view = glm::translate(view, glm::vec3(0.0f, -0.3f, 0.3f));
-        rusk->SetTransform(view);
+        nodePtr->SetTransform(view);
     }
 
     {
@@ -227,6 +230,9 @@ void TestApp::OnUpdated(float ts)
     view = glm::rotate(view, totalTime/1.0f + 3.14f, glm::vec3(0.0f, 0.0f, 1.0f));
     lightNode2->SetTransform(view);
     lightDebug2->SetTransform(view);
+
+    view = glm::rotate(glm::mat4(1.0f), totalTime/1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    rusk->SetTransform(view);
 }
 
 void TestApp::OnDestroy()
