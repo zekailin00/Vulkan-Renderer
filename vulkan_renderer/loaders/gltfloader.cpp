@@ -123,6 +123,7 @@ void GltfModel::LoadTextures()
         else // load image file
         {
             // TODO:
+            throw;
         }
     }
 }
@@ -179,7 +180,84 @@ void GltfModel::LoadMaterials()
 
             if (!gltfPbr["metallicRoughnessTexture"].isNull())
             {
-                throw; //TODO:
+                int texIndex = gltfPbr["metallicRoughnessTexture"]["index"].asInt();
+
+                Json::Value& gltfTextures = gltf["textures"];
+                Json::Value& gltfImages = gltf["images"];
+
+                int samplerIndex = gltfTextures[texIndex]["sampler"].asInt();
+                int sourceIndex = gltfTextures[texIndex]["source"].asInt();
+
+
+                Json::Value& sampler = gltf["samplers"][samplerIndex];
+                int magFilter = sampler["magFilter"].asInt();
+                int minFilter = sampler["minFilter"].asInt();
+
+                Json::Value& gltfImage = gltfImages[sourceIndex];
+
+                if (gltfImage["uri"].isNull())
+                {
+                    assert(gltfImage["bufferView"] && gltfImage["mimeType"]);
+                    int viewIndex = gltfImage["bufferView"].asInt();
+                    Json::Value& gltfBufferView = gltf["bufferViews"][viewIndex];
+
+                    assert(gltfBufferView["byteStride"].isNull()); // image data has no stride
+                    int bufIndex = gltfBufferView["buffer"].asInt();
+                    int bufLength = gltfBufferView["byteLength"].asInt();
+                    int bufOffset = gltfBufferView["byteOffset"].asInt();
+
+                    std::vector<unsigned char> &buf = bufferList[bufIndex];
+
+                    { // green channel contains roughness values
+                        int width, height, channels;
+                        stbi_uc* pixels = stbi_load_from_memory(&buf[bufOffset], bufLength,
+                            &width, &height, &channels, STBI_rgb_alpha);
+
+                        for (int p = 0; p < width * height; p++)
+                        {
+                            stbi_uc *pixel = &pixels[4*p];
+                            pixel[0] = pixel[1];
+                        }
+
+                        TextureBuildInfo info{};
+                        info.maxFilter = (magFilter == SamplerType::NEAREST)? FILTER_NEAREST: FILTER_LINEAR;
+                        info.minFilter = (minFilter == SamplerType::NEAREST)? FILTER_NEAREST: FILTER_LINEAR;
+
+                        std::shared_ptr<Texture> texture = 
+                            VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
+
+                        roughTexList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
+                        prop.roughnessTexture = texture;
+                    }
+
+                    { // blue channel contains metalness values
+                        int width, height, channels;
+                        stbi_uc* pixels = stbi_load_from_memory(&buf[bufOffset], bufLength,
+                            &width, &height, &channels, STBI_rgb_alpha);
+
+                        for (int p = 0; p < width * height; p++)
+                        {
+                            stbi_uc *pixel = &pixels[4*p];
+                            pixel[0] = pixel[2];
+                        }
+
+                        TextureBuildInfo info{};
+                        info.maxFilter = (magFilter == SamplerType::NEAREST)? FILTER_NEAREST: FILTER_LINEAR;
+                        info.minFilter = (minFilter == SamplerType::NEAREST)? FILTER_NEAREST: FILTER_LINEAR;
+
+                        std::shared_ptr<Texture> texture = 
+                            VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
+
+                        metalTexList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
+                        prop.metallicTexture = texture;
+                    }
+                }
+                else // load image file
+                {
+                    // TODO:
+                    throw;
+                }
+
             }
             else
             {

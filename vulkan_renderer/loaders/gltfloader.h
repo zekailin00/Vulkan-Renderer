@@ -24,6 +24,9 @@ public:
     std::vector<std::shared_ptr<VulkanTexture>> textureList;
     std::vector<std::shared_ptr<VulkanMaterial>> materialList;
     std::vector<std::shared_ptr<VulkanMesh>> meshList;
+    std::vector<std::shared_ptr<VulkanTexture>> roughTexList;
+    std::vector<std::shared_ptr<VulkanTexture>> metalTexList;
+
 
 private:
     void LoadBuffers();

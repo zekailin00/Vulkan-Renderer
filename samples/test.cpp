@@ -16,6 +16,9 @@ class TestApp: public Application
     std::shared_ptr<Material> material_uv_test;
     std::shared_ptr<Material> material_color;
 
+    std::shared_ptr<Texture> rough;
+    std::shared_ptr<Texture> metal;
+
     Node* camNode = nullptr;
     Node* lightNode = nullptr;
     Node* lightDebug = nullptr;
@@ -38,8 +41,11 @@ void TestApp::OnCreated()
 
     {
         GltfModel model;
-        model.LoadModel("/Users/zekailin00/Desktop/rusk.json");
+        model.LoadModel("/Users/zekailin00/Desktop/rusk.gltf");
         Node *rusk = root->AddChildNode(model.GetNode());
+
+        rough = model.roughTexList[0];
+        metal = model.metalTexList[0];
 
         view = glm::scale(glm::mat4(1.0f), glm::vec3(5.0f, 5.0f, 5.0f));
         view = glm::rotate(view, 0.0f, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -160,6 +166,9 @@ void TestApp::OnCreated()
         nodePtr->SetMesh(mesh_monster);
         MaterialProperties matProp{};
         matProp.albedo = {0, 0.8, 0.8};
+        matProp.roughnessTexture = rough; // FIXME: data corruption??
+        matProp.metallicTexture = metal;
+
         material_color = VulkanMaterial::BuildMaterial(&matProp);
         mesh_monster->AddMaterial(material_color);
 
