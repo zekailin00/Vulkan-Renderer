@@ -303,7 +303,7 @@ void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 
         if (!gltfNode["translation"].isNull())
         {
-            transform = glm::translate(transform, glm::vec3(
+            transform = glm::translate(glm::mat4(1.0f), glm::vec3(
                 gltfNode["translation"][0].asFloat(),
                 gltfNode["translation"][1].asFloat(),
                 gltfNode["translation"][2].asFloat()
@@ -311,12 +311,12 @@ void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
         }
 
         if (!gltfNode["rotation"].isNull())
-        {
+        { // XYZW rotation quaternion
             glm::mat4 rotation = glm::toMat4(glm::quat(
+                gltfNode["rotation"][3].asFloat(),
                 gltfNode["rotation"][0].asFloat(),
                 gltfNode["rotation"][1].asFloat(),
-                gltfNode["rotation"][2].asFloat(),
-                gltfNode["rotation"][3].asFloat()
+                gltfNode["rotation"][2].asFloat()
             ));
 
             transform = transform * rotation;
@@ -324,11 +324,12 @@ void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 
         if (!gltfNode["scale"].isNull())
         {
-            transform = glm::scale(transform, glm::vec3(
+            glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(
                 gltfNode["scale"][0].asFloat(),
                 gltfNode["scale"][1].asFloat(),
                 gltfNode["scale"][2].asFloat()
             ));
+            transform = transform * scale;
         }
 
         nodePtr->SetTransform(transform);
