@@ -93,7 +93,7 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness, vec3 albedo, 
 
 		vec3 c_diff = albedo * (1.0 - metallic);
 		vec3 f_diffuse = (1 - F) * (1 / PI) * c_diff;
-		vec3 f_specular = F * D * G / (4.0 * dotNL * dotNV + 0.001);
+		vec3 f_specular = F * D * G / (4.0 * dotNL * dotNV);
 
 		color += (f_diffuse + f_specular) * (dotNL * lightColor);
 	}
