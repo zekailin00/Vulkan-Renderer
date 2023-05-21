@@ -34,7 +34,7 @@ private:
         if (!file.is_open()) {
             std::cout << "[Vulkan Shader] Error: failed to load shader from filesystem with path:" << std::endl
                       << filePath << std::endl;
-            exit(1);
+            throw;
         }
 
         size_t fileSize = (size_t) file.tellg();
