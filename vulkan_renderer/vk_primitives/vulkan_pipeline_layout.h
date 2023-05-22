@@ -46,7 +46,7 @@ public:
         std::string name,
         std::vector<VkDescriptorSetLayoutBinding> bindings);
     std::unique_ptr<VulkanPipelineLayout> BuildPipelineLayout(
-        VkDescriptorPool descriptorPool);
+        VkDescriptorPool descriptorPool, VkPushConstantRange* pushConst = nullptr);
     VkDescriptorSetLayoutBinding descriptorSetLayoutBinding(
         VkDescriptorType type, VkShaderStageFlags stageFlags,
         uint32_t binding, uint32_t descriptorCount = 1);

@@ -51,7 +51,7 @@ int PipelineLayoutBuilder::PushDescriptorSetLayout(
 }
 
 std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::BuildPipelineLayout(
-    VkDescriptorPool descriptorPool
+    VkDescriptorPool descriptorPool, VkPushConstantRange* pushConst 
 ){
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout
         = std::make_unique<VulkanPipelineLayout>(vulkanDevice, descriptorPool);
@@ -66,6 +66,12 @@ std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::BuildPipelineLayout
     layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     layoutInfo.setLayoutCount = descLayoutList.size();
     layoutInfo.pSetLayouts = descLayoutList.data();
+
+    if (pushConst)
+    {
+        layoutInfo.pPushConstantRanges = pushConst;
+        layoutInfo.pushConstantRangeCount = 1;
+    }
     
     for(std::pair e: this->descSetLayouts)
         pipelineLayout->descSetLayouts[e.first] = e.second;

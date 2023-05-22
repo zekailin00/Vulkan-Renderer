@@ -3,6 +3,8 @@
 #include "vulkan_mesh.h"
 #include "vulkan_renderer.h"
 #include "vulkan_texture.h"
+#include "vulkan_wireframe.h"
+
 #include "vk_primitives/vulkan_pipeline_layout.h"
 #include "loaders/gltfloader.h"
 
@@ -157,6 +159,29 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
             vkCmdDrawIndexed(commandBuffer, vvb.GetIndexCount(), 1, 0, 0, 0);
         }
 
+
+        { // Wireframe rendering
+            VkPipelineLayout layout = vkr.GetPipelineLayout("wire").layout;
+
+            vkCmdBindPipeline(commandBuffer, 
+                VK_PIPELINE_BIND_POINT_GRAPHICS,
+                vkr.GetPipeline("wire").pipeline);
+
+            vkCmdBindDescriptorSets(
+                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                layout, 0, 1, camera->GetDescriptorSet(), 0, nullptr
+            );
+
+            WirePushConst wireData;
+            wireData.beginPoint = {0,0,0.0};
+            wireData.endPoint = {3,7,0.0};
+            wireData.color = {1.,1.0,0};
+            wireData.width = 1;
+
+            vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                sizeof(wireData), &wireData);
+            vkCmdDraw(commandBuffer, 6, 1, 0, 0);
+        }
 
         vkCmdEndRenderPass(commandBuffer);
     }
