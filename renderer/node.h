@@ -3,6 +3,7 @@
 #include "mesh.h"
 #include "light.h"
 #include "camera.h"
+#include "wireframe.h"
 
 #include <memory>
 #include <list>
@@ -81,6 +82,7 @@ protected:
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Light> light;
     std::shared_ptr<Camera> camera;
+    std::shared_ptr<Wire> wire;
 
     // https://cplusplus.com/reference/memory/unique_ptr/get/
     // Node owns its children, and returns raw pointer to users.
