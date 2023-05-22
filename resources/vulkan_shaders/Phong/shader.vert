@@ -30,6 +30,7 @@ void main()
     oFragPos = vec3(m.model * vec4(Position, 1.0));
     oNormal =  vec3(m.model * vec4(Normal, 0.0));;  
     oTexCoords = TexCoords;
-    oViewPos = vec3(vp.view[3][0], vp.view[3][1], vp.view[3][2]);
+    mat4 camera = inverse(vp.view);
+    oViewPos = vec3(camera[3][0], camera[3][1], camera[3][2]);
     gl_Position = vp.projection * vp.view * vec4(oFragPos, 1);
 }
