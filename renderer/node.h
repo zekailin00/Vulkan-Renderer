@@ -79,11 +79,6 @@ public:
     Node& operator=(const Node&) = delete;
 
 protected:
-    std::shared_ptr<Mesh> mesh;
-    std::shared_ptr<Light> light;
-    std::shared_ptr<Camera> camera;
-    std::shared_ptr<Wire> wire;
-
     // https://cplusplus.com/reference/memory/unique_ptr/get/
     // Node owns its children, and returns raw pointer to users.
     std::list<std::unique_ptr<Node>> nodeLists;

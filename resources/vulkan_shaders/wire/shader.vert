@@ -50,12 +50,10 @@ void main()
 	);
 
 	vec4 camCoord = vp.view * model * vec4(LINE[gl_VertexIndex].xyz, 1.0);
-
+	
 	// The width of the wire is depth independent
-	// FIXME: unknown transform bug; might related to camera or cross
-	camCoord.x = -camCoord.x * camCoord.z / 6;
-	camCoord.y = -camCoord.y * camCoord.z / 6;
+	vec4 worldCoord = model * vec4(LINE[gl_VertexIndex].x * camCoord.z / 6, LINE[gl_VertexIndex].yz, 1.0);
 
-	gl_Position = vp.projection * camCoord;
+	gl_Position = vp.projection * vp.view * worldCoord;
 	oColor = lineInfo.color;
 }

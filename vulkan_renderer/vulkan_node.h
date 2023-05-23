@@ -1,6 +1,7 @@
 #pragma once
 
 #include "node.h"
+#include "vulkan_wireframe.h"
 
 #include "vk_primitives/vulkan_uniform.h"
 #include "vk_primitives/vulkan_device.h"
@@ -48,7 +49,13 @@ public:
 
     friend RenderTechnique;
 
+    std::vector<WirePushConst> wireList;
+
 private:
+    std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Light> light;
+    std::shared_ptr<Camera> camera;
+
     VulkanUniform uniform{};
     VkDescriptorSet descSet = VK_NULL_HANDLE;
     VulkanDevice* vulkanDevice = nullptr;

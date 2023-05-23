@@ -6,63 +6,33 @@
 
 namespace renderer
 {
-    
-struct Wire
-{
-    glm::vec3 color;
-    float width;
-    bool depthEnabled;
-};
 
-struct Line: public Wire
-{
-    glm::vec3 direciton;
-    float length;
-};
-
-struct Sphere: public Wire
-{
-    glm::vec3 position;
-    float radius;
-};
-
-struct Circle: public Wire
-{
-    glm::vec3 position;
-    glm::vec3 normal;
-    float radius;
-};
-
-struct AABB: public Wire
-{
-    glm::vec3 minCoordinates;
-    glm::vec3 maxCoordinates;
-};
-
-struct OBB: public Wire
-{
-    glm::mat4 transform;
-};
+class Node; 
 
 class Wireframe
 {
-    virtual std::shared_ptr<Line> GetLine(
+public:
+    virtual std::unique_ptr<Node> GetLine(
         glm::vec3 direction, float length,
         glm::vec3 color = {0.0, 1.0, 0.0},
         float width = 1.0, bool depthEnabled = true) = 0;
-    virtual std::shared_ptr<Sphere> GetSphere(
+    virtual std::unique_ptr<Node> GetLine(
+        glm::vec3 beginPoint, glm::vec3 endPoint,
+        glm::vec3 color = {0.0, 1.0, 0.0},
+        float width = 1.0, bool depthEnabled = true) = 0;
+    virtual std::unique_ptr<Node> GetSphere(
         glm::vec3 position, float radius,
         glm::vec3 color = {0.0, 1.0, 0.0}, 
         float width = 1.0, bool depthEnabled = true) = 0;
-    virtual std::shared_ptr<Circle> GetCircle(
+    virtual std::unique_ptr<Node> GetCircle(
         glm::vec3 position, glm::vec3 normal, float radius,
         glm::vec3 color = {0.0, 1.0, 0.0},
         float width = 1.0, bool depthEnabled = true) = 0;
-    virtual std::shared_ptr<AABB> GetAABB(
+    virtual std::unique_ptr<Node> GetAABB(
         glm::vec3 minCoordinates, glm::vec3 maxCoordinates,
         glm::vec3 color = {0.0, 1.0, 0.0},
         float width = 1.0, bool depthEnabled = true) = 0;
-    virtual std::shared_ptr<OBB> GetOBB(
+    virtual std::unique_ptr<Node> GetOBB(
         glm::mat4 transform,
         glm::vec3 color = {0.0, 1.0, 0.0},
         float width = 1.0, bool depthEnabled = true) = 0;

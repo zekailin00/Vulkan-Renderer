@@ -172,15 +172,12 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
                 layout, 0, 1, camera->GetDescriptorSet(), 0, nullptr
             );
 
-            WirePushConst wireData;
-            wireData.beginPoint = {0,0,0.0};
-            wireData.endPoint = {3,7,0.0};
-            wireData.color = {1.,1.0,0};
-            wireData.width = 1;
-
-            vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                sizeof(wireData), &wireData);
-            vkCmdDraw(commandBuffer, 6, 1, 0, 0);
+            for (WirePushConst& e: this->wireList)
+            {
+                vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
+                    sizeof(e), &e);
+                vkCmdDraw(commandBuffer, 6, 1, 0, 0);
+            }
         }
 
         vkCmdEndRenderPass(commandBuffer);
@@ -188,6 +185,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
     renderMesh.clear();
     cameraList.clear();
+    wireList.clear();
 
     vkCmdPipelineBarrier(commandBuffer,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -231,6 +229,13 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
         vkCamera->SetTransform(globTransform);
 
         cameraList.push_back(std::dynamic_pointer_cast<VulkanCamera>(node->camera));
+    } 
+    else if (!node->wireList.empty())
+    {
+        for (WirePushConst& e: node->wireList)
+        {
+            this->wireList.push_back(e);
+        }
     }
     
     for (const auto& n: node->nodeLists)
