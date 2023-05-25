@@ -51,7 +51,7 @@ public:
     VulkanDevice vulkanDevice;
 
     struct {
-        VkRenderPass display;
+        VkRenderPass display;// Used for displaying both imgui and camera image
         VkRenderPass defaultCamera;
     } vkRenderPass;
     /**
@@ -66,8 +66,6 @@ public:
     */
 
 public:/* Services */
-    void RecordCommand(RenderCommand);
-    void CleanupCommands();
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
     VulkanPipeline& GetPipeline(std::string name);
     IVulkanSwapchain* GetSwapchain() {return swapchain;}
@@ -88,8 +86,6 @@ private: /* Private Vulkan helpers */
     void DestroyRenderPasses();
     void DestroyFramebuffers();
 
-    void ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer);
-
 public:
     // Descriptor Sets do not support multiple frames in flight.
     // It can only be 1 for now.
@@ -108,8 +104,6 @@ private:
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
 
     IVulkanSwapchain* swapchain = nullptr;
-
-    std::vector<RenderCommand> commandQueue;
 
     RenderTechnique defaultTechnique{};
 };

@@ -136,25 +136,6 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
 
-    // Initialize ImGui Plugin
-    ImGui_ImplVulkan_InitInfo imguiVulkanInitInfo{};
-    imguiVulkanInitInfo.Allocator = nullptr;
-    imguiVulkanInitInfo.CheckVkResultFn = nullptr;
-    imguiVulkanInitInfo.DescriptorPool = vkDescriptorPool;
-    imguiVulkanInitInfo.Device = vulkanDevice.vkDevice;
-    imguiVulkanInitInfo.ImageCount = swapchain->GetImageCount();
-    imguiVulkanInitInfo.Instance = vkInstance;
-    imguiVulkanInitInfo.MinImageCount = swapchain->GetImageCount();
-    imguiVulkanInitInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    imguiVulkanInitInfo.PhysicalDevice = vulkanDevice.vkPhysicalDevice;
-    imguiVulkanInitInfo.PipelineCache = VkPipelineCache();
-    imguiVulkanInitInfo.Queue = vulkanDevice.graphicsQueue;
-    imguiVulkanInitInfo.QueueFamily = vulkanDevice.graphicsIndex;
-    imguiVulkanInitInfo.Subpass = 0;
-
-    // // Use any command buffer. vkDeviceWaitIdle will wait until all are executed.
-    // imguiPlugin.InitializePlugin(imguiVulkanInitInfo, vkRenderPass.display);
-
     Log::Write(Log::Level::Info, "Size of RenderCommand: " + std::to_string(sizeof(RenderCommand)));
 }
 
@@ -495,7 +476,7 @@ void VulkanRenderer::CreatePipelines()
 
 void VulkanRenderer::BeginFrame()
 {
-    // imguiPlugin.BeginFrame();
+    // Nothing
 }
 
 void VulkanRenderer::EndFrame()
@@ -558,7 +539,6 @@ void VulkanRenderer::EndFrame()
 
     // Present image
     swapchain->PresentImage(renderFinishedSemaphore, imageIndex);
-    commandQueue.clear();
 }
 
 void VulkanRenderer::DeallocateResources()
@@ -577,22 +557,6 @@ void VulkanRenderer::DeallocateResources()
 void VulkanRenderer::Destroy()
 {
     // TODO: VulkanDevice, vkInstance
-}
-
-void VulkanRenderer::ExecuteRecordedCommands(VkCommandBuffer vkCommandBuffer)
-{
-    for(RenderCommand& command: commandQueue)
-        command(vkCommandBuffer);
-}
-
-void VulkanRenderer::RecordCommand(RenderCommand renderCommand)
-{
-    commandQueue.push_back(renderCommand);
-}
-
-void VulkanRenderer::CleanupCommands()
-{
-    commandQueue.clear();
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
