@@ -11,6 +11,8 @@
 namespace renderer
 {
 
+class Node;
+
 class PipelineImgui
 {
 
@@ -32,8 +34,8 @@ private:
 
     VkDescriptorSet fontTextureDescSet;
 
-    // Used for freeing the descriptor set when this is freed
-    VkDevice vkDevice;
+    // Cached data
+    VulkanDevice vulkanDevice;
     VkDescriptorPool vkDescriptorPool;
 
     struct ImguiPushConst
@@ -41,6 +43,24 @@ private:
         glm::vec2 uScale;
         glm::vec2 uTranslate;
     };
+
+    struct FrameRenderBuffers
+    {
+        VkDeviceMemory      VertexBufferMemory = VK_NULL_HANDLE;
+        VkDeviceMemory      IndexBufferMemory = VK_NULL_HANDLE;
+        VkDeviceSize        VertexBufferSize = 0;
+        VkDeviceSize        IndexBufferSize = 0;
+        VkBuffer            VertexBuffer = VK_NULL_HANDLE;
+        VkBuffer            IndexBuffer = VK_NULL_HANDLE;
+    };
+
+    // TODO: It does not support double buffering.
+    FrameRenderBuffers renderBuffers;
+
+private: //helpers for rendering
+    void CreateOrResizeBuffer(
+        VkBuffer& buffer, VkDeviceMemory& buffer_memory,
+        VkDeviceSize& p_buffer_size, size_t new_size, VkBufferUsageFlagBits usage);
 
 };
 

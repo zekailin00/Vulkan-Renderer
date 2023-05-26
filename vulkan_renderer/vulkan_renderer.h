@@ -5,12 +5,14 @@
 #include "vk_primitives/vulkan_device.h"
 #include "vk_primitives/vulkan_cmdbuffer.h"
 #include "vk_primitives/vulkan_pipeline.h"
+
 #include "vulkan_swapchain.h"
 #include "vulkan_texture.h"
 #include "pipeline_inputs.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
 #include "render_technique.h"
+#include "pipeline_imgui.h"
 
 #include "loaders/objloader.h"
 #include "loaders/gltfloader.h"
@@ -20,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace renderer
 {
@@ -50,9 +53,12 @@ public:
     VkInstance vkInstance;
     VulkanDevice vulkanDevice;
 
+    friend RenderTechnique;
+
     struct {
-        VkRenderPass display;// Used for displaying both imgui and camera image
+        VkRenderPass display;
         VkRenderPass defaultCamera;
+        VkRenderPass imgui;
     } vkRenderPass;
     /**
      * FIXME:
@@ -102,6 +108,7 @@ private:
     VulkanCmdBuffer vulkanCmdBuffer;
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
+    std::unique_ptr<PipelineImgui> pipelineImgui;
 
     IVulkanSwapchain* swapchain = nullptr;
 

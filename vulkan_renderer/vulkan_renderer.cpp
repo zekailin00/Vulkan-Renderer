@@ -213,7 +213,6 @@ void VulkanRenderer::CreateRenderPasses()
 
     // Default camera render pass
     {
-
         std::vector<VkAttachmentDescription> attachmentDesc{colorAttachmentDesc, depthAttachmentDesc};
 
         VkSubpassDescription subpass{};
@@ -242,12 +241,43 @@ void VulkanRenderer::CreateRenderPasses()
         CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.defaultCamera));
     }
 
+
+    // imgui render pass
+    {
+        std::vector<VkAttachmentDescription> attachmentDesc{colorAttachmentDesc};
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachment;
+
+        // Dependency for vkQueuePresentKHR with attachment output semaphore.
+        VkSubpassDependency dependency = {};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo vkRenderPassCreateInfo{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
+        vkRenderPassCreateInfo.attachmentCount = 1;
+        vkRenderPassCreateInfo.pAttachments = attachmentDesc.data();
+        vkRenderPassCreateInfo.subpassCount = 1;
+        vkRenderPassCreateInfo.pSubpasses = &subpass;
+        vkRenderPassCreateInfo.dependencyCount = 1;
+        vkRenderPassCreateInfo.pDependencies = &dependency;
+
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.imgui));
+    }
+
 }
 
 void VulkanRenderer::DestroyRenderPasses()
 {
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.defaultCamera, nullptr);
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.display, nullptr);
+    vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.imgui, nullptr);
 }
 
 void VulkanRenderer::CreateFramebuffers()
@@ -472,6 +502,9 @@ void VulkanRenderer::CreatePipelines()
 
         pipelines["wire"] = std::move(wirePipeline);
     }
+
+    pipelineImgui = std::make_unique<PipelineImgui>(
+        vulkanDevice, vkDescriptorPool, vkRenderPass.imgui);
 }
 
 void VulkanRenderer::BeginFrame()
@@ -556,6 +589,7 @@ void VulkanRenderer::DeallocateResources()
 
 void VulkanRenderer::Destroy()
 {
+    pipelineImgui.reset();
     // TODO: VulkanDevice, vkInstance
 }
 

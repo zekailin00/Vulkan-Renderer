@@ -4,6 +4,7 @@
 #include "vulkan_renderer.h"
 #include "vulkan_texture.h"
 #include "vulkan_wireframe.h"
+#include "vulkan_ui.h"
 
 #include "vk_primitives/vulkan_pipeline_layout.h"
 #include "loaders/gltfloader.h"
@@ -41,7 +42,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     VkPipelineLayout layout = vkr.GetPipelineLayout("render").layout;
 
-    std::vector<VkImageMemoryBarrier> barriers;
     VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
     barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -58,11 +58,43 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     if (!cameraList.empty())
         this->display = cameraList[0]->colorTexDescSet;
 
+    std::vector<VkImageMemoryBarrier> uiBarriers;
+    for (std::shared_ptr<VulkanUI> ui: uiList)
+    {
+        // Memory dealllocation issue 
+        // imgui, quad size, render size, display size. . .. 
+        barrier.image = ui->colorImage->GetImage();
+        uiBarriers.push_back(barrier);
 
+        VkClearValue clearValue{{{0/255.0, 0/255.0, 0/255.0, 1.0f}}};
+        VkRenderPassBeginInfo vkRenderPassInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        vkRenderPassInfo.renderPass = vkr.vkRenderPass.imgui;
+        vkRenderPassInfo.framebuffer = ui->framebuffer;
+        vkRenderPassInfo.renderArea.extent = {
+            static_cast<unsigned int>(ui->extent.x),
+            static_cast<unsigned int>(ui->extent.y)
+        };
+        vkRenderPassInfo.clearValueCount = 1;
+        vkRenderPassInfo.pClearValues = &clearValue;
+        vkCmdBeginRenderPass(commandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        vkr.pipelineImgui->RenderUI(ui->drawData, commandBuffer);
+
+        vkCmdEndRenderPass(commandBuffer);
+    }
+
+    vkCmdPipelineBarrier(commandBuffer,
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+        0, 0, nullptr, 0, nullptr,
+        uiBarriers.size(), uiBarriers.data() 
+    );
+
+    std::vector<VkImageMemoryBarrier> camBarriers;
     for (std::shared_ptr<VulkanCamera> camera: cameraList)
     {
         barrier.image = camera->colorImage.GetImage();
-        barriers.push_back(barrier);
+        camBarriers.push_back(barrier);
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {{0/255.0, 0/255.0, 0/255.0, 1.0f}};
@@ -136,8 +168,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
             layout, 3, 1, &sceneDescSet, 0, nullptr
         );
 
-        // ExecuteRecordedCommands(vkCommandBuffer);
-
         for(const auto& m: renderMesh)
         {
             VulkanVertexbuffer& vvb = m.mesh->GetVertexbuffer();
@@ -186,12 +216,13 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     renderMesh.clear();
     cameraList.clear();
     wireList.clear();
+    uiList.clear();
 
     vkCmdPipelineBarrier(commandBuffer,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
         0, 0, nullptr, 0, nullptr,
-        barriers.size(), barriers.data() 
+        camBarriers.size(), camBarriers.data() 
     );
 }
 
@@ -236,6 +267,14 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
         {
             this->wireList.push_back(e);
         }
+    }
+    // Although ui is not directly rendered 
+    // it still has to be placed in a node to be scanned
+    // it can be stored in the same node that the quad is also stored.
+    if (node->ui)
+    {
+        std::dynamic_pointer_cast<VulkanUI>(node->ui)->RenderUI();
+        uiList.push_back(std::dynamic_pointer_cast<VulkanUI>(node->ui));
     }
     
     for (const auto& n: node->nodeLists)

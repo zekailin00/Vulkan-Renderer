@@ -8,9 +8,11 @@
 #include "vulkan_light.h"
 #include "vulkan_mesh.h"
 #include "vulkan_wireframe.h"
+#include "vulkan_ui.h"
 
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <memory>
 
 namespace renderer
 {
@@ -56,6 +58,7 @@ private:
     std::vector<MeshPacket> renderMesh{};
     std::vector<std::shared_ptr<VulkanCamera>> cameraList{};
     std::vector<WirePushConst> wireList{};
+    std::vector<std::shared_ptr<VulkanUI>> uiList{};
 
     VulkanUniform sceneUniform{};
     VkDescriptorSet sceneDescSet;
