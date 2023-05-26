@@ -24,7 +24,7 @@ PipelineImgui::PipelineImgui(
     ImGuiIO& io = ImGui::GetIO();
 
     // Ensure all texture sizes are less than this
-    io.DisplaySize = {10000,10000};
+    io.DisplaySize = {4096,4096};
 
     // Setup backend capabilities flags
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
@@ -33,7 +33,7 @@ PipelineImgui::PipelineImgui(
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
     // Create font
-    io.Fonts->AddFontFromFileTTF("resources/KGPrimaryPenmanship.ttf", 18.0f);
+    io.Fonts->AddFontFromFileTTF("resources/KGPrimaryPenmanship.ttf", 32.0f);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

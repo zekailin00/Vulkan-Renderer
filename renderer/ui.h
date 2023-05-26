@@ -10,7 +10,7 @@ namespace renderer
 
 struct UIBuildInfo
 {
-    glm::vec2 extent;
+    glm::vec2 extent = {720, 720};
     void (*imgui)(void);
 };
 
