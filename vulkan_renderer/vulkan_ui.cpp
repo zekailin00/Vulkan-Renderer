@@ -71,7 +71,7 @@ void VulkanUI::RenderUI()
     ImGui::End();
     ImGui::EndFrame();
     ImGui::Render();
-    this->drawData = *ImGui::GetDrawData();
+    this->drawData = ImGui::GetDrawData();
     MapData();
 }
 
@@ -124,11 +124,11 @@ void VulkanUI::Initialize(glm::vec2& extent, void (*renderUI)(void))
 void VulkanUI::MapData()
 {
     // Allocate array to store enough vertex/index buffers
-    if (drawData.TotalVtxCount > 0)
+    if (drawData->TotalVtxCount > 0)
     {
         // Create or resize the vertex/index buffers
-        size_t vertex_size = drawData.TotalVtxCount * sizeof(ImDrawVert);
-        size_t index_size = drawData.TotalIdxCount * sizeof(ImDrawIdx);
+        size_t vertex_size = drawData->TotalVtxCount * sizeof(ImDrawVert);
+        size_t index_size = drawData->TotalIdxCount * sizeof(ImDrawIdx);
         if (vertexBuffer == VK_NULL_HANDLE ||
             vertexBufferSize < vertex_size)
             CreateOrResizeBuffer(vertexBuffer, vertexBufferMemory,
@@ -147,9 +147,9 @@ void VulkanUI::MapData()
         err = vkMapMemory(vulkanDevice->vkDevice, indexBufferMemory, 0,
             indexBufferSize, 0, (void**)(&idx_dst));
         CHECK_VKCMD(err);
-        for (int n = 0; n < drawData.CmdListsCount; n++)
+        for (int n = 0; n < drawData->CmdListsCount; n++)
         {
-            const ImDrawList* cmd_list = drawData.CmdLists[n];
+            const ImDrawList* cmd_list = drawData->CmdLists[n];
             memcpy(vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
             memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
             vtx_dst += cmd_list->VtxBuffer.Size;

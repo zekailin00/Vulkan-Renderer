@@ -40,7 +40,7 @@ private:
     glm::vec2 extent;
     void (*renderUI)(void);
 
-    ImDrawData drawData;
+    ImDrawData* drawData;
 
     VkDeviceMemory      vertexBufferMemory = VK_NULL_HANDLE;
     VkDeviceSize        vertexBufferSize = 0;

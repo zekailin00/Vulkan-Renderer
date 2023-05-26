@@ -61,8 +61,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     std::vector<VkImageMemoryBarrier> uiBarriers;
     for (std::shared_ptr<VulkanUI> ui: uiList)
     {
-        // Memory dealllocation issue 
-        // imgui, quad size, render size, display size. . .. 
         barrier.image = ui->colorImage->GetImage();
         uiBarriers.push_back(barrier);
 
@@ -78,7 +76,8 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         vkRenderPassInfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(commandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkr.pipelineImgui->RenderUI(&ui->drawData,
+        ui->RenderUI();
+        vkr.pipelineImgui->RenderUI(ui->drawData,
             ui->vertexBuffer, ui->indexBuffer, commandBuffer);
 
         vkCmdEndRenderPass(commandBuffer);
@@ -274,7 +273,6 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
     // it can be stored in the same node that the quad is also stored.
     if (node->ui)
     {
-        std::dynamic_pointer_cast<VulkanUI>(node->ui)->RenderUI();
         uiList.push_back(std::dynamic_pointer_cast<VulkanUI>(node->ui));
     }
     
