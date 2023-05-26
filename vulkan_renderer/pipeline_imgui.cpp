@@ -144,37 +144,14 @@ PipelineImgui::~PipelineImgui()
     fontTexture->Destroy();
     imguiPipeline = nullptr;
 
-    if (renderBuffers.VertexBuffer)
-    {
-        vkDestroyBuffer(vulkanDevice.vkDevice, renderBuffers.VertexBuffer, nullptr);
-        renderBuffers.VertexBuffer = VK_NULL_HANDLE;
-    }
-    if (renderBuffers.VertexBufferMemory)
-    {
-        vkFreeMemory(vulkanDevice.vkDevice, renderBuffers.VertexBufferMemory, nullptr);
-        renderBuffers.VertexBufferMemory = VK_NULL_HANDLE;
-    }
-    if (renderBuffers.IndexBuffer)
-    {
-        vkDestroyBuffer(vulkanDevice.vkDevice, renderBuffers.IndexBuffer, nullptr);
-        renderBuffers.IndexBuffer = VK_NULL_HANDLE;
-    }
-    if (renderBuffers.IndexBufferMemory)
-    {
-        vkFreeMemory(vulkanDevice.vkDevice, renderBuffers.IndexBufferMemory, nullptr);
-        renderBuffers.IndexBufferMemory = VK_NULL_HANDLE;
-    }
-
-    renderBuffers.VertexBufferSize = 0;
-    renderBuffers.IndexBufferSize = 0;
-
     io.BackendRendererName = nullptr;
     io.BackendRendererUserData = nullptr;
     ImGui::DestroyContext();
 }
 
 
-void PipelineImgui::RenderUI(ImDrawData* drawData, VkCommandBuffer commandbuffer)
+void PipelineImgui::RenderUI(ImDrawData* drawData,
+    VkBuffer vertexBuffer, VkBuffer indexBuffer, VkCommandBuffer commandbuffer)
 {
     // Avoid rendering when minimized, scale coordinates 
     // for retina displays (screen coordinates != framebuffer coordinates)
@@ -182,52 +159,6 @@ void PipelineImgui::RenderUI(ImDrawData* drawData, VkCommandBuffer commandbuffer
     int fb_height = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
     if (fb_width <= 0 || fb_height <= 0)
         return;
-
-    // Allocate array to store enough vertex/index buffers
-
-    if (drawData->TotalVtxCount > 0)
-    {
-        // Create or resize the vertex/index buffers
-        size_t vertex_size = drawData->TotalVtxCount * sizeof(ImDrawVert);
-        size_t index_size = drawData->TotalIdxCount * sizeof(ImDrawIdx);
-        if (renderBuffers.VertexBuffer == VK_NULL_HANDLE ||
-            renderBuffers.VertexBufferSize < vertex_size)
-            CreateOrResizeBuffer(renderBuffers.VertexBuffer, renderBuffers.VertexBufferMemory,
-                renderBuffers.VertexBufferSize, vertex_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-        if (renderBuffers.IndexBuffer == VK_NULL_HANDLE ||
-            renderBuffers.IndexBufferSize < index_size)
-            CreateOrResizeBuffer(renderBuffers.IndexBuffer, renderBuffers.IndexBufferMemory,
-                renderBuffers.IndexBufferSize, index_size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
-
-        // Upload vertex/index data into a single contiguous GPU buffer
-        ImDrawVert* vtx_dst = nullptr;
-        ImDrawIdx* idx_dst = nullptr;
-        VkResult err = vkMapMemory(vulkanDevice.vkDevice, renderBuffers.VertexBufferMemory, 0,
-            renderBuffers.VertexBufferSize, 0, (void**)(&vtx_dst));
-        CHECK_VKCMD(err);
-        err = vkMapMemory(vulkanDevice.vkDevice, renderBuffers.IndexBufferMemory, 0,
-            renderBuffers.IndexBufferSize, 0, (void**)(&idx_dst));
-        CHECK_VKCMD(err);
-        for (int n = 0; n < drawData->CmdListsCount; n++)
-        {
-            const ImDrawList* cmd_list = drawData->CmdLists[n];
-            memcpy(vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
-            memcpy(idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
-            vtx_dst += cmd_list->VtxBuffer.Size;
-            idx_dst += cmd_list->IdxBuffer.Size;
-        }
-        VkMappedMemoryRange range[2] = {};
-        range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        range[0].memory = renderBuffers.VertexBufferMemory;
-        range[0].size = VK_WHOLE_SIZE;
-        range[1].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        range[1].memory = renderBuffers.IndexBufferMemory;
-        range[1].size = VK_WHOLE_SIZE;
-        err = vkFlushMappedMemoryRanges(vulkanDevice.vkDevice, 2, range);
-        CHECK_VKCMD(err);
-        vkUnmapMemory(vulkanDevice.vkDevice, renderBuffers.VertexBufferMemory);
-        vkUnmapMemory(vulkanDevice.vkDevice, renderBuffers.IndexBufferMemory);
-    }
     
     // Bind pipeline
     {
@@ -237,10 +168,10 @@ void PipelineImgui::RenderUI(ImDrawData* drawData, VkCommandBuffer commandbuffer
     // Bind Vertex And Index Buffer:
     if (drawData->TotalVtxCount > 0)
     {
-        VkBuffer vertex_buffers[1] = { renderBuffers.VertexBuffer };
+        VkBuffer vertex_buffers[1] = { vertexBuffer };
         VkDeviceSize vertex_offset[1] = { 0 };
         vkCmdBindVertexBuffers(commandbuffer, 0, 1, vertex_buffers, vertex_offset);
-        vkCmdBindIndexBuffer(commandbuffer, renderBuffers.IndexBuffer, 0,
+        vkCmdBindIndexBuffer(commandbuffer, indexBuffer, 0,
             sizeof(ImDrawIdx) == 2 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32);
     }
 
@@ -332,42 +263,6 @@ void PipelineImgui::RenderUI(ImDrawData* drawData, VkCommandBuffer commandbuffer
 
     VkRect2D scissor = { { 0, 0 }, { (uint32_t)fb_width, (uint32_t)fb_height } };
     vkCmdSetScissor(commandbuffer, 0, 1, &scissor);
-}
-
-
-void PipelineImgui::CreateOrResizeBuffer(
-    VkBuffer& buffer, VkDeviceMemory& buffer_memory,
-    VkDeviceSize& p_buffer_size, size_t new_size, VkBufferUsageFlagBits usage)
-{
-    VkResult err;
-    if (buffer != VK_NULL_HANDLE)
-        vkDestroyBuffer(vulkanDevice.vkDevice, buffer, nullptr);
-    if (buffer_memory != VK_NULL_HANDLE)
-        vkFreeMemory(vulkanDevice.vkDevice, buffer_memory, nullptr);
-
-    // FIXME: might have memory alignment issue 
-    VkDeviceSize vertex_buffer_size_aligned = new_size;
-    VkBufferCreateInfo buffer_info = {};
-    buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buffer_info.size = vertex_buffer_size_aligned;
-    buffer_info.usage = usage;
-    buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    err = vkCreateBuffer(vulkanDevice.vkDevice, &buffer_info, nullptr, &buffer);
-    CHECK_VKCMD(err);
-
-    VkMemoryRequirements req;
-    vkGetBufferMemoryRequirements(vulkanDevice.vkDevice, buffer, &req);
-    VkMemoryAllocateInfo alloc_info = {};
-    alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    alloc_info.allocationSize = req.size;
-    alloc_info.memoryTypeIndex = vulkanDevice.GetMemoryTypeIndex(req.memoryTypeBits, 
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-    err = vkAllocateMemory(vulkanDevice.vkDevice, &alloc_info, nullptr, &buffer_memory);
-    CHECK_VKCMD(err);
-
-    err = vkBindBufferMemory(vulkanDevice.vkDevice, buffer, buffer_memory, 0);
-    CHECK_VKCMD(err);
-    p_buffer_size = req.size;
 }
 
 } // namespace renderer

@@ -39,7 +39,16 @@ public:
 private:
     glm::vec2 extent;
     void (*renderUI)(void);
-    ImDrawData* drawData;
+
+    ImDrawData drawData;
+
+    VkDeviceMemory      vertexBufferMemory = VK_NULL_HANDLE;
+    VkDeviceSize        vertexBufferSize = 0;
+    VkBuffer            vertexBuffer = VK_NULL_HANDLE;
+
+    VkDeviceMemory      indexBufferMemory = VK_NULL_HANDLE;
+    VkDeviceSize        indexBufferSize = 0;
+    VkBuffer            indexBuffer = VK_NULL_HANDLE;
 
     VulkanDevice* vulkanDevice;
     std::shared_ptr<VulkanTexture> colorImage;
@@ -47,6 +56,12 @@ private:
 
 private:
     void Initialize(glm::vec2& extent, void (*renderUI)(void));
+    
+    void MapData();
+
+    void CreateOrResizeBuffer(
+        VkBuffer& buffer, VkDeviceMemory& buffer_memory,
+        VkDeviceSize& p_buffer_size, size_t new_size, VkBufferUsageFlagBits usage);
 };
 
 } // namespace renderer

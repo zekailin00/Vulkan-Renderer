@@ -78,7 +78,8 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         vkRenderPassInfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(commandBuffer, &vkRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkr.pipelineImgui->RenderUI(ui->drawData, commandBuffer);
+        vkr.pipelineImgui->RenderUI(&ui->drawData,
+            ui->vertexBuffer, ui->indexBuffer, commandBuffer);
 
         vkCmdEndRenderPass(commandBuffer);
     }
