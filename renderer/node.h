@@ -4,6 +4,7 @@
 #include "light.h"
 #include "camera.h"
 #include "wireframe.h"
+#include "ui.h"
 
 #include <memory>
 #include <list>

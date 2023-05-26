@@ -50,6 +50,7 @@ public:
     friend RenderTechnique;
 
     std::vector<WirePushConst> wireList;
+    std::shared_ptr<UI> ui;
 
 private:
     std::shared_ptr<Mesh> mesh;

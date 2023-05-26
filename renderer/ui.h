@@ -1,7 +1,9 @@
 #pragma once
 
-#include <glm/vec2.hpp>
+#include "texture.h"
 
+#include <glm/vec2.hpp>
+#include <memory>
 
 namespace renderer
 {
@@ -22,6 +24,7 @@ public:
     const UI& operator=(const UI&) = delete;
 
     virtual void SetExtent(glm::vec2 extent) = 0;
+    virtual std::shared_ptr<Texture> GetTexture() = 0;
 };
 
 } // namespace renderer
