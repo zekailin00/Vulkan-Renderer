@@ -28,6 +28,7 @@ public:
     static std::shared_ptr<Texture> BuildTextureFromBuffer(
         unsigned char* buffer, int width, int height, TextureBuildInfo* buildInfo);
     static std::shared_ptr<VulkanTexture> GetDefaultTexture();
+    static void DestroyDefaultTexture();
 
     VkDescriptorImageInfo* GetDescriptor(
         VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -74,6 +75,7 @@ class VulkanTextureCube: public TextureCube
 public:
     static std::shared_ptr<TextureCube> BuildTexture(TextureCubeBuildInfo&);
     static std::shared_ptr<VulkanTextureCube> GetDefaultTexture();
+    static void DestroyDefaultTexture();
 
     VkDescriptorImageInfo* GetDescriptor(
         VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

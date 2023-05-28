@@ -152,6 +152,13 @@ std::shared_ptr<Material> VulkanMaterial::GetDefaultMaterial()
     return defaultMaterial;
 }
 
+void VulkanMaterial::DestroyDefaultMaterial()
+{
+    ZoneScopedN("VulkanMaterial::DestroyDefaultMaterial");
+
+    defaultMaterial = nullptr;
+}
+
 MaterialProperties* VulkanMaterial::GetProperties()
 {
     ZoneScopedN("VulkanMaterial::GetProperties");

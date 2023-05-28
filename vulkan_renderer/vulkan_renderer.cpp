@@ -87,13 +87,15 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
         CHECK_VKCMD(err);
 
         // Get the function pointer (required for any extensions)
-        auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
+        auto vkCreateDebugReportCallbackEXT =
+            (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
         ASSERT(vkCreateDebugReportCallbackEXT != NULL);
 
         // Setup the debug report callback
         VkDebugReportCallbackCreateInfoEXT debug_report_ci = {};
         debug_report_ci.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-        debug_report_ci.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        debug_report_ci.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+            VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
         debug_report_ci.pfnCallback = debug_report;
         debug_report_ci.pUserData = NULL;
         err = vkCreateDebugReportCallbackEXT(vkInstance, &debug_report_ci, nullptr, &g_DebugReport);
@@ -617,6 +619,12 @@ void VulkanRenderer::DeallocateResources()
 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
+    this->defaultTechnique.Destroy();
+
+    VulkanMaterial::DestroyDefaultMaterial();
+    VulkanTexture::DestroyDefaultTexture();
+    VulkanTextureCube::DestroyDefaultTexture();
+
     DestroyFramebuffers();
     swapchain->Destroy();
 
@@ -627,16 +635,27 @@ void VulkanRenderer::DeallocateResources()
     vulkanCmdBuffer.Destroy();
     vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
 
-    // statically allocated textures
-    // vulkanDevice.Destroy();
-    // DestroyDebugUtilsMessengerEXT, vkDestroySurfaceKHR, vkDestroyInstance, glfwDestroyWindow, glfwTerminate
+    TracyVkDestroy(tracyVkCtx);
+    vulkanDevice.Destroy();
+
+#ifdef VULKAN_DEBUG_REPORT
+
+    auto func = 
+        (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
+
+    assert(func);
+    func(vkInstance, g_DebugReport, nullptr);
+
+#endif
+
 }
 
 void VulkanRenderer::Destroy()
 {
     ZoneScopedN("VulkanRenderer::Destroy");
 
-    TracyVkDestroy(tracyVkCtx);
+    // Destory VkSurfaceKHR and sdebugUtilsMessengerEXT before vkInstance
+    vkDestroyInstance(vkInstance, nullptr);
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)

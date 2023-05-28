@@ -21,7 +21,8 @@ class RenderTechnique
 {
 public:
     RenderTechnique() = default;
-    ~RenderTechnique() = default;
+    ~RenderTechnique();
+    void Destroy();
 
     RenderTechnique(const RenderTechnique&) = delete;
     RenderTechnique& operator=(const RenderTechnique&) = delete;

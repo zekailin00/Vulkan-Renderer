@@ -90,7 +90,11 @@ void GlfwWindow::BeginFrame()
 
 void GlfwWindow::CloseWindow()
 {
-    // ImGui_ImplGlfw_Shutdown();
+    ZoneScopedN("GlfwWindow::CloseWindow");
+
+    // Destory surface before vkInstance
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
+    vkDestroySurfaceKHR(vkr.vkInstance, surface, nullptr);
 }
 
 void GlfwWindow::Destroy()

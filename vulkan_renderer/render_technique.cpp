@@ -21,6 +21,22 @@ namespace renderer
 
 extern TracyVkCtx tracyVkCtx;
 
+RenderTechnique::~RenderTechnique()
+{
+    ZoneScopedN("RenderTechnique::~RenderTechnique");
+
+    Destroy();
+}
+
+void RenderTechnique::Destroy()
+{
+    ZoneScopedN("RenderTechnique::Destroy");
+
+    sceneUniform.Destroy();
+    skyboxMesh = nullptr;
+    textureCube = nullptr;
+}
+
 void RenderTechnique::ProcessScene(VulkanNode* root)
 {
     ZoneScopedN("RenderTechnique::ProcessScene");

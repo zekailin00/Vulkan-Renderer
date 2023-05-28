@@ -397,6 +397,13 @@ std::shared_ptr<VulkanTexture> VulkanTexture::GetDefaultTexture()
     return defaultTexture;
 }
 
+void VulkanTexture::DestroyDefaultTexture()
+{
+    ZoneScopedN("VulkanTexture::DestroyDefaultTexture");
+
+    defaultTexture = nullptr;
+}
+
 VulkanTexture::~VulkanTexture()
 {
     ZoneScopedN("VulkanTexture::~VulkanTexture");
@@ -685,6 +692,13 @@ std::shared_ptr<VulkanTextureCube> VulkanTextureCube::GetDefaultTexture()
     }
 
     return defaultTexture;
+}
+
+void VulkanTextureCube::DestroyDefaultTexture()
+{
+    ZoneScopedN("VulkanTextureCube::DestroyDefaultTexture");
+
+    defaultTexture = nullptr;
 }
 
 VkDescriptorImageInfo* VulkanTextureCube::GetDescriptor(VkImageLayout vkImageLayout)
