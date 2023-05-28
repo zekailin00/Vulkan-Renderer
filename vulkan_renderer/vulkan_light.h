@@ -6,6 +6,7 @@
 #include "pipeline_inputs.h"
 
 #include <vulkan/vulkan.h>
+#include <memory>
 
 namespace renderer
 {
