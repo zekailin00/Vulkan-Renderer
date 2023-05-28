@@ -107,6 +107,12 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
     }
 
     vulkanDevice.Initialize(vkInstance);
+
+
+    VulkanSingleCmd singleCmd;
+    singleCmd.Initialize(&vulkanDevice);
+    tracyVkCtx = TracyVkContext(vulkanDevice.vkPhysicalDevice, vulkanDevice.vkDevice,
+        vulkanDevice.graphicsQueue, singleCmd.BeginCommand());
 }
 
 void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
@@ -144,12 +150,6 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     CreatePipelines();
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
-
-    VulkanSingleCmd singleCmd;
-    singleCmd.Initialize(&vulkanDevice);
-
-    tracyVkCtx = TracyVkContext(vulkanDevice.vkPhysicalDevice, vulkanDevice.vkDevice,
-        vulkanDevice.graphicsQueue, singleCmd.BeginCommand());
 
     Log::Write(Log::Level::Info, "Size of RenderCommand: " + std::to_string(sizeof(RenderCommand)));
 }

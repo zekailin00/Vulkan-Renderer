@@ -2,6 +2,7 @@
 
 #include "vulkan_node.h"
 #include <glm/gtc/constants.hpp>
+#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
@@ -10,6 +11,8 @@ std::unique_ptr<Node> VulkanWireframe::GetLine(
     glm::vec3 direction, float length,
     glm::vec3 color, float width, bool depthEnabled)
 {
+    ZoneScopedN("VulkanWireframe::GetLine");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
 
     WirePushConst data{};
@@ -28,6 +31,8 @@ std::unique_ptr<Node> VulkanWireframe::GetLine(
         glm::vec3 beginPoint, glm::vec3 endPoint,
         glm::vec3 color, float width, bool depthEnabled)
 {
+    ZoneScopedN("VulkanWireframe::GetLine");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
 
     WirePushConst data{};
@@ -45,6 +50,8 @@ std::unique_ptr<Node> VulkanWireframe::GetSphere(
     glm::vec3 position, float radius,
     glm::vec3 color, float width, bool depthEnabled)
 {
+    ZoneScopedN("VulkanWireframe::GetSphere");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
 
     glm::vec3 v1 = glm::normalize(glm::vec3(1, 0, 0));
@@ -114,6 +121,8 @@ std::unique_ptr<Node> VulkanWireframe::GetCircle(
     glm::vec3 position, glm::vec3 normal, float radius,
     glm::vec3 color, float width, bool depthEnabled)
 {
+    ZoneScopedN("VulkanWireframe::GetCircle");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
 
     glm::vec3 v1 = glm::normalize(normal);
@@ -153,7 +162,9 @@ std::unique_ptr<Node> VulkanWireframe::GetCircle(
 std::unique_ptr<Node> VulkanWireframe::GetAABB(
     glm::vec3 minCoordinates, glm::vec3 maxCoordinates,
     glm::vec3 color, float width, bool depthEnabled)
-{    
+{  
+    ZoneScopedN("VulkanWireframe::GetAABB");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
 
     glm::vec3 a = minCoordinates;
@@ -218,6 +229,8 @@ std::unique_ptr<Node> VulkanWireframe::GetOBB(
     glm::mat4 transform,
     glm::vec3 color, float width, bool depthEnabled)
 {
+    ZoneScopedN("VulkanWireframe::GetOBB");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
 
     glm::vec3 a = transform * glm::vec4(-0.5, -0.5, -0.5, 1);

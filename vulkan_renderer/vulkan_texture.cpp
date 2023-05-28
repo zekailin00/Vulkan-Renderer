@@ -7,10 +7,14 @@
 #include "stb/stb_image.h"
 
 #include <memory>
+#include <tracy/Tracy.hpp>
+#include <tracy/TracyVulkan.hpp>
 
 
 namespace renderer
 {
+
+extern TracyVkCtx tracyVkCtx;
 
 std::shared_ptr<VulkanTexture> VulkanTexture::defaultTexture;
 std::shared_ptr<VulkanTextureCube> VulkanTextureCube::defaultTexture;
@@ -18,6 +22,8 @@ std::shared_ptr<VulkanTextureCube> VulkanTextureCube::defaultTexture;
 void VulkanTexture::CreateImage(
     VkExtent2D imageExtent, VkFormat colorFormat, VkImageUsageFlags usage)
 {
+    ZoneScopedN("VulkanTexture::CreateImage");
+
     vulkanDevice = &VulkanRenderer::GetInstance().vulkanDevice;
     VkDevice vkDevice = vulkanDevice->vkDevice;
     this->imageExtent = imageExtent;
@@ -64,6 +70,8 @@ void VulkanTexture::CreateImage(
 
 void VulkanTexture::LoadImageFromBuffer(unsigned char *pixels, int texWidth, int texHeight)
 {
+    ZoneScopedN("VulkanTexture::LoadImageFromBuffer");
+
     VkDevice vkDevice = vulkanDevice->vkDevice;
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
@@ -106,11 +114,13 @@ void VulkanTexture::LoadImageFromBuffer(unsigned char *pixels, int texWidth, int
         {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)},
         VK_FORMAT_R8G8B8A8_SRGB);
 
+
+    VulkanSingleCmd cmd;
+    cmd.Initialize(vulkanDevice);
+    VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
     // Transfer data from buffer to device local memory
     {
-        VulkanSingleCmd cmd;
-        cmd.Initialize(vulkanDevice);
-        VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
+        TracyVkZone(tracyVkCtx, vkCommandBuffer, "LoadImageFromBuffer#imageCopy");
 
         VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -175,8 +185,9 @@ void VulkanTexture::LoadImageFromBuffer(unsigned char *pixels, int texWidth, int
             1, &barrier
         );
 
-        cmd.EndCommand();
     }
+    cmd.EndCommand();
+    
 
     vkDestroyBuffer(vkDevice, stagingBuffer, nullptr);
     vkFreeMemory(vkDevice, stagingBufferMemory, nullptr);
@@ -186,6 +197,8 @@ void VulkanTexture::CreateSampler(
     VkFilter minFilter, VkFilter magFilter,
     VkSamplerAddressMode addressMode)
 {
+    ZoneScopedN("VulkanTexture::CreateSampler");
+
     VkDevice vkDevice = vulkanDevice->vkDevice;
 
     VkSamplerCreateInfo samplerInfo{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
@@ -206,6 +219,8 @@ void VulkanTexture::CreateSampler(
 
 void VulkanTexture::LoadImageFromFile(std::string filePath)
 {
+    ZoneScopedN("VulkanTexture::LoadImageFromFile");
+
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(
         filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -216,6 +231,8 @@ void VulkanTexture::LoadImageFromFile(std::string filePath)
 
 VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 {
+    ZoneScopedN("VulkanTexture::GetDescriptor");
+
     vkDecriptorInfo.imageLayout = vkImageLayout;
     vkDecriptorInfo.imageView = vkImageView;
     vkDecriptorInfo.sampler = vkSampler;
@@ -228,6 +245,8 @@ VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 
 void VulkanTexture::Destroy()
 {
+    ZoneScopedN("VulkanTexture::Destroy");
+
     if (vulkanDevice)
     {
         VkDevice& vkDevice = vulkanDevice->vkDevice;
@@ -245,6 +264,8 @@ void VulkanTexture::Destroy()
 std::shared_ptr<Texture> VulkanTexture::BuildTextureFromBuffer(
     unsigned char* buffer, int width, int height, TextureBuildInfo* buildInfo)
 {
+    ZoneScopedN("VulkanTexture::BuildTextureFromBuffer");
+
     std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
     texture->textureType = TextureType::TEX_DEFAULT;
@@ -304,6 +325,8 @@ std::shared_ptr<Texture> VulkanTexture::BuildTextureFromBuffer(
 
 std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo)
 {
+    ZoneScopedN("VulkanTexture::BuildTexture");
+
     std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>();
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
     texture->textureType = TextureType::TEX_DEFAULT;
@@ -363,6 +386,8 @@ std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo
 
 std::shared_ptr<VulkanTexture> VulkanTexture::GetDefaultTexture()
 {
+    ZoneScopedN("VulkanTexture::GetDefaultTexture");
+
     if (defaultTexture == nullptr)
     {
         struct TextureBuildInfo info{};
@@ -374,6 +399,8 @@ std::shared_ptr<VulkanTexture> VulkanTexture::GetDefaultTexture()
 
 VulkanTexture::~VulkanTexture()
 {
+    ZoneScopedN("VulkanTexture::~VulkanTexture");
+
     Destroy();
     Log::Write(Log::Level::Verbose, "VulkanTexture Destoryed.\n");
 }
@@ -381,6 +408,8 @@ VulkanTexture::~VulkanTexture()
 
 std::shared_ptr<TextureCube> VulkanTextureCube::BuildTexture(TextureCubeBuildInfo& buildInfo)
 {
+    ZoneScopedN("VulkanTextureCube::BuildTexture");
+
     std::shared_ptr<VulkanTextureCube> texture = std::make_shared<VulkanTextureCube>();
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
     texture->textureType = TextureType::TEX_CUBEMAP;
@@ -454,6 +483,8 @@ std::shared_ptr<TextureCube> VulkanTextureCube::BuildTexture(TextureCubeBuildInf
 
 void VulkanTextureCube::LoadImagesFromFile(TextureCubeBuildInfo& buildInfo)
 {
+    ZoneScopedN("VulkanTextureCube::LoadImagesFromFile");
+
     VkDevice vkDevice = vulkanDevice->vkDevice;
 
     int texWidth, texHeight, texChannels;
@@ -569,68 +600,72 @@ void VulkanTextureCube::LoadImagesFromFile(TextureCubeBuildInfo& buildInfo)
         cmd.Initialize(vulkanDevice);
         VkCommandBuffer vkCommandBuffer = cmd.BeginCommand();
 
-        VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = vkImage;
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        barrier.subresourceRange.baseArrayLayer = i;
-        barrier.subresourceRange.layerCount = 1;
+        {
+            TracyVkZone(tracyVkCtx, vkCommandBuffer, "LoadImageFromBuffer#cubemapCopy");
 
-        VkPipelineStageFlags sourceStage;
-        VkPipelineStageFlags destinationStage;
+            VkImageMemoryBarrier barrier{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = vkImage;
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.baseMipLevel = 0;
+            barrier.subresourceRange.levelCount = 1;
+            barrier.subresourceRange.baseArrayLayer = i;
+            barrier.subresourceRange.layerCount = 1;
 
-        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            VkPipelineStageFlags sourceStage;
+            VkPipelineStageFlags destinationStage;
 
-        vkCmdPipelineBarrier(
-            vkCommandBuffer,
-            sourceStage, destinationStage,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrier
-        );
+            barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+            destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 
-        VkBufferImageCopy region{};
-        region.bufferOffset = 0;
-        region.bufferRowLength = 0;
-        region.bufferImageHeight = 0;
-        region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        region.imageSubresource.mipLevel = 0;
-        region.imageSubresource.baseArrayLayer = i;
-        region.imageSubresource.layerCount = 1;
-        region.imageOffset = {0, 0, 0};
-        region.imageExtent = {
-            static_cast<uint32_t>(texWidth),
-            static_cast<uint32_t>(texHeight), 1
-        };
+            vkCmdPipelineBarrier(
+                vkCommandBuffer,
+                sourceStage, destinationStage,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier
+            );
 
-        vkCmdCopyBufferToImage(
-            vkCommandBuffer, stagingBuffer, vkImage,
-            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            VkBufferImageCopy region{};
+            region.bufferOffset = 0;
+            region.bufferRowLength = 0;
+            region.bufferImageHeight = 0;
+            region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            region.imageSubresource.mipLevel = 0;
+            region.imageSubresource.baseArrayLayer = i;
+            region.imageSubresource.layerCount = 1;
+            region.imageOffset = {0, 0, 0};
+            region.imageExtent = {
+                static_cast<uint32_t>(texWidth),
+                static_cast<uint32_t>(texHeight), 1
+            };
 
-        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+            vkCmdCopyBufferToImage(
+                vkCommandBuffer, stagingBuffer, vkImage,
+                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-        vkCmdPipelineBarrier(
-            vkCommandBuffer,
-            sourceStage, destinationStage,
-            0,
-            0, nullptr,
-            0, nullptr,
-            1, &barrier
-        );
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+            sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+            destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+            vkCmdPipelineBarrier(
+                vkCommandBuffer,
+                sourceStage, destinationStage,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &barrier
+            );
+        }
 
         cmd.EndCommand();
     }
@@ -641,6 +676,8 @@ void VulkanTextureCube::LoadImagesFromFile(TextureCubeBuildInfo& buildInfo)
 
 std::shared_ptr<VulkanTextureCube> VulkanTextureCube::GetDefaultTexture()
 {
+    ZoneScopedN("VulkanTextureCube::GetDefaultTexture");
+    
     if (defaultTexture == nullptr)
     {
         struct TextureCubeBuildInfo info{};
@@ -652,6 +689,8 @@ std::shared_ptr<VulkanTextureCube> VulkanTextureCube::GetDefaultTexture()
 
 VkDescriptorImageInfo* VulkanTextureCube::GetDescriptor(VkImageLayout vkImageLayout)
 {
+    ZoneScopedN("VulkanTextureCube::GetDescriptor");
+
     vkDecriptorInfo.imageLayout = vkImageLayout;
     vkDecriptorInfo.imageView = vkImageView;
     vkDecriptorInfo.sampler = vkSampler;
@@ -664,12 +703,16 @@ VkDescriptorImageInfo* VulkanTextureCube::GetDescriptor(VkImageLayout vkImageLay
 
 VulkanTextureCube::~VulkanTextureCube()
 {
+    ZoneScopedN("VulkanTextureCube::~VulkanTextureCube");
+
     Destroy();
     Log::Write(Log::Level::Verbose, "VulkanTextureCube Destoryed.\n");
 }
 
 void VulkanTextureCube::Destroy()
 {
+    ZoneScopedN("VulkanTextureCube::Destroy");
+
     VkDevice& vkDevice = vulkanDevice->vkDevice;
     vkDeviceWaitIdle(vkDevice); 
 

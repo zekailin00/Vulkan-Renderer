@@ -13,6 +13,8 @@
 
 GlfwWindow::GlfwWindow()
 {
+    ZoneScopedN("GlfwWindow::GlfwWindow");
+
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit() || !glfwVulkanSupported())
     {
@@ -27,6 +29,8 @@ GlfwWindow::GlfwWindow()
 
 void GlfwWindow::InitializeWindow()
 {
+    ZoneScopedN("GlfwWindow::InitializeWindow");
+
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -55,6 +59,7 @@ void GlfwWindow::RegisterPeripherals()
 
 bool GlfwWindow::ShouldClose()
 {
+    ZoneScopedN("GlfwWindow::ShouldClose");
     return glfwWindowShouldClose(window);
 }
 
@@ -90,6 +95,8 @@ void GlfwWindow::CloseWindow()
 
 void GlfwWindow::Destroy()
 {
+    ZoneScopedN("GlfwWindow::Destroy");
+
     glfwDestroyWindow(window);
     glfwTerminate();
 }

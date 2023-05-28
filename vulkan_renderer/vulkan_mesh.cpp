@@ -7,6 +7,7 @@
 #include "vk_primitives/vulkan_pipeline_layout.h"
 
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 
 namespace renderer
@@ -14,6 +15,8 @@ namespace renderer
 
 std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
 {
+    ZoneScopedN("VulkanMesh::BuildMesh");
+
     std::shared_ptr<VulkanMesh> mesh = std::make_shared<VulkanMesh>();
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     VulkanDevice* vulkanDevice = &vkr.vulkanDevice;
@@ -56,26 +59,36 @@ std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
 
 void VulkanMesh::AddMaterial(std::shared_ptr<Material> material)
 {
+    ZoneScopedN("VulkanMesh::AddMaterial");
+
     this->material = material;
 }
 
 void VulkanMesh::RemoveMaterial()
 {
+    ZoneScopedN("VulkanMesh::RemoveMaterial");
+
     this->material = VulkanMaterial::GetDefaultMaterial();
 }
 
 VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()
 {
+    ZoneScopedN("VulkanMesh::GetVertexbuffer");
+
     return this->vertexbuffer;
 }
 
 VulkanMaterial& VulkanMesh::GetVulkanMaterial()
 {
+    ZoneScopedN("VulkanMesh::GetVulkanMaterial");
+
     return *std::static_pointer_cast<VulkanMaterial>(this->material);;
 }
 
 VulkanMesh::~VulkanMesh()
 {
+    ZoneScopedN("VulkanMesh::~VulkanMesh");
+
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
     VulkanDevice* vulkanDevice = &vkr.vulkanDevice;
     vkDeviceWaitIdle(vulkanDevice->vkDevice);
