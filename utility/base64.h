@@ -28,6 +28,7 @@
 */
 
 #include <string>
+#include <tracy/Tracy.hpp>
 
 
 namespace base64
@@ -39,6 +40,8 @@ inline bool is_base64(unsigned char c) {
 
 std::string base64_encode(unsigned char const *bytes_to_encode,
                           unsigned int in_len) {
+  ZoneScopedN("base64_encode");
+
   std::string ret;
   int i = 0;
   int j = 0;
@@ -83,6 +86,8 @@ std::string base64_encode(unsigned char const *bytes_to_encode,
 }
 
 std::string base64_decode(std::string const &encoded_string) {
+  ZoneScopedN("base64_decode");
+
   int in_len = static_cast<int>(encoded_string.size());
   int i = 0;
   int j = 0;

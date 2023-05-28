@@ -10,12 +10,15 @@
 #include "base64.h"
 
 #include "vulkan_node.h"
+#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
 
 GltfModel GltfModel::LoadModel(std::string path)
 {
+    ZoneScopedN("GltfModel::LoadModel");
+
     std::cout << "Loading model: " << path << std::endl;
     std::ifstream jsonIn;
     jsonIn.open(path);
@@ -43,6 +46,8 @@ GltfModel GltfModel::LoadModel(std::string path)
 
 std::unique_ptr<Node> GltfModel::GetNode()
 {
+    ZoneScopedN("GltfModel::GetNode");
+
     if (this->node == nullptr)
         throw;
     return std::move(this->node);
@@ -50,6 +55,8 @@ std::unique_ptr<Node> GltfModel::GetNode()
 
 void GltfModel::LoadBuffers()
 {
+    ZoneScopedN("GltfModel::LoadBuffers");
+
     Json::Value& gltfBuffers = gltf["buffers"];
     const std::string header = "data:application/octet-stream;base64,";
 
@@ -77,6 +84,8 @@ void GltfModel::LoadBuffers()
 
 void GltfModel::LoadTextures()
 {
+    ZoneScopedN("GltfModel::LoadTextures");
+
     Json::Value& gltfTextures = gltf["textures"];
     Json::Value& gltfImages = gltf["images"];
 
@@ -132,6 +141,8 @@ void GltfModel::LoadTextures()
 
 void GltfModel::LoadMaterials()
 {
+    ZoneScopedN("GltfModel::LoadMaterials");
+    
     Json::Value& gltfMaterials = gltf["materials"];
 
             // "name" : "Rusk_Body.003",
@@ -287,6 +298,8 @@ void GltfModel::LoadMaterials()
 
 void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 {
+    ZoneScopedN("GltfModel::ProcessNode");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
     Node* nodePtr = parentNode.AddChildNode(std::move(node));
 
@@ -355,6 +368,8 @@ void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 
 void GltfModel::LoadMeshes(Node& parentNode, int meshIndex)
 {
+    ZoneScopedN("GltfModel::LoadMeshes");
+
     Json::Value& primList = gltf["meshes"][meshIndex]["primitives"];
     for(int i = 0; i < primList.size(); i++)
     {
