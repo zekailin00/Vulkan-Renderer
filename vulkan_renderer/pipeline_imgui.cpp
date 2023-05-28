@@ -135,7 +135,7 @@ PipelineImgui::PipelineImgui(
             descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
     }
 
-    io.Fonts->SetTexID(static_cast<ImTextureID>(fontTextureDescSet));
+    io.Fonts->SetTexID(reinterpret_cast<ImTextureID>(fontTextureDescSet));
 }
 
 PipelineImgui::~PipelineImgui()
