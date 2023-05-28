@@ -27,7 +27,9 @@
 #include <array>
 #include <memory>
 #include <stddef.h> // offset(type, member)
+
 #include <Tracy/Tracy.hpp>
+#include <tracy/TracyVulkan.hpp>
 
 #define VULKAN_DEBUG_REPORT
 // #define VULKAN_APPLE_SUPPORT
@@ -45,6 +47,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 
 namespace renderer
 {
+
+TracyVkCtx tracyVkCtx;
 
 void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** extensions)
 {
@@ -140,6 +144,12 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     CreatePipelines();
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
+
+    VulkanSingleCmd singleCmd;
+    singleCmd.Initialize(&vulkanDevice);
+
+    tracyVkCtx = TracyVkContext(vulkanDevice.vkPhysicalDevice, vulkanDevice.vkDevice,
+        vulkanDevice.graphicsQueue, singleCmd.BeginCommand());
 
     Log::Write(Log::Level::Info, "Size of RenderCommand: " + std::to_string(sizeof(RenderCommand)));
 }
@@ -547,47 +557,52 @@ void VulkanRenderer::EndFrame()
 
     defaultTechnique.ExecuteCommand(vkCommandBuffer);
 
-    // Initialize swapchain image
-    VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-    vkRenderPassinfo.renderPass = vkRenderPass.display;
-    vkRenderPassinfo.framebuffer = vkFramebuffers[imageIndex];
-    vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
-    vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
-    vkRenderPassinfo.clearValueCount = 1;
-    vkRenderPassinfo.pClearValues = &clearValue;
-    vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
+    {
+        TracyVkZone(tracyVkCtx, vkCommandBuffer, "EndFrame#Display");
 
-    VkDescriptorSet descSet = defaultTechnique.GetDisplayDescSet();
+        // Initialize swapchain image
+        VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        vkRenderPassinfo.renderPass = vkRenderPass.display;
+        vkRenderPassinfo.framebuffer = vkFramebuffers[imageIndex];
+        vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
+        vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
+        vkRenderPassinfo.clearValueCount = 1;
+        vkRenderPassinfo.pClearValues = &clearValue;
+        vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(vkCommandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        GetPipeline("display").pipeline);
+        VkDescriptorSet descSet = defaultTechnique.GetDisplayDescSet();
 
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = swapchain->GetWidth();
-    viewport.height = swapchain->GetHeight();
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
+        vkCmdBindPipeline(vkCommandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            GetPipeline("display").pipeline);
 
-    VkRect2D scissor{};
-    scissor.offset = {0, 0};
-    scissor.extent = {
-        swapchain->GetWidth(), 
-        swapchain->GetHeight()
-    };
-    vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = swapchain->GetWidth();
+        viewport.height = swapchain->GetHeight();
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
 
-    vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelines["display"]->pipelineLayout->layout,
-        0, 1, &descSet, 0, nullptr);
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = {
+            swapchain->GetWidth(), 
+            swapchain->GetHeight()
+        };
+        vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
 
-    vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
-    vkCmdEndRenderPass(vkCommandBuffer);
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines["display"]->pipelineLayout->layout,
+            0, 1, &descSet, 0, nullptr);
 
+        vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
+        vkCmdEndRenderPass(vkCommandBuffer);
+    }
+
+    TracyVkCollect(tracyVkCtx, vkCommandBuffer);
     vcb.EndCommand();
 
     // Present image
@@ -614,6 +629,8 @@ void VulkanRenderer::Destroy()
     ZoneScopedN("VulkanRenderer::Destroy");
 
     pipelineImgui.reset();
+
+    TracyVkDestroy(tracyVkCtx);
     // TODO: VulkanDevice, vkInstance
 }
 

@@ -13,10 +13,13 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <tracy/TracyVulkan.hpp>
 
 
 namespace renderer
 {
+
+extern TracyVkCtx tracyVkCtx;
 
 void RenderTechnique::ProcessScene(VulkanNode* root)
 {
@@ -66,6 +69,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     for (std::shared_ptr<VulkanUI> ui: uiList)
     {
         ZoneScopedN("ExecuteCommand#uiList");
+        TracyVkZone(tracyVkCtx, commandBuffer, "ExecuteCommand#uiList");
 
         barrier.image = ui->colorImage->GetImage();
         uiBarriers.push_back(barrier);
@@ -100,6 +104,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     for (std::shared_ptr<VulkanCamera> camera: cameraList)
     {
         ZoneScopedN("ExecuteCommand#cameraList");
+        TracyVkZone(tracyVkCtx, commandBuffer, "ExecuteCommand#cameraList");
 
         barrier.image = camera->colorImage.GetImage();
         camBarriers.push_back(barrier);
@@ -179,6 +184,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         for(const auto& m: renderMesh)
         {
             ZoneScopedN("ExecuteCommand#renderMesh");
+            TracyVkZone(tracyVkCtx, commandBuffer, "ExecuteCommand#renderMesh");
 
             VulkanVertexbuffer& vvb = m.mesh->GetVertexbuffer();
             VulkanMaterial& vm = m.mesh->GetVulkanMaterial();
@@ -215,6 +221,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
             for (WirePushConst& e: this->wireList)
             {
                 ZoneScopedN("ExecuteCommand#wireList");
+                TracyVkZone(tracyVkCtx, commandBuffer, "ExecuteCommand#wireList");
 
                 vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                     sizeof(e), &e);
