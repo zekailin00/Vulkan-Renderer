@@ -42,7 +42,7 @@ void TestApp::OnCreated()
 
     {
         GltfModel model;
-        model.LoadModel("/Users/zekailin00/Desktop/rusk.gltf");
+        model.LoadModel("/Users/zekailin00/Desktop/scene.gltf");
         node = std::make_unique<VulkanNode>();
         nodePtr = root->AddChildNode(std::move(node));
         rusk = nodePtr->AddChildNode(model.GetNode());
