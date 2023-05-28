@@ -8,6 +8,7 @@
 #include <imgui.h>
 #include <memory>
 #include <array>
+#include <tracy/Tracy.hpp>
 
 
 namespace renderer
@@ -16,6 +17,8 @@ namespace renderer
 PipelineImgui::PipelineImgui(
     VulkanDevice& vulkanDevice, VkDescriptorPool vkDescriptorPool, VkRenderPass renderpass)
 {
+    ZoneScopedN("PipelineImgui::PipelineImgui");
+
     this->vulkanDevice = vulkanDevice;
     this->vkDescriptorPool = vkDescriptorPool;
 
@@ -137,6 +140,8 @@ PipelineImgui::PipelineImgui(
 
 PipelineImgui::~PipelineImgui()
 {
+    ZoneScopedN("PipelineImgui::~PipelineImgui");
+
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
     ImGuiIO& io = ImGui::GetIO();
 
@@ -153,6 +158,8 @@ PipelineImgui::~PipelineImgui()
 void PipelineImgui::RenderUI(ImDrawData* drawData,
     VkBuffer vertexBuffer, VkBuffer indexBuffer, VkCommandBuffer commandbuffer)
 {
+    ZoneScopedN("PipelineImgui::RenderUI");
+    
     // Avoid rendering when minimized, scale coordinates 
     // for retina displays (screen coordinates != framebuffer coordinates)
     int fb_width = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);

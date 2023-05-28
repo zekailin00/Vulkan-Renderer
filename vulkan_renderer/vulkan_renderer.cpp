@@ -27,9 +27,10 @@
 #include <array>
 #include <memory>
 #include <stddef.h> // offset(type, member)
+#include <Tracy/Tracy.hpp>
 
 #define VULKAN_DEBUG_REPORT
-#define VULKAN_APPLE_SUPPORT
+// #define VULKAN_APPLE_SUPPORT
 
 #ifdef VULKAN_DEBUG_REPORT
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
@@ -47,6 +48,8 @@ namespace renderer
 
 void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** extensions)
 {
+    ZoneScopedN("VulkanRenderer::InitializeDevice");
+
     VkResult err;
 
     // Create Vulkan Instance
@@ -104,6 +107,8 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
 
 void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
 {
+    ZoneScopedN("VulkanRenderer::AllocateResources");
+
     this->swapchain = swapchain;
     swapchain->Initialize();
 
@@ -141,6 +146,8 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
 
 void VulkanRenderer::RebuildSwapchain()
 {
+    ZoneScopedN("VulkanRenderer::RebuildSwapchain");
+
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
     DestroyFramebuffers();
@@ -150,6 +157,8 @@ void VulkanRenderer::RebuildSwapchain()
 
 void VulkanRenderer::CreateRenderPasses()
 {
+    ZoneScopedN("VulkanRenderer::CreateRenderPasses");
+
     VkAttachmentDescription displayAttachmentDesc{};
     displayAttachmentDesc.format = swapchain->GetImageFormat(); // From swapchain. Hard-coded.
     displayAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -275,6 +284,8 @@ void VulkanRenderer::CreateRenderPasses()
 
 void VulkanRenderer::DestroyRenderPasses()
 {
+    ZoneScopedN("VulkanRenderer::DestroyRenderPasses");
+
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.defaultCamera, nullptr);
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.display, nullptr);
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.imgui, nullptr);
@@ -282,6 +293,8 @@ void VulkanRenderer::DestroyRenderPasses()
 
 void VulkanRenderer::CreateFramebuffers()
 {
+    ZoneScopedN("VulkanRenderer::CreateFramebuffers");
+
     VkImageView attachment[1];
     VkFramebufferCreateInfo vkFramebufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     vkFramebufferCreateInfo.renderPass = vkRenderPass.display;
@@ -301,6 +314,8 @@ void VulkanRenderer::CreateFramebuffers()
 
 void VulkanRenderer::DestroyFramebuffers()
 {
+    ZoneScopedN("VulkanRenderer::DestroyFramebuffers");
+
     for (uint32_t i = 0; i < vkFramebuffers.size(); i++)
         vkDestroyFramebuffer(vulkanDevice.vkDevice, vkFramebuffers[i], nullptr);
 }
@@ -311,6 +326,8 @@ void VulkanRenderer::DestroyFramebuffers()
  */
 void VulkanRenderer::CreatePipelines()
 {
+    ZoneScopedN("VulkanRenderer::CreatePipelines");
+
     {    
         std::unique_ptr<VulkanPipeline> renderPipeline = 
             std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
@@ -509,11 +526,14 @@ void VulkanRenderer::CreatePipelines()
 
 void VulkanRenderer::BeginFrame()
 {
+    ZoneScopedN("VulkanRenderer::BeginFrame");
     // Nothing
 }
 
 void VulkanRenderer::EndFrame()
 {
+    ZoneScopedN("VulkanRenderer::EndFrame");
+
     if (scene)
         defaultTechnique.ProcessScene(static_cast<VulkanNode*>(scene->GetRootNode()));
 
@@ -576,6 +596,8 @@ void VulkanRenderer::EndFrame()
 
 void VulkanRenderer::DeallocateResources()
 {
+    ZoneScopedN("VulkanRenderer::DeallocateResources");
+
     this->scene.reset();
 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
@@ -589,28 +611,38 @@ void VulkanRenderer::DeallocateResources()
 
 void VulkanRenderer::Destroy()
 {
+    ZoneScopedN("VulkanRenderer::Destroy");
+
     pipelineImgui.reset();
     // TODO: VulkanDevice, vkInstance
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 {
+    ZoneScopedN("VulkanRenderer::GetPipelineLayout");
+
     return *(pipelines[name]->pipelineLayout);
 }
 
 VulkanPipeline& VulkanRenderer::GetPipeline(std::string name)
 {
+    ZoneScopedN("VulkanRenderer::GetPipeline");
+
     return *(pipelines[name].get());
 }
 
 Scene* VulkanRenderer::CreateScene()
 {
+    ZoneScopedN("VulkanRenderer::CreateScene");
+
     this->scene = std::make_unique<VulkanScene>();
     return &(*this->scene);
 }
 
 Scene* VulkanRenderer::GetScene()
 {
+    ZoneScopedN("VulkanRenderer::GetScene");
+
     if (!scene)
         throw;
     return &(*this->scene);

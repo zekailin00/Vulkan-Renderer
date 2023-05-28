@@ -50,8 +50,15 @@ void Application::Run()
 
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-        OnUpdated(ts);
+
+        {
+            ZoneScopedN("Application::OnUpdated");
+            OnUpdated(ts);
+        }
+
         renderer->EndFrame();
+
+        FrameMark;
     }
     OnDestroy();
 }

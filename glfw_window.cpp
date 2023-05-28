@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 
 GlfwWindow::GlfwWindow()
@@ -59,6 +60,8 @@ bool GlfwWindow::ShouldClose()
 
 void GlfwWindow::BeginFrame()
 {
+    ZoneScopedN("GlfwWindow::BeginFrame");
+    
     glfwPollEvents();
 
     // Rebuild swapchain when window size changes

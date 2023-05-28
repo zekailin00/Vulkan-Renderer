@@ -8,8 +8,9 @@ add_library(utility
     ${LOCAL_SOURCE}
 )
 
-target_link_libraries(utility
+target_link_libraries(utility PUBLIC
     glm::glm
+    Tracy::TracyClient
 )
 
 # Target settings

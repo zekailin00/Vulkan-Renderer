@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
@@ -36,6 +37,7 @@ class VulkanRenderer: public Renderer
 public:
     static VulkanRenderer& GetInstance()
     {
+        ZoneScopedN("VulkanRenderer::GetInstance");
         static VulkanRenderer vulkanRenderer;
         return vulkanRenderer;
     }

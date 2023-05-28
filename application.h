@@ -4,6 +4,8 @@
 #include "vulkan_renderer.h"
 #include "renderer.h"
 
+#include <Tracy/Tracy.hpp>
+
 
 class Application
 {
