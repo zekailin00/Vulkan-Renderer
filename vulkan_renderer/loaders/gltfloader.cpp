@@ -118,6 +118,8 @@ void GltfModel::LoadTextures()
             std::shared_ptr<Texture> texture = 
                 VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
 
+            stbi_image_free(pixels);
+
             textureList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
         }
         else // load image file
@@ -229,6 +231,8 @@ void GltfModel::LoadMaterials()
                         std::shared_ptr<Texture> texture = 
                             VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
 
+                        stbi_image_free(pixels);
+
                         roughTexList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
                         prop.roughnessTexture = texture;
                     }
@@ -253,6 +257,8 @@ void GltfModel::LoadMaterials()
 
                         std::shared_ptr<Texture> texture = 
                             VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
+                        
+                        stbi_image_free(pixels);
 
                         metalTexList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
                         prop.metallicTexture = texture;

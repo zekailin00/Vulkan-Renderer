@@ -102,7 +102,6 @@ void VulkanTexture::LoadImageFromBuffer(unsigned char *pixels, int texWidth, int
         vkUnmapMemory(vkDevice, stagingBufferMemory);
     }
 
-    stbi_image_free(pixels);
     CreateImage(
         {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)},
         VK_FORMAT_R8G8B8A8_SRGB);
@@ -212,6 +211,7 @@ void VulkanTexture::LoadImageFromFile(std::string filePath)
         filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
     LoadImageFromBuffer(pixels, texWidth, texHeight);
+    stbi_image_free(pixels);
 }
 
 VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
@@ -228,15 +228,18 @@ VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
 
 void VulkanTexture::Destroy()
 {
-    VkDevice& vkDevice = vulkanDevice->vkDevice;
-    vkDeviceWaitIdle(vkDevice); 
-    // FIXME: wait until this resource has been used by GPU
-    // Not the best way to do this.
-    vkDestroySampler(vkDevice, vkSampler, nullptr);
-    vkDestroyImageView(vkDevice, vkImageView, nullptr);
-    vkDestroyImage(vkDevice, vkImage, nullptr);
-    vkFreeMemory(vkDevice, vkDeviceMemory, nullptr);
-    vulkanDevice = nullptr;
+    if (vulkanDevice)
+    {
+        VkDevice& vkDevice = vulkanDevice->vkDevice;
+        vkDeviceWaitIdle(vkDevice); 
+        // FIXME: wait until this resource has been used by GPU
+        // Not the best way to do this.
+        vkDestroySampler(vkDevice, vkSampler, nullptr);
+        vkDestroyImageView(vkDevice, vkImageView, nullptr);
+        vkDestroyImage(vkDevice, vkImage, nullptr);
+        vkFreeMemory(vkDevice, vkDeviceMemory, nullptr);
+        vulkanDevice = nullptr;
+    }
 }
 
 std::shared_ptr<Texture> VulkanTexture::BuildTextureFromBuffer(
