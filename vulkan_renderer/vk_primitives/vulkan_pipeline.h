@@ -36,6 +36,9 @@ public:
     VkGraphicsPipelineCreateInfo vkPipelineInfo{};
 
 public:
+    VkShaderModule vertShader;
+    VkShaderModule fragShader;
+    
     VkPipeline pipeline;
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout;
     VkDevice device;

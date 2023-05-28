@@ -10,6 +10,7 @@ public:
     void Initialize(VkInstance vkInstance);
     uint32_t GetMemoryTypeIndex(uint32_t memoryType, VkMemoryPropertyFlags memoryProperties);
     VkFormat GetDepthFormat();
+    void Destroy();
 
 private:
     void InitializePhysicalDevice();

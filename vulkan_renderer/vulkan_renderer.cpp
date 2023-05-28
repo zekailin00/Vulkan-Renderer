@@ -616,22 +616,27 @@ void VulkanRenderer::DeallocateResources()
     this->scene.reset();
 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
-    swapchain->Destroy();
-    vulkanCmdBuffer.Destroy();
-    pipelines.clear();
-    DestroyRenderPasses();
+
     DestroyFramebuffers();
+    swapchain->Destroy();
+
+    pipelines.clear();
+    pipelineImgui.reset();
+    DestroyRenderPasses();
+
+    vulkanCmdBuffer.Destroy();
     vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
+
+    // statically allocated textures
+    // vulkanDevice.Destroy();
+    // DestroyDebugUtilsMessengerEXT, vkDestroySurfaceKHR, vkDestroyInstance, glfwDestroyWindow, glfwTerminate
 }
 
 void VulkanRenderer::Destroy()
 {
     ZoneScopedN("VulkanRenderer::Destroy");
 
-    pipelineImgui.reset();
-
     TracyVkDestroy(tracyVkCtx);
-    // TODO: VulkanDevice, vkInstance
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
