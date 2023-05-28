@@ -16,3 +16,6 @@
 [submodule "external/jsoncpp"]
 	path = external/jsoncpp
 	url = git@github.com:open-source-parsers/jsoncpp.git
+[submodule "external/tracy"]
+	path = external/tracy
+	url = https://github.com/wolfpld/tracy.git
