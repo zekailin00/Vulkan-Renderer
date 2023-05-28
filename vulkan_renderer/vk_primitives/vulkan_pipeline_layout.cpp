@@ -3,9 +3,14 @@
 #include "vulkan_device.h"
 #include "validation.h"
 
+#include <tracy/Tracy.hpp>
+
+
 void VulkanPipelineLayout::AllocateDescriptorSet(
     std::string name, uint32_t nFrames, VkDescriptorSet* descSet)
 {
+    ZoneScopedN("VulkanPipelineLayout::AllocateDescriptorSet");
+
     VkDescriptorSetAllocateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     info.descriptorPool = descriptorPool;
@@ -16,6 +21,8 @@ void VulkanPipelineLayout::AllocateDescriptorSet(
 
 PipelineLayoutBuilder::PipelineLayoutBuilder(VulkanDevice* vulkanDevice)
 {
+    ZoneScopedN("PipelineLayoutBuilder::PipelineLayoutBuilder");
+
     this->vulkanDevice = vulkanDevice;
 }
 
@@ -25,6 +32,8 @@ VkDescriptorSetLayoutBinding PipelineLayoutBuilder::descriptorSetLayoutBinding(
     uint32_t binding,
     uint32_t descriptorCount)
 {
+    ZoneScopedN("PipelineLayoutBuilder::descriptorSetLayoutBinding");
+
     VkDescriptorSetLayoutBinding setLayoutBinding {};
     setLayoutBinding.descriptorType = type;
     setLayoutBinding.stageFlags = stageFlags;
@@ -36,6 +45,8 @@ VkDescriptorSetLayoutBinding PipelineLayoutBuilder::descriptorSetLayoutBinding(
 int PipelineLayoutBuilder::PushDescriptorSetLayout(
     std::string name, std::vector<VkDescriptorSetLayoutBinding> bindings)
 {
+    ZoneScopedN("PipelineLayoutBuilder::PushDescriptorSetLayout");
+
     VkDescriptorSetLayout descSetLayout;
 
     VkDescriptorSetLayoutCreateInfo descLayoutInfo{};
@@ -53,6 +64,8 @@ int PipelineLayoutBuilder::PushDescriptorSetLayout(
 std::unique_ptr<VulkanPipelineLayout> PipelineLayoutBuilder::BuildPipelineLayout(
     VkDescriptorPool descriptorPool, VkPushConstantRange* pushConst 
 ){
+    ZoneScopedN("PipelineLayoutBuilder::BuildPipelineLayout");
+
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout
         = std::make_unique<VulkanPipelineLayout>(vulkanDevice, descriptorPool);
     std::vector<VkDescriptorSetLayout> descLayoutList;

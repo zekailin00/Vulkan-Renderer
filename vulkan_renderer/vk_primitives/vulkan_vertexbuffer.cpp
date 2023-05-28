@@ -3,6 +3,8 @@
 #include "pipeline_inputs.h"
 #include "validation.h"
 
+#include <tracy/Tracy.hpp>
+
 
 VkPipelineVertexInputStateCreateInfo VulkanVertexbuffer::vertexInputState;
 std::vector<VkVertexInputAttributeDescription> VulkanVertexbuffer::inputAttributeDesc;
@@ -11,6 +13,8 @@ VkVertexInputBindingDescription VulkanVertexbuffer::inputBindingDesc;
 void VulkanVertexbuffer::Initialize(VulkanDevice* vulkanDevice,
     VkDeviceSize indexBufferSize, VkDeviceSize vertexBufferSize)
 {
+    ZoneScopedN("VulkanVertexbuffer::Initialize");
+
     if (this->vulkanDevice != nullptr)
         Destroy();
     
@@ -71,21 +75,29 @@ void VulkanVertexbuffer::Initialize(VulkanDevice* vulkanDevice,
 
 void* VulkanVertexbuffer::MapIndex()
 {
+    ZoneScopedN("VulkanVertexbuffer::MapIndex");
+
     return indexData;
 }
 
 void* VulkanVertexbuffer::MapVertex()
 {
+    ZoneScopedN("VulkanVertexbuffer::MapVertex");
+
     return vertexData;
 }
 
 uint32_t VulkanVertexbuffer::GetIndexCount()
 {
+    ZoneScopedN("VulkanVertexbuffer::GetIndexCount");
+    
     return indexCount;
 }
 
 void VulkanVertexbuffer::Destroy()
 {
+    ZoneScopedN("VulkanVertexbuffer::Destroy");
+
     if (vulkanDevice == nullptr)
         return;
     
@@ -111,6 +123,8 @@ void VulkanVertexbuffer::Destroy()
 
 VkPipelineVertexInputStateCreateInfo* VulkanVertexbuffer::GetVertexInputState()
 {
+    ZoneScopedN("VulkanVertexbuffer::GetVertexInputState");
+
     inputBindingDesc.binding = 0;
     inputBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
     inputBindingDesc.stride = sizeof(Vertex);

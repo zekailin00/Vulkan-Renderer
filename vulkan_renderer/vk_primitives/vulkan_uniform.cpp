@@ -4,9 +4,12 @@
 #include "logger.h"
 
 #include <vulkan/vulkan.h>
+#include <tracy/Tracy.hpp>
 
 void VulkanUniform::Initialize(VulkanDevice* vulkanDevice, VkDeviceSize size)
 {
+    ZoneScopedN("VulkanUniform::Initialize");
+
     if (this->vulkanDevice != nullptr)
         Destroy();
     this->vulkanDevice = vulkanDevice;
@@ -36,6 +39,8 @@ void VulkanUniform::Initialize(VulkanDevice* vulkanDevice, VkDeviceSize size)
 
 VkDescriptorBufferInfo* VulkanUniform::GetDescriptor()
 {
+    ZoneScopedN("VulkanUniform::GetDescriptor");
+
     if (vulkanDevice == nullptr)
         Log::Write(Log::Level::Error, "Uniform is not initialized");
 
@@ -47,11 +52,15 @@ VkDescriptorBufferInfo* VulkanUniform::GetDescriptor()
 
 void* VulkanUniform::Map()
 {
+    ZoneScopedN("VulkanUniform::Map");
+
     return data;
 }
 
 void VulkanUniform::Destroy()
 {
+    ZoneScopedN("VulkanUniform::Destroy");
+
     if (vulkanDevice == nullptr)
         return;
 

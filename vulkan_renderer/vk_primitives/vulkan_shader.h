@@ -8,6 +8,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <tracy/Tracy.hpp>
 
 /**
  * Stateless class that loads glsl shaders
@@ -17,6 +18,8 @@ class VulkanShader
 public:
     static VkPipelineShaderStageCreateInfo LoadFromFile(VkDevice vkDevice, std::string filePath, VkShaderStageFlagBits stage)
     {
+        ZoneScopedN("VulkanShader::LoadFromFile");
+        
         VkPipelineShaderStageCreateInfo shaderStageInfo{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO};
         shaderStageInfo.stage = stage;
         shaderStageInfo.module = CreateModule(filePath, vkDevice);
@@ -29,6 +32,8 @@ public:
 private:
     static VkShaderModule CreateModule(std::string filePath, VkDevice vkDevice)
     {
+        ZoneScopedN("VulkanShader::CreateModule");
+
         std::ifstream file(filePath, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
