@@ -110,11 +110,14 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
 
     vulkanDevice.Initialize(vkInstance);
 
-
-    VulkanSingleCmd singleCmd;
-    singleCmd.Initialize(&vulkanDevice);
-    tracyVkCtx = TracyVkContext(vulkanDevice.vkPhysicalDevice, vulkanDevice.vkDevice,
-        vulkanDevice.graphicsQueue, singleCmd.BeginCommand());
+    {   // Tracy Vulkan context
+        VulkanSingleCmd singleCmd;
+        singleCmd.Initialize(&vulkanDevice);
+        VkCommandBuffer commandbuffer = singleCmd.BeginCommand();
+        singleCmd.EndCommand();
+        tracyVkCtx = TracyVkContext(vulkanDevice.vkPhysicalDevice, vulkanDevice.vkDevice,
+            vulkanDevice.graphicsQueue, commandbuffer);
+    }
 }
 
 void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
