@@ -644,11 +644,11 @@ void VulkanRenderer::DeallocateResources()
 
 #ifdef VULKAN_DEBUG_REPORT
 
-    auto func = 
-        (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
+    auto vkDestroyDebugReportCallbackEXT = 
+        (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
 
-    assert(func);
-    func(vkInstance, g_DebugReport, nullptr);
+    assert(vkDestroyDebugReportCallbackEXT);
+    vkDestroyDebugReportCallbackEXT(vkInstance, g_DebugReport, nullptr);
 
 #endif
 
