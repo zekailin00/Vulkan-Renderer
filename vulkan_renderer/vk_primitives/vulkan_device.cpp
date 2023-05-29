@@ -3,7 +3,6 @@
 #include "validation.h"
 #include "logger.h"
 
-#include <iostream>
 #include <vector>
 #include <string>
 

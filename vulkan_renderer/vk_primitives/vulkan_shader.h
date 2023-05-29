@@ -7,7 +7,6 @@
 
 #include <string>
 #include <fstream>
-#include <iostream>
 #include <tracy/Tracy.hpp>
 
 /**

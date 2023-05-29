@@ -1,6 +1,5 @@
 #include "gltfloader.h"
 
-#include <iostream>
 #include <memory>
 #include <string>
 #include <glm/glm.hpp>
