@@ -23,19 +23,17 @@
 #include <vector>
 #include <map>
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
-
-
-//typedef void (*RenderCommand)(VkCommandBuffer);
-typedef std::function<void(VkCommandBuffer)> RenderCommand;
 
 class VulkanRenderer: public Renderer
 {
 public:
     static VulkanRenderer& GetInstance()
     {
+        ZoneScopedN("VulkanRenderer::GetInstance");
         static VulkanRenderer vulkanRenderer;
         return vulkanRenderer;
     }

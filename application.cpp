@@ -13,7 +13,12 @@ renderer::Node* Application::GetRootNode()
 
 Application::Application()
 {
-    std::cout << "Current path is " << std::filesystem::current_path() << '\n';
+    Logger::Write(
+        "Current path is " + std::filesystem::current_path().string(),
+        Logger::Level::Info,
+        Logger::MsgType::Platform
+    );
+
     GlfwWindow& window = GlfwWindow::GetInstance();
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
 
@@ -50,8 +55,15 @@ void Application::Run()
 
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-        OnUpdated(ts);
+
+        {
+            ZoneScopedN("Application::OnUpdated");
+            OnUpdated(ts);
+        }
+
         renderer->EndFrame();
+
+        FrameMark;
     }
     OnDestroy();
 }

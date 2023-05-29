@@ -2,22 +2,28 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <tracy/Tracy.hpp>
 
 
-namespace Log {
-Log::Level currentSeverity{Log::Level::Info};
+Logger::Level Logger::currentLevel{Logger::Level::Info};
 
-void SetLevel(Level minSeverity) {currentSeverity = minSeverity;}
-
-void Write(Level severity, const std::string& msg) 
+void Logger::SetLevel(Level minLevel)
 {
-    if (severity < currentSeverity) {
+    currentLevel = minLevel;
+}
+
+void Logger::Write(const std::string& msg,
+    Level level, MsgType type)
+{
+    TracyMessage(msg.c_str(), msg.size());
+    
+    if (level < currentLevel)
         return;
-    }
 
     std::cout << msg << std::endl;
-    if (severity == Log::Level::Error)
+
+    if (level == Logger::Level::Error)
         throw;
+
     return;
 }
-}  // namespace Log

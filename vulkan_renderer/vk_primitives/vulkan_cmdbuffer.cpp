@@ -4,10 +4,13 @@
 #include "logger.h"
 
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 
 void VulkanCmdBuffer::Initialize(VulkanDevice* vulkanDevice, uint32_t frameInFlight)
 {
+    ZoneScopedN("VulkanCmdBuffer::Initialize");
+
     this->frameInFlight = frameInFlight;
     this->vulkanDevice = vulkanDevice;
 
@@ -28,6 +31,8 @@ void VulkanCmdBuffer::Initialize(VulkanDevice* vulkanDevice, uint32_t frameInFli
 
 void VulkanCmdBuffer::Destroy()
 {
+    ZoneScopedN("VulkanCmdBuffer::Destroy");
+
     if (vulkanDevice == nullptr)
         return;
 
@@ -40,6 +45,8 @@ void VulkanCmdBuffer::Destroy()
 
 void VulkanCmdBuffer::CreateSynchPrimitives()
 {
+    ZoneScopedN("VulkanCmdBuffer::CreateSynchPrimitives");
+
     VkSemaphoreCreateInfo vkSemaphoreInfo{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO};
     VkFenceCreateInfo vkFenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
     vkFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
@@ -57,6 +64,8 @@ void VulkanCmdBuffer::CreateSynchPrimitives()
 
 void VulkanCmdBuffer::DestroySynchPrimitives()
 {
+    ZoneScopedN("VulkanCmdBuffer::DestroySynchPrimitives");
+
     for (uint32_t i = 0; i < frameInFlight; i++)
     {
         vkDestroySemaphore(vulkanDevice->vkDevice, imageAcquiredSemaphores[i], nullptr);
@@ -67,6 +76,8 @@ void VulkanCmdBuffer::DestroySynchPrimitives()
 
 VkCommandBuffer VulkanCmdBuffer::BeginCommand()
 {
+    ZoneScopedN("VulkanCmdBuffer::BeginCommand");
+
     CHECK_VKCMD(vkResetFences(
         vulkanDevice->vkDevice, 1, &queueSubmissionFences[currentFrame]));
     CHECK_VKCMD(vkResetCommandBuffer(
@@ -81,6 +92,8 @@ VkCommandBuffer VulkanCmdBuffer::BeginCommand()
 
 void VulkanCmdBuffer::EndCommand()
 {
+    ZoneScopedN("VulkanCmdBuffer::EndCommand");
+
     VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     VkSubmitInfo vkSubmitInfo{VK_STRUCTURE_TYPE_SUBMIT_INFO};
     vkSubmitInfo.waitSemaphoreCount = 1;
@@ -100,9 +113,14 @@ void VulkanCmdBuffer::EndCommand()
 
 VkCommandBuffer VulkanSingleCmd::BeginCommand()
 {
+    ZoneScopedN("VulkanSingleCmd::BeginCommand");
+
     if (vkCommandBuffer == VK_NULL_HANDLE) 
-        Log::Write(Log::Level::Error, 
-            "[Vulkan CmdBuffer] Error, Command buffer not initialized.");
+        Logger::Write(
+            "[Vulkan CmdBuffer] Error, Command buffer not initialized.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
 
     VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -114,9 +132,14 @@ VkCommandBuffer VulkanSingleCmd::BeginCommand()
 
 void VulkanSingleCmd::EndCommand()
 {
+    ZoneScopedN("VulkanSingleCmd::EndCommand");
+
     if (vkCommandBuffer == VK_NULL_HANDLE) 
-        Log::Write(Log::Level::Error, 
-            "[Vulkan CmdBuffer] Error, Command buffer not initialized.");
+        Logger::Write(
+            "[Vulkan CmdBuffer] Error, Command buffer not initialized.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
     
     vkEndCommandBuffer(vkCommandBuffer);
 
@@ -131,6 +154,8 @@ void VulkanSingleCmd::EndCommand()
 
 void VulkanSingleCmd::Initialize(VulkanDevice* vulkanDevice)
 {
+    ZoneScopedN("VulkanSingleCmd::Initialize");
+
     this->vulkanDevice = vulkanDevice;
 
     VkCommandPoolCreateInfo vkCommandPoolInfo{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
@@ -152,6 +177,8 @@ void VulkanSingleCmd::Initialize(VulkanDevice* vulkanDevice)
 
 void VulkanSingleCmd::Destroy()
 {
+    ZoneScopedN(" VulkanSingleCmd::Destroy");
+
     if (vulkanDevice == nullptr)
         return;
 

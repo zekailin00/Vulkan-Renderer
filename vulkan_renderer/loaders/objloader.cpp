@@ -6,6 +6,8 @@
 
 #include <string>
 #include <vector>
+#include <tracy/Tracy.hpp>
+
 
 namespace renderer
 {
@@ -14,6 +16,8 @@ void ObjLoader(std::string& meshPath,
     std::vector<renderer::Vertex>& modelVertices,
     std::vector<unsigned int>& modelIndices)
 {
+    ZoneScopedN("ObjLoader");
+
     tinyobj::attrib_t attributes;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;

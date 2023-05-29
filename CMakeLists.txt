@@ -23,7 +23,10 @@ else()
     message( "-- Vulkan libraries: ${Vulkan_LIBRARY}")
 endif()
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/utility")
+# tracy
+option(TRACY_ENABLE "" ON)
+add_subdirectory ("${CMAKE_SOURCE_DIR}/external/tracy")
+
 
 # GLFW
 set(GLFW_DIR "${CMAKE_SOURCE_DIR}/external/glfw") # Set this to point to an up-to-date GLFW repo
@@ -45,6 +48,9 @@ set(TINY_OBJ_DIR "${CMAKE_SOURCE_DIR}/external/tiny_obj_loader/tiny-obj-loader-s
 
 # json cpp
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/jsoncpp")
+
+# utility
+add_subdirectory("${CMAKE_SOURCE_DIR}/utility")
 
 # Vulkan Renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")

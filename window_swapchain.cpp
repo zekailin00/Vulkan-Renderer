@@ -2,10 +2,13 @@
 
 #include "vulkan_renderer.h"
 #include "validation.h"
+#include "logger.h"
 
 
 void WindowSwapchain::Initialize()
 {
+    ZoneScopedN("WindowSwapchain::Initialize");
+
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     //TODO: select other available swapchain properties by the caller
@@ -55,11 +58,17 @@ void WindowSwapchain::Initialize()
         CHECK_VKCMD(vkCreateImageView(vkr.vulkanDevice.vkDevice, &vkImageViewCreateInfo, nullptr, &imageViews[i]));
     }
 
-    std::cout << "[GLFW Window] Swapchain created with image count: " << imageCount << std::endl;
+    Logger::Write(
+        "[GLFW Window] Swapchain created with image count: " + std::to_string(imageCount),
+        Logger::Level::Verbose,
+        Logger::MsgType::Platform
+    );
 }
 
 void WindowSwapchain::Destroy()
 {
+    ZoneScopedN("WindowSwapchain::Destroy");
+
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     for (size_t i = 0; i < imageViews.size(); i++) 
@@ -70,6 +79,8 @@ void WindowSwapchain::Destroy()
 
 uint32_t WindowSwapchain::GetNextImageIndex(VkSemaphore imageAcquiredSemaphores)
 {
+    ZoneScopedN("WindowSwapchain::GetNextImageIndex");
+
     uint32_t imageIndex; 
     VkDevice vkd = renderer::VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
     VkResult result = vkAcquireNextImageKHR(vkd, vkSwapchain, UINT64_MAX, imageAcquiredSemaphores, VK_NULL_HANDLE, &imageIndex);
@@ -80,6 +91,8 @@ uint32_t WindowSwapchain::GetNextImageIndex(VkSemaphore imageAcquiredSemaphores)
 
 void WindowSwapchain::PresentImage(VkSemaphore renderFinishedSemaphores, uint32_t imageIndex)
 {
+    ZoneScopedN("WindowSwapchain::PresentImage");
+
     if (swapchainRebuild)
         return;
     VkPresentInfoKHR vkPresentInfo{VK_STRUCTURE_TYPE_PRESENT_INFO_KHR};
@@ -95,6 +108,8 @@ void WindowSwapchain::PresentImage(VkSemaphore renderFinishedSemaphores, uint32_
 
 void WindowSwapchain::RebuildSwapchain()
 {
+    ZoneScopedN("WindowSwapchain::RebuildSwapchain");
+
     Destroy();
     GetSwapChainProperties(); // Get updated extent information 
     Initialize();
@@ -102,6 +117,8 @@ void WindowSwapchain::RebuildSwapchain()
 
 void WindowSwapchain::GetSwapChainProperties()
 {
+    ZoneScopedN("WindowSwapchain::GetSwapChainProperties");
+
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &vkSurfaceCapabilities);
@@ -117,12 +134,17 @@ void WindowSwapchain::GetSwapChainProperties()
     vkGetPhysicalDeviceSurfacePresentModesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &presentModeCount, vkPresentModes.data());
 
     if (vkSurfaceFormats.empty() || vkPresentModes.empty()) {
-        std::cout << "[GLFW] Error: Surface properties not found" << std::endl;
-        exit(1);
+        Logger::Write(
+            "[GLFW] Error: Surface properties not found",
+            Logger::Level::Error,
+            Logger::MsgType::Platform
+        );
     }
 }
 
 void WindowSwapchain::SetSurface(VkSurfaceKHR vkSurface)
 {
+    ZoneScopedN("WindowSwapchain::SetSurface");
+
     this->vkSurface = vkSurface;
 }

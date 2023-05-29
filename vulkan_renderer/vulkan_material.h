@@ -29,6 +29,7 @@ class VulkanMaterial: public Material
 public:
     static std::shared_ptr<Material> BuildMaterial(MaterialProperties* prop);
     static std::shared_ptr<Material> GetDefaultMaterial();
+    static void DestroyDefaultMaterial();
 
     ~VulkanMaterial();
 

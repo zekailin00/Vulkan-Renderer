@@ -5,14 +5,17 @@
 
 #include <array>
 #include <glm/glm.hpp>
-#include <glm/ext.hpp> 
+#include <glm/ext.hpp>
 
+#include<tracy/Tracy.hpp>
 
 namespace renderer
 {
 
 std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& properties)
 {
+    ZoneScopedN("VulkanCamera::BuildCamera");
+
     std::shared_ptr<VulkanCamera> camera = std::make_unique<VulkanCamera>();
 
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
@@ -163,28 +166,17 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     return camera;
 }
 
-// ViewProjection* VulkanCamera::MapCameraUniform()
-// {
-//     return static_cast<ViewProjection*>(cameraUniform.Map());
-// }
-
-// void VulkanCamera::BindDescriptorSet(VkCommandBuffer commandBuffer, VkPipelineLayout layout)
-// {
-//     vkCmdBindDescriptorSets(
-//         commandBuffer, 
-//         VK_PIPELINE_BIND_POINT_GRAPHICS, 
-//         layout, 2, 1, 
-//         &cameraDescSet, 0, nullptr
-//     );
-// }
-
 const CameraProperties& VulkanCamera::GetCamProperties()
 {
+    ZoneScopedN("VulkanCamera::GetCamProperties");
+
     return this->properties;
 }
 
 void VulkanCamera::SetCamProperties(CameraProperties& properties)
 {
+    ZoneScopedN("VulkanCamera::SetCamProperties");
+
     this->properties = properties;
     vpMap->projection = glm::perspective(
         glm::radians(this->properties.Fov),
@@ -195,21 +187,29 @@ void VulkanCamera::SetCamProperties(CameraProperties& properties)
 
 const glm::mat4& VulkanCamera::GetTransform()
 {
+    ZoneScopedN("VulkanCamera::GetTransform");
+
     return this->vpMap->view;
 }
 
 void VulkanCamera::SetTransform(glm::mat4& transform)
 {
+    ZoneScopedN("VulkanCamera::SetTransform");
+
     this->vpMap->view = glm::inverse(transform);
 }
 
 VulkanCamera::~VulkanCamera()
 {
+    ZoneScopedN("VulkanCamera::~VulkanCamera");
+
     Destroy();
 }
 
 void VulkanCamera::Destroy()
 {
+    ZoneScopedN("VulkanCamera::Destroy");
+
     vkDeviceWaitIdle(vulkanDevice->vkDevice);
 
     colorImage.Destroy();

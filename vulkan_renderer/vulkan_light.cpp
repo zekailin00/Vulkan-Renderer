@@ -3,6 +3,7 @@
 #include "vulkan_renderer.h"
 
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
@@ -11,6 +12,9 @@ std::shared_ptr<VulkanLight> VulkanLight::defaultLight;
 
 std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
 {
+
+    ZoneScopedN("VulkanLight::BuildLight");
+
     std::shared_ptr<VulkanLight> light = std::make_shared<VulkanLight>();
 
     light->properties = prop;
@@ -29,6 +33,8 @@ std::shared_ptr<VulkanLight> VulkanLight::BuildLight(LightProperties& prop)
 
 std::shared_ptr<VulkanLight> VulkanLight::GetDefaultLight()
 {
+    ZoneScopedN("VulkanLight::GetDefaultLight");
+
     if (defaultLight)
         return defaultLight;
 
@@ -40,6 +46,8 @@ std::shared_ptr<VulkanLight> VulkanLight::GetDefaultLight()
 
 void VulkanLight::SetTransform(glm::mat4& transform)
 {
+    ZoneScopedN("VulkanLight::SetTransform");
+
     glm::vec4 up{0, 1, 0, 0};
     glm::vec3 direction = transform * up; //FIXME: needs to check direction
     this->dirLight.direction = 
@@ -48,16 +56,22 @@ void VulkanLight::SetTransform(glm::mat4& transform)
 
 const LightProperties& VulkanLight::GetLightProperties()
 {
+    ZoneScopedN("VulkanLight::GetLightProperties");
+
     return this->properties;
 }
 
 void VulkanLight::SetLightProperties(LightProperties& prop)
 {
+    ZoneScopedN("VulkanLight::SetLightProperties");
+
     this->properties = prop;
 }
 
 void VulkanLight::Destroy()
 {
+    ZoneScopedN("VulkanLight::Destroy");
+
     /* Vulkan resources are not handled here. Do nothing. */
 }
 

@@ -1,8 +1,6 @@
 #include "vulkan_renderer.h"
 
 #include "vulkan_swapchain.h"
-#include "pipeline_inputs.h"
-#include "vulkan_utilities.h"
 #include "vulkan_texture.h"
 #include "vulkan_scene.h"
 #include "vulkan_wireframe.h"
@@ -16,27 +14,35 @@
 #include "validation.h"
 #include "logger.h"
 
-#include "imgui.h"
-#include "imgui_impl_vulkan.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
-#include <iostream>
 #include <vector>
 #include <array>
 #include <memory>
 #include <stddef.h> // offset(type, member)
 
+#include <Tracy/Tracy.hpp>
+#include <tracy/TracyVulkan.hpp>
+
 #define VULKAN_DEBUG_REPORT
-#define VULKAN_APPLE_SUPPORT
+// #define VULKAN_APPLE_SUPPORT
 
 #ifdef VULKAN_DEBUG_REPORT
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(
+    VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+    uint64_t object, size_t location, int32_t messageCode,
+    const char* pLayerPrefix, const char* pMessage, void* pUserData)
 {
-    (void)flags; (void)object; (void)location; (void)messageCode; (void)pUserData; (void)pLayerPrefix; // Unused arguments
-    fprintf(stderr, "[Vulkan Renderer] Debug report from ObjectType: %i at location %x.\n\tMessage: %s\n\n", objectType, location, pMessage);
+    Logger::Write(
+        "[Vulkan Renderer] Debug report from ObjectType: " +
+        std::to_string(objectType) + " at location "+
+        std::to_string(location) + ".\n\tMessage: " + pMessage + "\n",
+        Logger::Level::Warning,
+        Logger::MsgType::Renderer
+    );
+
     return VK_FALSE;
 }
 #endif
@@ -45,8 +51,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, 
 namespace renderer
 {
 
+TracyVkCtx tracyVkCtx;
+
 void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** extensions)
 {
+    ZoneScopedN("VulkanRenderer::InitializeDevice");
+
     VkResult err;
 
     // Create Vulkan Instance
@@ -80,13 +90,15 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
         CHECK_VKCMD(err);
 
         // Get the function pointer (required for any extensions)
-        auto vkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
+        auto vkCreateDebugReportCallbackEXT =
+            (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(vkInstance, "vkCreateDebugReportCallbackEXT");
         ASSERT(vkCreateDebugReportCallbackEXT != NULL);
 
         // Setup the debug report callback
         VkDebugReportCallbackCreateInfoEXT debug_report_ci = {};
         debug_report_ci.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-        debug_report_ci.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+        debug_report_ci.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+            VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
         debug_report_ci.pfnCallback = debug_report;
         debug_report_ci.pUserData = NULL;
         err = vkCreateDebugReportCallbackEXT(vkInstance, &debug_report_ci, nullptr, &g_DebugReport);
@@ -100,10 +112,21 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
     }
 
     vulkanDevice.Initialize(vkInstance);
+
+    {   // Tracy Vulkan context
+        VulkanSingleCmd singleCmd;
+        singleCmd.Initialize(&vulkanDevice);
+        VkCommandBuffer commandbuffer = singleCmd.BeginCommand();
+        singleCmd.EndCommand();
+        tracyVkCtx = TracyVkContext(vulkanDevice.vkPhysicalDevice, vulkanDevice.vkDevice,
+            vulkanDevice.graphicsQueue, commandbuffer);
+    }
 }
 
 void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
 {
+    ZoneScopedN("VulkanRenderer::AllocateResources");
+
     this->swapchain = swapchain;
     swapchain->Initialize();
 
@@ -135,12 +158,12 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     CreatePipelines();
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
-
-    Log::Write(Log::Level::Info, "Size of RenderCommand: " + std::to_string(sizeof(RenderCommand)));
 }
 
 void VulkanRenderer::RebuildSwapchain()
 {
+    ZoneScopedN("VulkanRenderer::RebuildSwapchain");
+
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
     DestroyFramebuffers();
@@ -150,6 +173,8 @@ void VulkanRenderer::RebuildSwapchain()
 
 void VulkanRenderer::CreateRenderPasses()
 {
+    ZoneScopedN("VulkanRenderer::CreateRenderPasses");
+
     VkAttachmentDescription displayAttachmentDesc{};
     displayAttachmentDesc.format = swapchain->GetImageFormat(); // From swapchain. Hard-coded.
     displayAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -275,6 +300,8 @@ void VulkanRenderer::CreateRenderPasses()
 
 void VulkanRenderer::DestroyRenderPasses()
 {
+    ZoneScopedN("VulkanRenderer::DestroyRenderPasses");
+
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.defaultCamera, nullptr);
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.display, nullptr);
     vkDestroyRenderPass(vulkanDevice.vkDevice, vkRenderPass.imgui, nullptr);
@@ -282,6 +309,8 @@ void VulkanRenderer::DestroyRenderPasses()
 
 void VulkanRenderer::CreateFramebuffers()
 {
+    ZoneScopedN("VulkanRenderer::CreateFramebuffers");
+
     VkImageView attachment[1];
     VkFramebufferCreateInfo vkFramebufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     vkFramebufferCreateInfo.renderPass = vkRenderPass.display;
@@ -301,6 +330,8 @@ void VulkanRenderer::CreateFramebuffers()
 
 void VulkanRenderer::DestroyFramebuffers()
 {
+    ZoneScopedN("VulkanRenderer::DestroyFramebuffers");
+
     for (uint32_t i = 0; i < vkFramebuffers.size(); i++)
         vkDestroyFramebuffer(vulkanDevice.vkDevice, vkFramebuffers[i], nullptr);
 }
@@ -311,6 +342,8 @@ void VulkanRenderer::DestroyFramebuffers()
  */
 void VulkanRenderer::CreatePipelines()
 {
+    ZoneScopedN("VulkanRenderer::CreatePipelines");
+
     {    
         std::unique_ptr<VulkanPipeline> renderPipeline = 
             std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
@@ -509,11 +542,14 @@ void VulkanRenderer::CreatePipelines()
 
 void VulkanRenderer::BeginFrame()
 {
+    ZoneScopedN("VulkanRenderer::BeginFrame");
     // Nothing
 }
 
 void VulkanRenderer::EndFrame()
 {
+    ZoneScopedN("VulkanRenderer::EndFrame");
+
     if (scene)
         defaultTechnique.ProcessScene(static_cast<VulkanNode*>(scene->GetRootNode()));
 
@@ -527,47 +563,52 @@ void VulkanRenderer::EndFrame()
 
     defaultTechnique.ExecuteCommand(vkCommandBuffer);
 
-    // Initialize swapchain image
-    VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
-    VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
-    vkRenderPassinfo.renderPass = vkRenderPass.display;
-    vkRenderPassinfo.framebuffer = vkFramebuffers[imageIndex];
-    vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
-    vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
-    vkRenderPassinfo.clearValueCount = 1;
-    vkRenderPassinfo.pClearValues = &clearValue;
-    vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
+    {
+        TracyVkZone(tracyVkCtx, vkCommandBuffer, "EndFrame#Display");
 
-    VkDescriptorSet descSet = defaultTechnique.GetDisplayDescSet();
+        // Initialize swapchain image
+        VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        vkRenderPassinfo.renderPass = vkRenderPass.display;
+        vkRenderPassinfo.framebuffer = vkFramebuffers[imageIndex];
+        vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
+        vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
+        vkRenderPassinfo.clearValueCount = 1;
+        vkRenderPassinfo.pClearValues = &clearValue;
+        vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    vkCmdBindPipeline(vkCommandBuffer, 
-        VK_PIPELINE_BIND_POINT_GRAPHICS,
-        GetPipeline("display").pipeline);
+        VkDescriptorSet descSet = defaultTechnique.GetDisplayDescSet();
 
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = swapchain->GetWidth();
-    viewport.height = swapchain->GetHeight();
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
+        vkCmdBindPipeline(vkCommandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            GetPipeline("display").pipeline);
 
-    VkRect2D scissor{};
-    scissor.offset = {0, 0};
-    scissor.extent = {
-        swapchain->GetWidth(), 
-        swapchain->GetHeight()
-    };
-    vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = swapchain->GetWidth();
+        viewport.height = swapchain->GetHeight();
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
 
-    vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        pipelines["display"]->pipelineLayout->layout,
-        0, 1, &descSet, 0, nullptr);
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = {
+            swapchain->GetWidth(), 
+            swapchain->GetHeight()
+        };
+        vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
 
-    vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
-    vkCmdEndRenderPass(vkCommandBuffer);
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            pipelines["display"]->pipelineLayout->layout,
+            0, 1, &descSet, 0, nullptr);
 
+        vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
+        vkCmdEndRenderPass(vkCommandBuffer);
+    }
+
+    TracyVkCollect(tracyVkCtx, vkCommandBuffer);
     vcb.EndCommand();
 
     // Present image
@@ -576,41 +617,77 @@ void VulkanRenderer::EndFrame()
 
 void VulkanRenderer::DeallocateResources()
 {
+    ZoneScopedN("VulkanRenderer::DeallocateResources");
+
     this->scene.reset();
 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
-    swapchain->Destroy();
-    vulkanCmdBuffer.Destroy();
-    pipelines.clear();
-    DestroyRenderPasses();
+
+    this->defaultTechnique.Destroy();
+
+    VulkanMaterial::DestroyDefaultMaterial();
+    VulkanTexture::DestroyDefaultTexture();
+    VulkanTextureCube::DestroyDefaultTexture();
+
     DestroyFramebuffers();
+    swapchain->Destroy();
+
+    pipelines.clear();
+    pipelineImgui.reset();
+    DestroyRenderPasses();
+
+    vulkanCmdBuffer.Destroy();
     vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
+
+    TracyVkDestroy(tracyVkCtx);
+    vulkanDevice.Destroy();
+
+#ifdef VULKAN_DEBUG_REPORT
+
+    auto func = 
+        (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugReportCallbackEXT");
+
+    assert(func);
+    func(vkInstance, g_DebugReport, nullptr);
+
+#endif
+
 }
 
 void VulkanRenderer::Destroy()
 {
-    pipelineImgui.reset();
-    // TODO: VulkanDevice, vkInstance
+    ZoneScopedN("VulkanRenderer::Destroy");
+
+    // Destory VkSurfaceKHR and sdebugUtilsMessengerEXT before vkInstance
+    vkDestroyInstance(vkInstance, nullptr);
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 {
+    ZoneScopedN("VulkanRenderer::GetPipelineLayout");
+
     return *(pipelines[name]->pipelineLayout);
 }
 
 VulkanPipeline& VulkanRenderer::GetPipeline(std::string name)
 {
+    ZoneScopedN("VulkanRenderer::GetPipeline");
+
     return *(pipelines[name].get());
 }
 
 Scene* VulkanRenderer::CreateScene()
 {
+    ZoneScopedN("VulkanRenderer::CreateScene");
+
     this->scene = std::make_unique<VulkanScene>();
     return &(*this->scene);
 }
 
 Scene* VulkanRenderer::GetScene()
 {
+    ZoneScopedN("VulkanRenderer::GetScene");
+
     if (!scene)
         throw;
     return &(*this->scene);

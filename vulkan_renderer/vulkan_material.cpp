@@ -4,6 +4,7 @@
 #include "vk_primitives/vulkan_pipeline_layout.h"
 
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 
 namespace renderer
@@ -13,6 +14,8 @@ std::shared_ptr<VulkanMaterial> VulkanMaterial::defaultMaterial;
 
 std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop)
 {
+    ZoneScopedN("VulkanMaterial::BuildMaterial");
+
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
 
     std::shared_ptr<VulkanMaterial> material = std::make_shared<VulkanMaterial>();
@@ -137,6 +140,8 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
 
 std::shared_ptr<Material> VulkanMaterial::GetDefaultMaterial()
 {
+    ZoneScopedN("VulkanMaterial::GetDefaultMaterial");
+
     if (defaultMaterial == nullptr)
     {
         MaterialProperties defaultProperites{};
@@ -147,13 +152,24 @@ std::shared_ptr<Material> VulkanMaterial::GetDefaultMaterial()
     return defaultMaterial;
 }
 
+void VulkanMaterial::DestroyDefaultMaterial()
+{
+    ZoneScopedN("VulkanMaterial::DestroyDefaultMaterial");
+
+    defaultMaterial = nullptr;
+}
+
 MaterialProperties* VulkanMaterial::GetProperties()
 {
+    ZoneScopedN("VulkanMaterial::GetProperties");
+
     return &properties;
 }
 
 void VulkanMaterial::ResetProperties()
 {
+    ZoneScopedN("VulkanMaterial::ResetProperties");
+
     ResetAlbedoTexture();
     ResetMetallicTexture();
     ResetRoughnessTexture();
@@ -162,6 +178,8 @@ void VulkanMaterial::ResetProperties()
 
 void VulkanMaterial::AddAlbedoTexture(std::shared_ptr<Texture> texture)
 {
+    ZoneScopedN("VulkanMaterial::AddAlbedoTexture");
+
     if(this->properties.albedoTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -187,6 +205,8 @@ void VulkanMaterial::AddAlbedoTexture(std::shared_ptr<Texture> texture)
 
 void VulkanMaterial::AddMetallicTexture(std::shared_ptr<Texture> texture)
 {
+    ZoneScopedN("VulkanMaterial::AddMetallicTexture");
+
     if(this->properties.metallicTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -212,6 +232,8 @@ void VulkanMaterial::AddMetallicTexture(std::shared_ptr<Texture> texture)
 
 void VulkanMaterial::AddRoughnessTexture(std::shared_ptr<Texture> texture)
 {
+    ZoneScopedN("VulkanMaterial::AddRoughnessTexture");
+
     if(this->properties.roughnessTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -237,6 +259,8 @@ void VulkanMaterial::AddRoughnessTexture(std::shared_ptr<Texture> texture)
 
 void VulkanMaterial::AddNormalTexture(std::shared_ptr<Texture> texture)
 {
+    ZoneScopedN("VulkanMaterial::AddNormalTexture");
+
     if(this->properties.normalTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -262,6 +286,8 @@ void VulkanMaterial::AddNormalTexture(std::shared_ptr<Texture> texture)
 
 void VulkanMaterial::ResetAlbedoTexture()
 {
+    ZoneScopedN("VulkanMaterial::ResetAlbedoTexture");
+
     if (this->properties.albedoTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -289,6 +315,8 @@ void VulkanMaterial::ResetAlbedoTexture()
 
 void VulkanMaterial::ResetMetallicTexture()
 {
+    ZoneScopedN("VulkanMaterial::ResetMetallicTexture");
+
     if (this->properties.metallicTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -316,6 +344,8 @@ void VulkanMaterial::ResetMetallicTexture()
 
 void VulkanMaterial::ResetRoughnessTexture()
 {
+    ZoneScopedN("VulkanMaterial::ResetRoughnessTexture");
+
     if (this->properties.roughnessTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -343,6 +373,8 @@ void VulkanMaterial::ResetRoughnessTexture()
 
 void VulkanMaterial::ResetNormalTexture()
 {
+    ZoneScopedN("VulkanMaterial::ResetNormalTexture");
+
     if (this->properties.normalTexture != nullptr)
     {
         vkDeviceWaitIdle(vulkanDevice->vkDevice);
@@ -368,6 +400,8 @@ void VulkanMaterial::ResetNormalTexture()
 
 void VulkanMaterial::Destory()
 {
+    ZoneScopedN("VulkanMaterial::Destory");
+
     vkDeviceWaitIdle(vulkanDevice->vkDevice);
     uniform.Destroy();
     this->map = nullptr;
@@ -375,6 +409,8 @@ void VulkanMaterial::Destory()
 
 VulkanMaterial::~VulkanMaterial()
 {
+    ZoneScopedN("VulkanMaterial::~VulkanMaterial");
+
     Destory();
 }
 

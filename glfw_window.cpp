@@ -1,31 +1,43 @@
 #include "glfw_window.h"
 
-#include "imgui_impl_glfw.h"
 #include "vulkan_renderer.h"
 #include "validation.h"
+#include "logger.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 
 GlfwWindow::GlfwWindow()
 {
+    ZoneScopedN("GlfwWindow::GlfwWindow");
+
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit() || !glfwVulkanSupported())
     {
-        std::cout << "[GLFW Window] Initialization failed.\n";
-        exit(1);
+        Logger::Write(
+            "[GLFW Window] Initialization failed.",
+            Logger::Level::Error,
+            Logger::MsgType::Platform
+        );
     }
     extensionsCount = 0;
     extensions = glfwGetRequiredInstanceExtensions(&extensionsCount);
 
-    std::cout << "[GLFW Window] Number of extensions needed: " << extensionsCount << std::endl;
+    Logger::Write(
+            "[GLFW Window] Number of extensions needed: " + std::to_string(extensionsCount),
+            Logger::Level::Info,
+            Logger::MsgType::Platform
+        );
 }
 
 void GlfwWindow::InitializeWindow()
 {
+    ZoneScopedN("GlfwWindow::InitializeWindow");
+
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -39,8 +51,11 @@ void GlfwWindow::InitializeWindow()
     vkGetPhysicalDeviceSurfaceSupportKHR(vkr.vulkanDevice.vkPhysicalDevice, vkr.vulkanDevice.graphicsIndex, surface, &result);
     if (result != VK_TRUE)
     {
-        std::cout << "[GLFW Window] Error: no WSI support on physical device." << std::endl;
-        exit(1);
+        Logger::Write(
+            "[GLFW Window] Error: no WSI support on physical device.",
+            Logger::Level::Error,
+            Logger::MsgType::Platform
+        );
     }
 
     windowSwapchain.SetSurface(surface);
@@ -49,16 +64,19 @@ void GlfwWindow::InitializeWindow()
 
 void GlfwWindow::RegisterPeripherals()
 {
-    // ImGui_ImplGlfw_InitForVulkan(window, true);
+    // Nothing
 }
 
 bool GlfwWindow::ShouldClose()
 {
+    ZoneScopedN("GlfwWindow::ShouldClose");
     return glfwWindowShouldClose(window);
 }
 
 void GlfwWindow::BeginFrame()
 {
+    ZoneScopedN("GlfwWindow::BeginFrame");
+    
     glfwPollEvents();
 
     // Rebuild swapchain when window size changes
@@ -75,18 +93,22 @@ void GlfwWindow::BeginFrame()
 
         renderer::VulkanRenderer::GetInstance().RebuildSwapchain();
         windowSwapchain.swapchainRebuild = false;
-    }
-
-    // ImGui_ImplGlfw_NewFrame();     
+    }  
 }
 
 void GlfwWindow::CloseWindow()
 {
-    // ImGui_ImplGlfw_Shutdown();
+    ZoneScopedN("GlfwWindow::CloseWindow");
+
+    // Destory surface before vkInstance
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
+    vkDestroySurfaceKHR(vkr.vkInstance, surface, nullptr);
 }
 
 void GlfwWindow::Destroy()
 {
+    ZoneScopedN("GlfwWindow::Destroy");
+
     glfwDestroyWindow(window);
     glfwTerminate();
 }

@@ -1,22 +1,30 @@
 #include "gltfloader.h"
 
-#include <iostream>
 #include <memory>
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 #include "stb/stb_image.h"
+#include "logger.h"
 #include "base64.h"
 
 #include "vulkan_node.h"
+#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
 
 GltfModel GltfModel::LoadModel(std::string path)
 {
-    std::cout << "Loading model: " << path << std::endl;
+    ZoneScopedN("GltfModel::LoadModel");
+
+    Logger::Write(
+        "Loading model: " + path,
+        Logger::Level::Info,
+        Logger::MsgType::Loader
+    );
+
     std::ifstream jsonIn;
     jsonIn.open(path);
     jsonIn >> gltf;
@@ -27,7 +35,12 @@ GltfModel GltfModel::LoadModel(std::string path)
     LoadMaterials();
 
     int scene = gltf["scene"].isNull()? 0: gltf["scene"].asInt();
-    std::cout << "Load scene: " << scene << std::endl;
+
+    Logger::Write(
+        "Load scene: " + std::to_string(scene),
+        Logger::Level::Info,
+        Logger::MsgType::Loader
+    );
 
     node = std::make_unique<VulkanNode>();
 
@@ -43,6 +56,8 @@ GltfModel GltfModel::LoadModel(std::string path)
 
 std::unique_ptr<Node> GltfModel::GetNode()
 {
+    ZoneScopedN("GltfModel::GetNode");
+
     if (this->node == nullptr)
         throw;
     return std::move(this->node);
@@ -50,6 +65,8 @@ std::unique_ptr<Node> GltfModel::GetNode()
 
 void GltfModel::LoadBuffers()
 {
+    ZoneScopedN("GltfModel::LoadBuffers");
+
     Json::Value& gltfBuffers = gltf["buffers"];
     const std::string header = "data:application/octet-stream;base64,";
 
@@ -77,6 +94,8 @@ void GltfModel::LoadBuffers()
 
 void GltfModel::LoadTextures()
 {
+    ZoneScopedN("GltfModel::LoadTextures");
+
     Json::Value& gltfTextures = gltf["textures"];
     Json::Value& gltfImages = gltf["images"];
 
@@ -85,8 +104,11 @@ void GltfModel::LoadTextures()
         int samplerIndex = gltfTextures[i]["sampler"].asInt();
         int sourceIndex = gltfTextures[i]["source"].asInt();
 
-        std::cout << "Loading texture: "
-            << gltfImages[sourceIndex]["name"].asString() << std::endl;
+        Logger::Write(
+            "Loading texture: " + gltfImages[sourceIndex]["name"].asString(),
+            Logger::Level::Verbose,
+            Logger::MsgType::Loader
+        );
 
         Json::Value& sampler = gltf["samplers"][samplerIndex];
         int magFilter = sampler["magFilter"].asInt();
@@ -118,6 +140,8 @@ void GltfModel::LoadTextures()
             std::shared_ptr<Texture> texture = 
                 VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
 
+            stbi_image_free(pixels);
+
             textureList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
         }
         else // load image file
@@ -130,6 +154,8 @@ void GltfModel::LoadTextures()
 
 void GltfModel::LoadMaterials()
 {
+    ZoneScopedN("GltfModel::LoadMaterials");
+    
     Json::Value& gltfMaterials = gltf["materials"];
 
             // "name" : "Rusk_Body.003",
@@ -144,12 +170,20 @@ void GltfModel::LoadMaterials()
     {
         Json::Value& gltfMaterial = gltfMaterials[i];
 
-        std::cout << "Loading material: "
-            << gltfMaterial["name"].asString() << std::endl;
+            Logger::Write(
+                "Loading material: " + gltfMaterial["name"].asString(),
+                Logger::Level::Verbose,
+                Logger::MsgType::Loader
+            );
 
         if(gltfMaterial["pbrMetallicRoughness"].isNull())
         {
-            std::cout << "pbrMetallicRoughness not present. Use default material." << std::endl;
+            Logger::Write(
+                "pbrMetallicRoughness not present. Use default material.",
+                Logger::Level::Info,
+                Logger::MsgType::Loader
+            );
+
             materialList.push_back(
                 std::dynamic_pointer_cast<VulkanMaterial>(
                 VulkanMaterial::GetDefaultMaterial()));
@@ -229,6 +263,8 @@ void GltfModel::LoadMaterials()
                         std::shared_ptr<Texture> texture = 
                             VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
 
+                        stbi_image_free(pixels);
+
                         roughTexList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
                         prop.roughnessTexture = texture;
                     }
@@ -253,6 +289,8 @@ void GltfModel::LoadMaterials()
 
                         std::shared_ptr<Texture> texture = 
                             VulkanTexture::BuildTextureFromBuffer(pixels, width, height, &info);
+                        
+                        stbi_image_free(pixels);
 
                         metalTexList.push_back(std::dynamic_pointer_cast<VulkanTexture>(texture));
                         prop.metallicTexture = texture;
@@ -281,12 +319,18 @@ void GltfModel::LoadMaterials()
 
 void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 {
+    ZoneScopedN("GltfModel::ProcessNode");
+
     std::unique_ptr<VulkanNode> node = std::make_unique<VulkanNode>();
     Node* nodePtr = parentNode.AddChildNode(std::move(node));
 
     Json::Value& gltfNode = gltf["nodes"][nodeIndex];
 
-    std::cout << "ProcessNode: " << gltfNode["name"] << std::endl;
+    Logger::Write(
+        "ProcessNode: " + gltfNode["name"].asString(),
+        Logger::Level::Verbose,
+        Logger::MsgType::Loader
+    );
 
     if (!gltfNode["matrix"].isNull())
     {
@@ -349,6 +393,8 @@ void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 
 void GltfModel::LoadMeshes(Node& parentNode, int meshIndex)
 {
+    ZoneScopedN("GltfModel::LoadMeshes");
+
     Json::Value& primList = gltf["meshes"][meshIndex]["primitives"];
     for(int i = 0; i < primList.size(); i++)
     {

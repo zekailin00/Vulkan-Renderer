@@ -6,10 +6,13 @@
 
 #include <string>
 #include <memory>
+#include <tracy/Tracy.hpp>
 
 
 VulkanPipeline::VulkanPipeline(VkDevice device)
 {
+    ZoneScopedN("VulkanPipeline::VulkanPipeline");
+
     this->device = device;
 
     inputAssembly.sType =
@@ -89,12 +92,16 @@ VulkanPipeline::VulkanPipeline(VkDevice device)
 
 VulkanPipeline::~VulkanPipeline()
 {
-    pipelineLayout.reset();
+    ZoneScopedN("VulkanPipeline::~VulkanPipeline");
+
     vkDestroyPipeline(device, pipeline, nullptr);
+    pipelineLayout.reset();
 }
 
 void VulkanPipeline::LoadShader(std::string vertPath, std::string fragPath)
 {
+    ZoneScopedN("VulkanPipeline::LoadShader");
+
     shaderStages = {
         VulkanShader::LoadFromFile(device, vertPath, VK_SHADER_STAGE_VERTEX_BIT),
         VulkanShader::LoadFromFile(device, fragPath, VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -102,6 +109,9 @@ void VulkanPipeline::LoadShader(std::string vertPath, std::string fragPath)
 
     vkPipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
     vkPipelineInfo.pStages = shaderStages.data();
+
+    this->vertShader = shaderStages[0].module;
+    this->fragShader = shaderStages[1].module;
 }
 
 void VulkanPipeline::BuildPipeline(
@@ -109,9 +119,14 @@ void VulkanPipeline::BuildPipeline(
     std::unique_ptr<VulkanPipelineLayout> pipelineLayout,
     VkRenderPass renderPass
 ){
+    ZoneScopedN("VulkanPipeline::BuildPipeline");
+
     if (shaderStages.size() != 2)
-        Log::Write(Log::Level::Error, 
-            "[Vulkan Pipeline] Shaders loadded incorrectly.");
+        Logger::Write( 
+            "[Vulkan Pipeline] Shaders loadded incorrectly.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
 
     vkPipelineInfo.pVertexInputState = vertexInputInfo;
     vkPipelineInfo.layout = pipelineLayout->layout;
@@ -120,5 +135,8 @@ void VulkanPipeline::BuildPipeline(
     this->pipelineLayout = std::move(pipelineLayout);
 
     CHECK_VKCMD(vkCreateGraphicsPipelines(
-        device, VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &pipeline));  
+        device, VK_NULL_HANDLE, 1, &vkPipelineInfo, nullptr, &pipeline));
+
+    vkDestroyShaderModule(this->device, this->vertShader, nullptr);
+    vkDestroyShaderModule(this->device, this->fragShader, nullptr); 
 }

@@ -3,41 +3,49 @@
 #include <string>
 
 
-inline std::string Fmt(const char* fmt, ...) {
-    va_list vl;
-    va_start(vl, fmt);
-    int size = std::vsnprintf(nullptr, 0, fmt, vl);
-    va_end(vl);
-
-    if (size != -1) {
-        std::unique_ptr<char[]> buffer(new char[size + 1]);
-
-        va_start(vl, fmt);
-        size = std::vsnprintf(buffer.get(), size + 1, fmt, vl);
-        va_end(vl);
-        if (size != -1) {
-            return std::string(buffer.get(), size);
-        }
-    }
-
-    throw std::runtime_error("Unexpected vsnprintf failure");
-}
-
-
-namespace Log 
+class Logger
 {
+public:
+    enum Level
+    {
+        Verbose, 
+        Info, 
+        Warning, 
+        Error,
+        LevelSize
+    };
 
-enum class Level { Verbose, Info, Warning, Error};
+    enum MsgType
+    {
+        Renderer,
+        Loader,
+        Platform,
+        Others,
+        MsgTypeSize
+    };
 
-void SetLevel(Level minSeverity);
+    // TODO: behaviors for each Message type and level.
+    enum Behavior
+    {
+        WriteToTerm   = 1 << 0,
+        WriteToFS     = 1 << 1,
+        WriteToTracy  = 1 << 2,
+        ThrowNoError  = 1 << 3
+    };
 
-/**
- * @brief Output the message with severity info.
- * If severity is error. The program exits.
- * 
- * @param severity 
- * @param msg 
- */
-void Write(Level severity, const std::string& msg);
+    static void SetLevel(Level minSeverity);
 
-}  // namespace Log
+    /**
+     * @brief Output the message with severity info.
+     * If severity is error. The program exits.
+     * 
+     * @param msg 
+     * @param level 
+     * @param type 
+     */
+    static void Write(const std::string& msg,
+        Level level = Level::Verbose, MsgType type = MsgType::Others);
+
+private:
+    static Level currentLevel;
+};

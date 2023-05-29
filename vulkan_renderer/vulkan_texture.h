@@ -15,9 +15,20 @@ class VulkanTexture: public Texture
 
 public:
     static std::shared_ptr<Texture> BuildTexture(TextureBuildInfo* buildInfo);
+    /**
+     * @brief Build a texture object from a buffer referencing RGBA data. 
+     * The user has to allocate and free the pointer.
+     * 
+     * @param buffer Buffer pointing to the image data.
+     * @param width The width of the image.
+     * @param height The height of the image.
+     * @param buildInfo 
+     * @return std::shared_ptr<Texture> 
+     */
     static std::shared_ptr<Texture> BuildTextureFromBuffer(
         unsigned char* buffer, int width, int height, TextureBuildInfo* buildInfo);
     static std::shared_ptr<VulkanTexture> GetDefaultTexture();
+    static void DestroyDefaultTexture();
 
     VkDescriptorImageInfo* GetDescriptor(
         VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -31,6 +42,14 @@ public:
         VkFilter magFilter = VK_FILTER_LINEAR,
         VkSamplerAddressMode addressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT);
     void LoadImageFromFile(std::string filePath);
+    /**
+     * @brief  Build a texture object from a buffer referencing RGBA data. 
+     * The user has to allocate and free the pointer.
+     * 
+     * @param pixels 
+     * @param texWidth 
+     * @param texHeight 
+     */
     void LoadImageFromBuffer(unsigned char *pixels, int texWidth, int texHeight);
     VkImageView GetImageView() {return vkImageView;}
     VkImage GetImage() {return vkImage;}
@@ -56,6 +75,7 @@ class VulkanTextureCube: public TextureCube
 public:
     static std::shared_ptr<TextureCube> BuildTexture(TextureCubeBuildInfo&);
     static std::shared_ptr<VulkanTextureCube> GetDefaultTexture();
+    static void DestroyDefaultTexture();
 
     VkDescriptorImageInfo* GetDescriptor(
         VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
