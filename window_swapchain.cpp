@@ -2,6 +2,7 @@
 
 #include "vulkan_renderer.h"
 #include "validation.h"
+#include "logger.h"
 
 
 void WindowSwapchain::Initialize()
@@ -57,7 +58,11 @@ void WindowSwapchain::Initialize()
         CHECK_VKCMD(vkCreateImageView(vkr.vulkanDevice.vkDevice, &vkImageViewCreateInfo, nullptr, &imageViews[i]));
     }
 
-    std::cout << "[GLFW Window] Swapchain created with image count: " << imageCount << std::endl;
+    Logger::Write(
+        "[GLFW Window] Swapchain created with image count: " + std::to_string(imageCount),
+        Logger::Level::Verbose,
+        Logger::MsgType::Platform
+    );
 }
 
 void WindowSwapchain::Destroy()
@@ -129,8 +134,11 @@ void WindowSwapchain::GetSwapChainProperties()
     vkGetPhysicalDeviceSurfacePresentModesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &presentModeCount, vkPresentModes.data());
 
     if (vkSurfaceFormats.empty() || vkPresentModes.empty()) {
-        std::cout << "[GLFW] Error: Surface properties not found" << std::endl;
-        exit(1);
+        Logger::Write(
+            "[GLFW] Error: Surface properties not found",
+            Logger::Level::Error,
+            Logger::MsgType::Platform
+        );
     }
 }
 

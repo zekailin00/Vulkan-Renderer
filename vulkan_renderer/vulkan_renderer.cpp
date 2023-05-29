@@ -1,8 +1,6 @@
 #include "vulkan_renderer.h"
 
 #include "vulkan_swapchain.h"
-#include "pipeline_inputs.h"
-#include "vulkan_utilities.h"
 #include "vulkan_texture.h"
 #include "vulkan_scene.h"
 #include "vulkan_wireframe.h"
@@ -15,9 +13,6 @@
 
 #include "validation.h"
 #include "logger.h"
-
-#include "imgui.h"
-#include "imgui_impl_vulkan.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -36,10 +31,19 @@
 
 #ifdef VULKAN_DEBUG_REPORT
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
+static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(
+    VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+    uint64_t object, size_t location, int32_t messageCode,
+    const char* pLayerPrefix, const char* pMessage, void* pUserData)
 {
-    (void)flags; (void)object; (void)location; (void)messageCode; (void)pUserData; (void)pLayerPrefix; // Unused arguments
-    fprintf(stderr, "[Vulkan Renderer] Debug report from ObjectType: %i at location %x.\n\tMessage: %s\n\n", objectType, location, pMessage);
+    Logger::Write(
+        "[Vulkan Renderer] Debug report from ObjectType: " +
+        std::to_string(objectType) + " at location "+
+        std::to_string(location) + ".\n\tMessage: " + pMessage + "\n",
+        Logger::Level::Warning,
+        Logger::MsgType::Renderer
+    );
+
     return VK_FALSE;
 }
 #endif
@@ -155,8 +159,6 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     CreatePipelines();
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
-
-    Log::Write(Log::Level::Info, "Size of RenderCommand: " + std::to_string(sizeof(RenderCommand)));
 }
 
 void VulkanRenderer::RebuildSwapchain()

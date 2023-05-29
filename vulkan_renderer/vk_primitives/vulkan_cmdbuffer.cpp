@@ -116,8 +116,11 @@ VkCommandBuffer VulkanSingleCmd::BeginCommand()
     ZoneScopedN("VulkanSingleCmd::BeginCommand");
 
     if (vkCommandBuffer == VK_NULL_HANDLE) 
-        Log::Write(Log::Level::Error, 
-            "[Vulkan CmdBuffer] Error, Command buffer not initialized.");
+        Logger::Write(
+            "[Vulkan CmdBuffer] Error, Command buffer not initialized.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
 
     VkCommandBufferBeginInfo beginInfo{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO};
     beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -132,8 +135,11 @@ void VulkanSingleCmd::EndCommand()
     ZoneScopedN("VulkanSingleCmd::EndCommand");
 
     if (vkCommandBuffer == VK_NULL_HANDLE) 
-        Log::Write(Log::Level::Error, 
-            "[Vulkan CmdBuffer] Error, Command buffer not initialized.");
+        Logger::Write(
+            "[Vulkan CmdBuffer] Error, Command buffer not initialized.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
     
     vkEndCommandBuffer(vkCommandBuffer);
 

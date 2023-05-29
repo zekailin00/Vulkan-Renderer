@@ -7,6 +7,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "stb/stb_image.h"
+#include "logger.h"
 #include "base64.h"
 
 #include "vulkan_node.h"
@@ -19,7 +20,12 @@ GltfModel GltfModel::LoadModel(std::string path)
 {
     ZoneScopedN("GltfModel::LoadModel");
 
-    std::cout << "Loading model: " << path << std::endl;
+    Logger::Write(
+        "Loading model: " + path,
+        Logger::Level::Info,
+        Logger::MsgType::Loader
+    );
+
     std::ifstream jsonIn;
     jsonIn.open(path);
     jsonIn >> gltf;
@@ -30,7 +36,12 @@ GltfModel GltfModel::LoadModel(std::string path)
     LoadMaterials();
 
     int scene = gltf["scene"].isNull()? 0: gltf["scene"].asInt();
-    std::cout << "Load scene: " << scene << std::endl;
+
+    Logger::Write(
+        "Load scene: " + std::to_string(scene),
+        Logger::Level::Info,
+        Logger::MsgType::Loader
+    );
 
     node = std::make_unique<VulkanNode>();
 
@@ -94,8 +105,11 @@ void GltfModel::LoadTextures()
         int samplerIndex = gltfTextures[i]["sampler"].asInt();
         int sourceIndex = gltfTextures[i]["source"].asInt();
 
-        std::cout << "Loading texture: "
-            << gltfImages[sourceIndex]["name"].asString() << std::endl;
+        Logger::Write(
+            "Loading texture: " + gltfImages[sourceIndex]["name"].asString(),
+            Logger::Level::Verbose,
+            Logger::MsgType::Loader
+        );
 
         Json::Value& sampler = gltf["samplers"][samplerIndex];
         int magFilter = sampler["magFilter"].asInt();
@@ -157,12 +171,20 @@ void GltfModel::LoadMaterials()
     {
         Json::Value& gltfMaterial = gltfMaterials[i];
 
-        std::cout << "Loading material: "
-            << gltfMaterial["name"].asString() << std::endl;
+            Logger::Write(
+                "Loading material: " + gltfMaterial["name"].asString(),
+                Logger::Level::Verbose,
+                Logger::MsgType::Loader
+            );
 
         if(gltfMaterial["pbrMetallicRoughness"].isNull())
         {
-            std::cout << "pbrMetallicRoughness not present. Use default material." << std::endl;
+            Logger::Write(
+                "pbrMetallicRoughness not present. Use default material.",
+                Logger::Level::Info,
+                Logger::MsgType::Loader
+            );
+
             materialList.push_back(
                 std::dynamic_pointer_cast<VulkanMaterial>(
                 VulkanMaterial::GetDefaultMaterial()));
@@ -305,7 +327,11 @@ void GltfModel::ProcessNode(Node& parentNode, int nodeIndex)
 
     Json::Value& gltfNode = gltf["nodes"][nodeIndex];
 
-    std::cout << "ProcessNode: " << gltfNode["name"] << std::endl;
+    Logger::Write(
+        "ProcessNode: " + gltfNode["name"].asString(),
+        Logger::Level::Verbose,
+        Logger::MsgType::Loader
+    );
 
     if (!gltfNode["matrix"].isNull())
     {

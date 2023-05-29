@@ -28,10 +28,6 @@
 namespace renderer
 {
 
-
-//typedef void (*RenderCommand)(VkCommandBuffer);
-typedef std::function<void(VkCommandBuffer)> RenderCommand;
-
 class VulkanRenderer: public Renderer
 {
 public:

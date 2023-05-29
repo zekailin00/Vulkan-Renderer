@@ -76,8 +76,11 @@ void VulkanTexture::LoadImageFromBuffer(unsigned char *pixels, int texWidth, int
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
-        Log::Write(Log::Level::Error,
-            "[Vulkan Texture] Error, failed to load texture image.");
+        Logger::Write(
+            "[Vulkan Texture] Error, failed to load texture image.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
     }
 
     VkBuffer stagingBuffer;
@@ -238,8 +241,11 @@ VkDescriptorImageInfo* VulkanTexture::GetDescriptor(VkImageLayout vkImageLayout)
     vkDecriptorInfo.sampler = vkSampler;
 
     if (vkDecriptorInfo.sampler == VK_NULL_HANDLE)
-        Log::Write(Log::Level::Error,
-            "[Vulkan Texture] Error, Sampler is null when creating image view.");
+        Logger::Write(
+            "[Vulkan Texture] Error, Sampler is null when creating image view.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
     return &vkDecriptorInfo;
 }
 
@@ -409,7 +415,11 @@ VulkanTexture::~VulkanTexture()
     ZoneScopedN("VulkanTexture::~VulkanTexture");
 
     Destroy();
-    Log::Write(Log::Level::Verbose, "VulkanTexture Destoryed.\n");
+    Logger::Write(
+        "VulkanTexture Destoryed.\n",
+        Logger::Level::Verbose,
+        Logger::MsgType::Renderer
+    );
 }
 
 
@@ -500,8 +510,11 @@ void VulkanTextureCube::LoadImagesFromFile(TextureCubeBuildInfo& buildInfo)
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
-        Log::Write(Log::Level::Error,
-            "[Vulkan Texture] Error, failed to load texture image.");
+        Logger::Write(
+            "[Vulkan Texture] Error, failed to load texture image.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
     }
 
     VkBuffer stagingBuffer;
@@ -590,8 +603,11 @@ void VulkanTextureCube::LoadImagesFromFile(TextureCubeBuildInfo& buildInfo)
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
         if (!pixels) {
-            Log::Write(Log::Level::Error,
-                "[Vulkan Texture] Error, failed to load texture image.");
+            Logger::Write(
+                "[Vulkan Texture] Error, failed to load texture image.",
+                Logger::Level::Error,
+                Logger::MsgType::Renderer
+            );
         }
 
         void* data;
@@ -710,8 +726,11 @@ VkDescriptorImageInfo* VulkanTextureCube::GetDescriptor(VkImageLayout vkImageLay
     vkDecriptorInfo.sampler = vkSampler;
 
     if (vkDecriptorInfo.sampler == VK_NULL_HANDLE)
-        Log::Write(Log::Level::Error,
-            "[Vulkan Texture] Error, Sampler is null when creating image view.");
+        Logger::Write(
+            "[Vulkan Texture] Error, Sampler is null when creating image view.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
     return &vkDecriptorInfo;
 }
 
@@ -720,7 +739,11 @@ VulkanTextureCube::~VulkanTextureCube()
     ZoneScopedN("VulkanTextureCube::~VulkanTextureCube");
 
     Destroy();
-    Log::Write(Log::Level::Verbose, "VulkanTextureCube Destoryed.\n");
+    Logger::Write(
+        "VulkanTextureCube Destoryed.\n",
+        Logger::Level::Verbose,
+        Logger::MsgType::Renderer
+    );
 }
 
 void VulkanTextureCube::Destroy()

@@ -122,8 +122,11 @@ void VulkanPipeline::BuildPipeline(
     ZoneScopedN("VulkanPipeline::BuildPipeline");
 
     if (shaderStages.size() != 2)
-        Log::Write(Log::Level::Error, 
-            "[Vulkan Pipeline] Shaders loadded incorrectly.");
+        Logger::Write( 
+            "[Vulkan Pipeline] Shaders loadded incorrectly.",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
 
     vkPipelineInfo.pVertexInputState = vertexInputInfo;
     vkPipelineInfo.layout = pipelineLayout->layout;

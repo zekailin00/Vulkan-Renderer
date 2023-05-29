@@ -37,14 +37,20 @@ private:
         std::ifstream file(filePath, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            std::cout << "[Vulkan Shader] Error: failed to load shader from filesystem with path:" << std::endl
-                      << filePath << std::endl;
-            throw;
+            Logger::Write(
+                "[Vulkan Shader] Error: failed to load shader from filesystem with path:\n" + filePath,
+                Logger::Level::Error,
+                Logger::MsgType::Renderer
+            );
         }
 
         size_t fileSize = (size_t) file.tellg();
         std::vector<char> buffer(fileSize);
-        Log::Write(Log::Level::Info, "Load bytes: " + std::to_string(fileSize));
+        Logger::Write(
+            "Load bytes: " + std::to_string(fileSize),
+            Logger::Level::Verbose,
+            Logger::MsgType::Renderer
+        );
 
         file.seekg(0);
         file.read(buffer.data(), fileSize);

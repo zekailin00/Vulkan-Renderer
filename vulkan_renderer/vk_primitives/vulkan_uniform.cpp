@@ -42,7 +42,11 @@ VkDescriptorBufferInfo* VulkanUniform::GetDescriptor()
     ZoneScopedN("VulkanUniform::GetDescriptor");
 
     if (vulkanDevice == nullptr)
-        Log::Write(Log::Level::Error, "Uniform is not initialized");
+        Logger::Write(
+            "Uniform is not initialized",
+            Logger::Level::Error,
+            Logger::MsgType::Renderer
+        );
 
     bufferInfo.buffer = vkBuffer;
     bufferInfo.offset = 0;

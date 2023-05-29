@@ -29,8 +29,13 @@ uint32_t VulkanDevice::GetMemoryTypeIndex(uint32_t memoryType, VkMemoryPropertyF
             return i;
     }
 
-    Log::Write(Log::Level::Error, "[Vulkan Device] Failed to find suitable memory type.");
-    exit(1);
+    Logger::Write(
+        "[Vulkan Device] Failed to find suitable memory type.",
+        Logger::Level::Error,
+        Logger::MsgType::Renderer
+    );
+    
+    return -1;
 }
 
 void VulkanDevice::InitializePhysicalDevice()
@@ -59,7 +64,12 @@ void VulkanDevice::InitializePhysicalDevice()
 
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(vkPhysicalDevice, &properties);
-    std::cout << "[Vulkan Renderer] Device [" << gpuIndex << "] : " << properties.deviceName << std::endl;
+
+    Logger::Write(
+        "[Vulkan Renderer] Device [" + std::to_string(gpuIndex) + "] : " + properties.deviceName,
+        Logger::Level::Info,
+        Logger::MsgType::Renderer
+    );
 
     GetPhysicalDeviceInfo();
 }
@@ -74,7 +84,6 @@ void VulkanDevice::InitializeLogicalDevice(std::vector<const char*> extensions)
     vkQueueCreateInfo.queueCount = 1;
     vkQueueCreateInfo.pQueuePriorities = &queuePriority;
 
-    //TODO: check all extensions are supported.
     // Enable portability for Apple support if it is included.
     for(auto extensionProperty: vkExtensionProperties)
     {
@@ -120,8 +129,12 @@ uint32_t VulkanDevice::GetQueueFamilyIndex(VkQueueFlags vkQueueFlags)
     for (uint32_t i = 0; i < vkQueueFamilyProperties.size(); i++)
         if((vkQueueFamilyProperties[i].queueFlags & vkQueueFlags) == vkQueueFlags) return i;
     
-    Log::Write(Log::Level::Error, "[Vulkan Device] Error, no matching queue family indices found.");
-    exit(1);
+    Logger::Write(
+        "[Vulkan Device] Error, no matching queue family indices found.",
+        Logger::Level::Error,
+        Logger::MsgType::Renderer
+    );
+    return -1;
 }
 
 VkFormat VulkanDevice::GetDepthFormat()
