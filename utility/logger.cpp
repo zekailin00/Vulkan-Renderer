@@ -15,6 +15,8 @@ void Logger::SetLevel(Level minLevel)
 void Logger::Write(const std::string& msg,
     Level level, MsgType type)
 {
+    TracyMessage(msg.c_str(), msg.size());
+    
     if (level < currentLevel)
         return;
 
