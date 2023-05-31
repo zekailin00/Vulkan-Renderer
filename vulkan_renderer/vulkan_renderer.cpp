@@ -128,8 +128,7 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     ZoneScopedN("VulkanRenderer::AllocateResources");
 
     this->swapchain = swapchain;
-    swapchain->Initialize();
-
+    
     std::vector<VkDescriptorPoolSize> poolSizes =
     {
         { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },

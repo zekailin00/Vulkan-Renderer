@@ -61,6 +61,7 @@ void GlfwWindow::InitializeSurface()
     windowSwapchain = new WindowSwapchain();
     windowSwapchain->SetSurface(surface);
     windowSwapchain->GetSwapChainProperties();
+    windowSwapchain->Initialize();
 }
 
 void GlfwWindow::RegisterPeripherals()

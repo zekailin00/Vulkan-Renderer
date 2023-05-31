@@ -102,12 +102,13 @@ private:
 
     // Framebuffers are created from images returned from the window system
     std::vector<VkFramebuffer> vkFramebuffers;
-    
+
     VulkanCmdBuffer vulkanCmdBuffer;
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
     std::unique_ptr<PipelineImgui> pipelineImgui;
 
+    // Owned by glfw
     IVulkanSwapchain* swapchain = nullptr;
 
     RenderTechnique defaultTechnique{};
