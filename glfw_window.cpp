@@ -11,7 +11,7 @@
 #include <tracy/Tracy.hpp>
 
 
-GlfwWindow::GlfwWindow()
+void GlfwWindow::InitializeGlfw()
 {
     ZoneScopedN("GlfwWindow::GlfwWindow");
 

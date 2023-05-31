@@ -15,6 +15,7 @@ public:
         return glfwWindow;
     }
 
+    void InitializeGlfw();
     void InitializeWindow();
     void RegisterPeripherals();
     bool ShouldClose();
@@ -30,7 +31,8 @@ public:
     void operator=(GlfwWindow const&) = delete;
 
 private:
-    GlfwWindow();
+    GlfwWindow() = default;
+    ~GlfwWindow() = default;
     
     static void glfwFramebufferResizeCallback(GLFWwindow* window, int width, int height)
     {

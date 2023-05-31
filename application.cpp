@@ -22,6 +22,7 @@ Application::Application()
     GlfwWindow& window = GlfwWindow::GetInstance();
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
 
+    window.InitializeGlfw();
     renderer.InitializeDevice(window.extensionsCount, window.extensions);
     window.InitializeWindow();
 
