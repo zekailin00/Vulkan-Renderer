@@ -5,8 +5,8 @@ project(vulkan_renderer)
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
-file(GLOB GLFW_HEADERS "glfw_platform/*.h")
-file(GLOB GLFW_SOURCE "glfw_platform/*.cpp")
+file(GLOB GLFW_HEADERS "platform/*.h")
+file(GLOB GLFW_SOURCE "platform/*.cpp")
 
 # Vulkan
 if (APPLE)
@@ -72,7 +72,7 @@ target_include_directories(renderer PUBLIC
     ${Vulkan_INCLUDE_DIRS}
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
-    glfw_platform
+    platform
     .
 )
 
