@@ -12,6 +12,9 @@
 static XrResult result;
 static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 
+#define CHK_XRCMD(result)                                                      \
+    if (XR_FAILED(result)) {PrintErrorMsg(result);}                                                                   
+
 OpenxrPlatform* OpenxrPlatform::Initialize()
 {
     unsigned int layerCount;
@@ -92,6 +95,7 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     XrSystemGetInfo systemInfo = {XR_TYPE_SYSTEM_GET_INFO};
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
+    // Will fail if VR headset is not plugged into the computer
     XrSystemId systemId;
     result = xrGetSystem(xrInstance, &systemInfo, &systemId);
 
@@ -106,6 +110,14 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
         return nullptr;
     }
 
+    XrSystemProperties systemProp{XR_TYPE_SYSTEM_PROPERTIES};
+    xrGetSystemProperties(xrInstance, systemId, &systemProp);
+
+    Logger::Write(
+        "[OpenXR] System name: " + std::string(systemProp.systemName),
+        Logger::Level::Info, Logger::MsgType::Platform
+    );
+
     // Only allocate an object when system is available
     OpenxrPlatform* platform = new OpenxrPlatform();
     platform->layerList = layerList;
@@ -113,5 +125,130 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     platform->xrInstance = xrInstance;
     platform->systemId = systemId;
 
+    platform->LoadViewConfig();
+    platform->LoadVulkanRequirements();
+
     return platform;
+}
+
+void OpenxrPlatform::LoadViewConfig()
+{
+    unsigned int count;
+    CHK_XRCMD(xrEnumerateViewConfigurations
+        (xrInstance, systemId, 0, &count, nullptr));
+
+    viewConfigTypeList.resize(count);
+    CHK_XRCMD(xrEnumerateViewConfigurations(
+        xrInstance, systemId, count, &count, viewConfigTypeList.data()));
+    
+    bool configFound = false;
+    for (auto& configType: viewConfigTypeList)
+    {
+        if (configType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO)
+        {
+            configFound = true;
+            break;
+        }
+    }
+
+    if (!configFound)
+        Logger::Write(
+            "[OpenXR] The system does not support stereo views",
+            Logger::Level::Error, Logger::MsgType::Platform
+        );
+    
+    CHK_XRCMD(xrEnumerateViewConfigurationViews(
+        xrInstance, systemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+        0, &count, nullptr));
+    
+    viewConfigViewList.resize(count, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+    CHK_XRCMD(xrEnumerateViewConfigurationViews(
+        xrInstance, systemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+        count, &count, viewConfigViewList.data()));
+
+    Logger::Write(
+        "[OpenXR] Number of views: " + std::to_string(viewConfigViewList.size()) +
+        "\n[OpenXR] recommendedImageRectWidth: " + 
+        std::to_string(viewConfigViewList[0].recommendedImageRectWidth) + 
+        "\n[OpenXR] recommendedImageRectHeight: " + 
+        std::to_string(viewConfigViewList[0].recommendedImageRectHeight) + 
+        "\n[OpenXR] recommendedSwapchainSampleCount: " + 
+        std::to_string(viewConfigViewList[0].recommendedSwapchainSampleCount),
+        Logger::Level::Info, Logger::MsgType::Platform
+    );
+}
+
+void OpenxrPlatform::PrintErrorMsg(XrResult result)
+{
+    xrResultToString(xrInstance, result, resultBuffer);
+    Logger::Write(
+        "[OpenXR] API call error: " + std::string(resultBuffer),
+        Logger::Level::Error, Logger::MsgType::Platform
+    );
+}
+
+void OpenxrPlatform::LoadVulkanRequirements()
+{
+    PFN_xrGetVulkanGraphicsRequirementsKHR xrGetVulkanGraphicsReqKHR;
+    CHK_XRCMD(xrGetInstanceProcAddr(
+        xrInstance, "xrGetVulkanGraphicsRequirementsKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsReqKHR)));
+    xrGetVulkanGraphicsReqKHR(xrInstance, systemId, &vkRequirements);
+
+    PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtKHR;
+    CHK_XRCMD(xrGetInstanceProcAddr(
+        xrInstance, "xrGetVulkanInstanceExtensionsKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanInstanceExtKHR)));
+
+    unsigned int count;
+    xrGetVulkanInstanceExtKHR(xrInstance, systemId, 0, &count, nullptr);
+    vulkanInstanceExtStr.resize(count);
+    xrGetVulkanInstanceExtKHR(
+        xrInstance, systemId, count, &count, vulkanInstanceExtStr.data());
+    vulkanInstanceExt = ParseExtensionString(vulkanInstanceExtStr.data());
+
+    for(const char* extension: vulkanInstanceExt)
+    {
+        Logger::Write(
+            extension,
+            Logger::Level::Info, Logger::MsgType::Platform
+        );
+    }
+
+    PFN_xrGetVulkanDeviceExtensionsKHR xrGetVulkanDeviceExtKHR;
+    CHK_XRCMD(xrGetInstanceProcAddr(
+        xrInstance, "xrGetVulkanDeviceExtensionsKHR",
+        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtKHR)));
+
+    xrGetVulkanDeviceExtKHR(xrInstance, systemId, 0, &count, nullptr);
+    vulkanDeviceExtStr.resize(count);
+    xrGetVulkanDeviceExtKHR(
+        xrInstance, systemId, count, &count, vulkanDeviceExtStr.data());
+    vulkanDeviceExt = ParseExtensionString(vulkanDeviceExtStr.data());
+
+    for(const char* extension: vulkanDeviceExt)
+    {
+        Logger::Write(
+            extension,
+            Logger::Level::Info, Logger::MsgType::Platform
+        );
+    }
+}
+
+std::vector<const char*> OpenxrPlatform::ParseExtensionString(char* names)
+{
+    std::vector<const char*> list;
+    while (*names != 0)
+    {
+        list.push_back(names);
+        while (*(++names) != 0)
+        {
+            if (*names == ' ')
+            {
+                *names++ = '\0';
+                break;
+            }
+        }
+    }
+    return list;
 }
