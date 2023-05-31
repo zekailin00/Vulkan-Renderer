@@ -19,3 +19,6 @@
 [submodule "external/tracy"]
 	path = external/tracy
 	url = https://github.com/wolfpld/tracy.git
+[submodule "external/OpenXR-SDK"]
+	path = external/OpenXR-SDK
+	url = git@github.com:KhronosGroup/OpenXR-SDK.git
