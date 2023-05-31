@@ -11,9 +11,9 @@
 #include <tracy/Tracy.hpp>
 
 
-void GlfwWindow::InitializeGlfw()
+void GlfwWindow::InitializeWindow()
 {
-    ZoneScopedN("GlfwWindow::GlfwWindow");
+    ZoneScopedN("GlfwWindow::InitializeWindow");
 
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit() || !glfwVulkanSupported())
@@ -32,16 +32,16 @@ void GlfwWindow::InitializeGlfw()
             Logger::Level::Info,
             Logger::MsgType::Platform
         );
-}
-
-void GlfwWindow::InitializeWindow()
-{
-    ZoneScopedN("GlfwWindow::InitializeWindow");
-
-    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(1280, 720, "Vulkan Renderer", NULL, NULL);
+}
+
+void GlfwWindow::InitializeSurface()
+{
+    ZoneScopedN("GlfwWindow::InitializeSurface");
+
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
     CHECK_VKCMD(glfwCreateWindowSurface(vkr.vkInstance, window, nullptr, &surface));
 
     glfwSetWindowUserPointer(window, this);
@@ -58,8 +58,9 @@ void GlfwWindow::InitializeWindow()
         );
     }
 
-    windowSwapchain.SetSurface(surface);
-    windowSwapchain.GetSwapChainProperties();
+    windowSwapchain = new WindowSwapchain();
+    windowSwapchain->SetSurface(surface);
+    windowSwapchain->GetSwapChainProperties();
 }
 
 void GlfwWindow::RegisterPeripherals()
@@ -80,7 +81,7 @@ void GlfwWindow::BeginFrame()
     glfwPollEvents();
 
     // Rebuild swapchain when window size changes
-    if (windowSwapchain.swapchainRebuild)
+    if (windowSwapchain->swapchainRebuild)
     {
         // Stall the program if window is minimized.
         int width, height;
@@ -92,22 +93,25 @@ void GlfwWindow::BeginFrame()
         }
 
         renderer::VulkanRenderer::GetInstance().RebuildSwapchain();
-        windowSwapchain.swapchainRebuild = false;
+        windowSwapchain->swapchainRebuild = false;
     }  
 }
 
-void GlfwWindow::CloseWindow()
+void GlfwWindow::DestroySurface()
 {
-    ZoneScopedN("GlfwWindow::CloseWindow");
+    ZoneScopedN("GlfwWindow::DestroySurface");
+
+    windowSwapchain->Destroy();
+    delete windowSwapchain;
 
     // Destory surface before vkInstance
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
     vkDestroySurfaceKHR(vkr.vkInstance, surface, nullptr);
 }
 
-void GlfwWindow::Destroy()
+void GlfwWindow::DestroyWindow()
 {
-    ZoneScopedN("GlfwWindow::Destroy");
+    ZoneScopedN("GlfwWindow::DestroyWindow");
 
     glfwDestroyWindow(window);
     glfwTerminate();

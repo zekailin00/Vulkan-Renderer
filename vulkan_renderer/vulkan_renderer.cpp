@@ -630,7 +630,6 @@ void VulkanRenderer::DeallocateResources()
     VulkanTextureCube::DestroyDefaultTexture();
 
     DestroyFramebuffers();
-    swapchain->Destroy();
 
     pipelines.clear();
     pipelineImgui.reset();
@@ -638,6 +637,11 @@ void VulkanRenderer::DeallocateResources()
 
     vulkanCmdBuffer.Destroy();
     vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
+}
+
+void VulkanRenderer::Destroy()
+{
+    ZoneScopedN("VulkanRenderer::Destroy");
 
     TracyVkDestroy(tracyVkCtx);
     vulkanDevice.Destroy();
@@ -651,12 +655,6 @@ void VulkanRenderer::DeallocateResources()
     vkDestroyDebugReportCallbackEXT(vkInstance, g_DebugReport, nullptr);
 
 #endif
-
-}
-
-void VulkanRenderer::Destroy()
-{
-    ZoneScopedN("VulkanRenderer::Destroy");
 
     // Destory VkSurfaceKHR and sdebugUtilsMessengerEXT before vkInstance
     vkDestroyInstance(vkInstance, nullptr);

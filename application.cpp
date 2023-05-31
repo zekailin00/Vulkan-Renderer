@@ -22,9 +22,9 @@ Application::Application()
     GlfwWindow& window = GlfwWindow::GetInstance();
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
 
-    window.InitializeGlfw();
-    renderer.InitializeDevice(window.extensionsCount, window.extensions);
     window.InitializeWindow();
+    renderer.InitializeDevice(window.extensionsCount, window.extensions);
+    window.InitializeSurface();
 
     renderer.AllocateResources(window.GetSwapchain());
     window.RegisterPeripherals();
@@ -36,10 +36,10 @@ Application::Application()
 Application::~Application()
 {
     renderer->DeallocateResources();
-    window->CloseWindow();
+    window->DestroySurface();
 
     renderer->Destroy();
-    window->Destroy();
+    window->DestroyWindow();
 
     renderer = nullptr;
     window = nullptr;

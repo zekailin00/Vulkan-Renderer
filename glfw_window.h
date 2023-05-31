@@ -15,14 +15,14 @@ public:
         return glfwWindow;
     }
 
-    void InitializeGlfw();
     void InitializeWindow();
+    void InitializeSurface();
     void RegisterPeripherals();
     bool ShouldClose();
     void BeginFrame();
-    void CloseWindow();
-    void Destroy();
-    IVulkanSwapchain* GetSwapchain() {return &windowSwapchain;}
+    void DestroySurface();
+    void DestroyWindow();
+    IVulkanSwapchain* GetSwapchain() {return windowSwapchain;}
 
     uint32_t extensionsCount;
     const char** extensions;
@@ -37,7 +37,7 @@ private:
     static void glfwFramebufferResizeCallback(GLFWwindow* window, int width, int height)
     {
         auto glfwWindow = reinterpret_cast<GlfwWindow*>(glfwGetWindowUserPointer(window));
-        glfwWindow->windowSwapchain.swapchainRebuild = true;
+        glfwWindow->windowSwapchain->swapchainRebuild = true;
     }
 
     static void glfwErrorCallback(int error, const char* description)
@@ -47,5 +47,5 @@ private:
 
     GLFWwindow* window;
     VkSurfaceKHR surface;
-    WindowSwapchain windowSwapchain;
+    WindowSwapchain* windowSwapchain;
 };
