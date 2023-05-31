@@ -21,6 +21,7 @@ Application::Application()
 
     GlfwWindow& window = GlfwWindow::GetInstance();
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
+    this->openxr = OpenxrPlatform::Initialize();
 
     window.InitializeWindow();
     renderer.InitializeDevice(window.extensionsCount, window.extensions);
@@ -41,8 +42,11 @@ Application::~Application()
     renderer->Destroy();
     window->DestroyWindow();
 
+    delete openxr;
+
     renderer = nullptr;
     window = nullptr;
+    openxr = nullptr;
 }
 
 void Application::Run()

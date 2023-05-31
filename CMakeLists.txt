@@ -5,8 +5,8 @@ project(vulkan_renderer)
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
-file(GLOB GLFW_HEADERS "platform/*.h")
-file(GLOB GLFW_SOURCE "platform/*.cpp")
+file(GLOB PLT_HEADERS "platform/*.h")
+file(GLOB PLT_SOURCE "platform/*.cpp")
 
 # Vulkan
 if (APPLE)
@@ -25,6 +25,9 @@ else()
     message( "-- Vulkan include directories: ${Vulkan_INCLUDE_DIRS}")
     message( "-- Vulkan libraries: ${Vulkan_LIBRARY}")
 endif()
+
+# openxr
+add_subdirectory("${CMAKE_SOURCE_DIR}/external/OpenXR-SDK")
 
 # tracy
 option(TRACY_ENABLE "" ON)
@@ -62,9 +65,8 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
 add_library(renderer
     ${LOCAL_HEADERS}
     ${LOCAL_SOURCE}
-    ${GLFW_HEADERS}
-    ${GLFW_SOURCE}
-    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${PLT_HEADERS}
+    ${PLT_SOURCE}
 )
 
 # Target settings
@@ -76,7 +78,13 @@ target_include_directories(renderer PUBLIC
     .
 )
 
-target_link_libraries(renderer glfw ${Vulkan_LIBRARY})
+# platforms 
+target_link_libraries(renderer 
+    glfw
+    openxr_loader
+)
+
+# libraries
 target_link_libraries(renderer
     VulkanRenderer
     utility

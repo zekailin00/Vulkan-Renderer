@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glfw_window.h"
+#include "openxr_platform.h"
 #include "vulkan_renderer.h"
 #include "renderer.h"
 
@@ -26,4 +27,5 @@ protected:
 
 private:
     GlfwWindow* window = nullptr;
+    OpenxrPlatform* openxr = nullptr;
 };
