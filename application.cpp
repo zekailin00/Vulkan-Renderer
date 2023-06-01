@@ -34,7 +34,13 @@ Application::Application()
     this->renderer = &renderer;
     this->window = &window;
 
-    openxr->InitializeSession(&(renderer.vulkanDevice));
+    bool launchXR = false;
+    if (launchXR)
+    {
+        openxr->InitializeSession(&(renderer.vulkanDevice));
+        // renderer->InitializeXrSession();
+    }
+
 }
 
 Application::~Application()

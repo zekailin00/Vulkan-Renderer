@@ -4,7 +4,7 @@
 #include "glfw/glfw3.h"
 #include "vulkan/vulkan.h"
 
-#include "window_swapchain.h"
+#include "glfw_swapchain.h"
 
 #include <vector>
 
