@@ -162,6 +162,8 @@ void OpenxrPlatform::InitializeSession(VulkanDevice* vulkanDevice)
     createInfo.systemId = systemId;
     CHK_XRCMD(xrCreateSession(xrInstance, &createInfo, &xrSession));
 
+    InitializeSpaces();
+
     XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
     attachInfo.countActionSets = 1;
     attachInfo.actionSets = &inputActionSet;
@@ -186,41 +188,60 @@ void OpenxrPlatform::InitializeSession(VulkanDevice* vulkanDevice)
     //     Logger::Level::Info,
     //     Logger::MsgType::Platform
     // );
+}
 
-    {   // enumerate reference spaces
-        uint32_t spaceCount;
-        CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, 0, &spaceCount, nullptr));
-        std::vector<XrReferenceSpaceType> spaces(spaceCount);
-        CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, spaceCount, &spaceCount, spaces.data()));
+void OpenxrPlatform::InitializeSpaces()
+{
+    uint32_t spaceCount;
+    CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, 0, &spaceCount, nullptr));
+    std::vector<XrReferenceSpaceType> spaces(spaceCount);
+    CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, spaceCount, &spaceCount, spaces.data()));
 
+    Logger::Write(
+        "Available reference spaces: " + std::to_string(spaceCount),
+        Logger::Level::Info, Logger::MsgType::Platform
+    );
+
+    if (spaceCount != 3){
         Logger::Write(
-            "Available reference spaces: " + std::to_string(spaceCount),
-            Logger::Level::Info, Logger::MsgType::Platform
+            "[OpenXR] Reference space check failed.",
+            Logger::Level::Error, Logger::MsgType::Platform
         );
-
-        for (XrReferenceSpaceType space : spaces) {
-            std::string spaceName;
-            switch (space)
-            {
-            case XR_REFERENCE_SPACE_TYPE_VIEW:
-                spaceName = "XR_REFERENCE_SPACE_TYPE_VIEW";
-                break;
-            case XR_REFERENCE_SPACE_TYPE_LOCAL:
-                spaceName = "XR_REFERENCE_SPACE_TYPE_LOCAL";
-                break;
-            case XR_REFERENCE_SPACE_TYPE_STAGE:
-                spaceName = "XR_REFERENCE_SPACE_TYPE_STAGE";
-                break;
-            default:
-                spaceName = "Enum number: " + std::to_string(space);
-                break;
-            }
-            Logger::Write(spaceName,
-                Logger::Level::Info, Logger::MsgType::Platform);
-        }
     }
 
-    
+    for (XrReferenceSpaceType space: spaces)
+    {
+        std::string spaceName;
+        switch (space)
+        {
+        case XR_REFERENCE_SPACE_TYPE_VIEW:
+            spaceName = "XR_REFERENCE_SPACE_TYPE_VIEW";
+            break;
+        case XR_REFERENCE_SPACE_TYPE_LOCAL:
+            spaceName = "XR_REFERENCE_SPACE_TYPE_LOCAL";
+            break;
+        case XR_REFERENCE_SPACE_TYPE_STAGE:
+            spaceName = "XR_REFERENCE_SPACE_TYPE_STAGE";
+            break;
+        default:
+            spaceName = "Enum number: " + std::to_string(space);
+            break;
+        }
+        Logger::Write(spaceName,
+            Logger::Level::Info, Logger::MsgType::Platform);
+    }
+
+    // XrActionSpaceCreateInfo createInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
+    // createInfo.poseInActionSpace.orientation.w = 1.0f;
+    // createInfo.action = lGripPoseAction;
+    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &lGripPoseSpace));
+    // createInfo.action = rGripPoseAction;
+    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &rGripPoseSpace));
+    // createInfo.action = lAimPoseAction;
+    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &lAimPoseSpace));
+    // createInfo.action = rAimPoseAction;
+    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &rAimPoseSpace));
+
 }
 
 void OpenxrPlatform::InitializeActions()
@@ -231,39 +252,6 @@ void OpenxrPlatform::InitializeActions()
     strcpy_s(actionSetInfo.localizedActionSetName, "input");
     actionSetInfo.priority = 0;
     CHK_XRCMD(xrCreateActionSet(xrInstance, &actionSetInfo, &inputActionSet));
-    
-    XrAction lSqueezeValueAction;
-    XrAction rSqueezeValueAction;
-
-    XrAction lTriggerValueAction;
-    XrAction rTriggerValueAction;
-
-    XrAction lTriggerTouchAction;
-    XrAction rTriggerTouchAction;
-
-    XrAction lThumbstickXAction;
-    XrAction rThumbstickXAction;
-
-    XrAction lThumbstickYAction;
-    XrAction rThumbstickYAction;
-
-    XrAction lThumbstickClickAction;
-    XrAction rThumbstickClickAction;
-
-    XrAction lThumbstickTouchAction;
-    XrAction rThumbstickTouchAction;
-
-    XrAction lXClickAction;
-    XrAction lXTouchAction;
-    XrAction lYClickAction;
-    XrAction lYTouchAction;
-    XrAction lMenuClickAction;
-
-    XrAction rAClickAction;
-    XrAction rATouchAction;
-    XrAction rBClickAction;
-    XrAction rBTouchAction;
-    XrAction rSystemClickAction;
 
     XrActionCreateInfo actioninfo{XR_TYPE_ACTION_CREATE_INFO};
 
@@ -387,6 +375,26 @@ void OpenxrPlatform::InitializeActions()
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rSystemClickAction));
 
+    strcpy_s(actioninfo.actionName, "l_grip_pose");
+    strcpy_s(actioninfo.localizedActionName, "l_grip_pose");
+    actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+    CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lGripPoseAction));
+
+    strcpy_s(actioninfo.actionName, "r_grip_pose");
+    strcpy_s(actioninfo.localizedActionName, "r_grip_pose");
+    actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+    CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rGripPoseAction));
+
+    strcpy_s(actioninfo.actionName, "l_aim_pose");
+    strcpy_s(actioninfo.localizedActionName, "l_aim_pose");
+    actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+    CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lAimPoseAction));
+
+    strcpy_s(actioninfo.actionName, "r_aim_pose");
+    strcpy_s(actioninfo.localizedActionName, "r_aim_pose");
+    actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+    CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rAimPoseAction));
+
     XrPath lSqueezeValuePath;
     XrPath rSqueezeValuePath;
 
@@ -419,6 +427,11 @@ void OpenxrPlatform::InitializeActions()
     XrPath rBClickPath;
     XrPath rBTouchPath;
     XrPath rSystemClickPath;
+
+    XrPath lGripPosePath;
+    XrPath rGripPosePath;
+    XrPath lAimPosePath;
+    XrPath rAimPosePath;
 
     CHK_XRCMD(xrStringToPath(xrInstance,
         "/user/hand/left/input/squeeze/value", &lSqueezeValuePath));
@@ -477,7 +490,16 @@ void OpenxrPlatform::InitializeActions()
     CHK_XRCMD(xrStringToPath(xrInstance,
         "/user/hand/right/input/system/click", &rSystemClickPath));
 
-    XrActionSuggestedBinding bindings[24];
+    CHK_XRCMD(xrStringToPath(xrInstance,
+        "/user/hand/left/input/grip/pose", &lGripPosePath));
+    CHK_XRCMD(xrStringToPath(xrInstance,
+        "/user/hand/right/input/grip/pose", &rGripPosePath));
+    CHK_XRCMD(xrStringToPath(xrInstance,
+        "/user/hand/left/input/aim/pose", &lAimPosePath));
+    CHK_XRCMD(xrStringToPath(xrInstance,
+        "/user/hand/right/input/aim/pose", &rAimPosePath));
+
+    XrActionSuggestedBinding bindings[28];
     bindings[0].action = lSqueezeValueAction;
     bindings[0].binding = lSqueezeValuePath;
     bindings[1].action = rSqueezeValueAction;
@@ -535,6 +557,15 @@ void OpenxrPlatform::InitializeActions()
     bindings[23].action = rSystemClickAction;
     bindings[23].binding = rSystemClickPath;
 
+    bindings[24].action = lGripPoseAction;
+    bindings[24].binding = lGripPosePath;
+    bindings[25].action = rGripPoseAction;
+    bindings[25].binding = rGripPosePath;
+    bindings[26].action = lAimPoseAction;
+    bindings[26].binding = lAimPosePath;
+    bindings[27].action = rAimPoseAction;
+    bindings[27].binding = rAimPosePath;
+
     XrPath oculusTouchInteractionProfilePath;
     CHK_XRCMD(xrStringToPath(xrInstance,
         "/interaction_profiles/oculus/touch_controller",
@@ -545,7 +576,7 @@ void OpenxrPlatform::InitializeActions()
         XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
     suggestedBindings.interactionProfile = oculusTouchInteractionProfilePath;
     suggestedBindings.suggestedBindings = bindings;
-    suggestedBindings.countSuggestedBindings = 24;
+    suggestedBindings.countSuggestedBindings = 28;
     CHK_XRCMD(xrSuggestInteractionProfileBindings(
         xrInstance, &suggestedBindings));
     

@@ -36,6 +36,7 @@ private:
     OpenxrPlatform() = default;
 
     void InitializeActions();
+    void InitializeSpaces();
 
     void LoadViewConfig();
     void LoadVulkanRequirements();
@@ -59,6 +60,52 @@ private:
     XrSystemId systemId = XR_NULL_SYSTEM_ID;
     XrActionSet inputActionSet = XR_NULL_HANDLE;
 
+    XrAction lSqueezeValueAction;
+    XrAction rSqueezeValueAction;
+
+    XrAction lTriggerValueAction;
+    XrAction rTriggerValueAction;
+
+    XrAction lTriggerTouchAction;
+    XrAction rTriggerTouchAction;
+
+    XrAction lThumbstickXAction;
+    XrAction rThumbstickXAction;
+
+    XrAction lThumbstickYAction;
+    XrAction rThumbstickYAction;
+
+    XrAction lThumbstickClickAction;
+    XrAction rThumbstickClickAction;
+
+    XrAction lThumbstickTouchAction;
+    XrAction rThumbstickTouchAction;
+
+    XrAction lXClickAction;
+    XrAction lXTouchAction;
+    XrAction lYClickAction;
+    XrAction lYTouchAction;
+    XrAction lMenuClickAction;
+
+    XrAction rAClickAction;
+    XrAction rATouchAction;
+    XrAction rBClickAction;
+    XrAction rBTouchAction;
+    XrAction rSystemClickAction;
+
+    XrAction lGripPoseAction;
+    XrAction rGripPoseAction;
+    XrAction lAimPoseAction;
+    XrAction rAimPoseAction;
+
     //-------  Session data -------//
     XrSession xrSession = XR_NULL_HANDLE;
+    XrSpace viewSpace;
+    XrSpace localSpace;
+    XrSpace stageSpace;
+    XrSpace lGripPoseSpace;
+    XrSpace rGripPoseSpace;
+    XrSpace lAimPoseSpace;
+    XrSpace rAimPoseSpace;
+
 };
