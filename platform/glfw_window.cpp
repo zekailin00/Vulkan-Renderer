@@ -72,8 +72,6 @@ void GlfwWindow::InitializeSurface()
 
     windowSwapchain = new WindowSwapchain();
     windowSwapchain->SetSurface(surface);
-    windowSwapchain->GetSwapChainProperties();
-    windowSwapchain->Initialize();
 }
 
 void GlfwWindow::RegisterPeripherals()
@@ -114,7 +112,6 @@ void GlfwWindow::DestroySurface()
 {
     ZoneScopedN("GlfwWindow::DestroySurface");
 
-    windowSwapchain->Destroy();
     delete windowSwapchain;
 
     // Destory surface before vkInstance

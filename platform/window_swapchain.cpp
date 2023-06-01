@@ -5,11 +5,11 @@
 #include "logger.h"
 
 
-void WindowSwapchain::Initialize()
+void WindowSwapchain::Initialize(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::Initialize");
 
-    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
+    GetSwapChainProperties(vulkanDevice);
 
     //TODO: select other available swapchain properties by the caller
     // Swapchain settings
@@ -35,10 +35,10 @@ void WindowSwapchain::Initialize()
     vkSwapchainInfo.oldSwapchain = VK_NULL_HANDLE;
 
     // Asserts
-    CHECK_VKCMD(vkCreateSwapchainKHR(vkr.vulkanDevice.vkDevice, &vkSwapchainInfo, nullptr, &vkSwapchain));
-    CHECK_VKCMD(vkGetSwapchainImagesKHR(vkr.vulkanDevice.vkDevice, vkSwapchain, &imageCount, nullptr));
+    CHECK_VKCMD(vkCreateSwapchainKHR(vulkanDevice->vkDevice, &vkSwapchainInfo, nullptr, &vkSwapchain));
+    CHECK_VKCMD(vkGetSwapchainImagesKHR(vulkanDevice->vkDevice, vkSwapchain, &imageCount, nullptr));
     images.resize(imageCount);
-    CHECK_VKCMD(vkGetSwapchainImagesKHR(vkr.vulkanDevice.vkDevice, vkSwapchain, &imageCount, images.data()));
+    CHECK_VKCMD(vkGetSwapchainImagesKHR(vulkanDevice->vkDevice, vkSwapchain, &imageCount, images.data()));
     ASSERT(minImageCount <= imageCount)
 
     // Create image views
@@ -55,7 +55,7 @@ void WindowSwapchain::Initialize()
     for (uint32_t i = 0; i < imageCount; i++)
     {
         vkImageViewCreateInfo.image = images[i];
-        CHECK_VKCMD(vkCreateImageView(vkr.vulkanDevice.vkDevice, &vkImageViewCreateInfo, nullptr, &imageViews[i]));
+        CHECK_VKCMD(vkCreateImageView(vulkanDevice->vkDevice, &vkImageViewCreateInfo, nullptr, &imageViews[i]));
     }
 
     Logger::Write(
@@ -65,31 +65,32 @@ void WindowSwapchain::Initialize()
     );
 }
 
-void WindowSwapchain::Destroy()
+void WindowSwapchain::Destroy(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::Destroy");
 
-    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
-
     for (size_t i = 0; i < imageViews.size(); i++) 
-        vkDestroyImageView(vkr.vulkanDevice.vkDevice, imageViews[i], nullptr);
+        vkDestroyImageView(vulkanDevice->vkDevice, imageViews[i], nullptr);
 
-    vkDestroySwapchainKHR(vkr.vulkanDevice.vkDevice, vkSwapchain, nullptr);
+    vkDestroySwapchainKHR(vulkanDevice->vkDevice, vkSwapchain, nullptr);
 }
 
-uint32_t WindowSwapchain::GetNextImageIndex(VkSemaphore imageAcquiredSemaphores)
+uint32_t WindowSwapchain::GetNextImageIndex(VulkanDevice* vulkanDevice,
+    VkSemaphore imageAcquiredSemaphores)
 {
     ZoneScopedN("WindowSwapchain::GetNextImageIndex");
 
     uint32_t imageIndex; 
-    VkDevice vkd = renderer::VulkanRenderer::GetInstance().vulkanDevice.vkDevice;
-    VkResult result = vkAcquireNextImageKHR(vkd, vkSwapchain, UINT64_MAX, imageAcquiredSemaphores, VK_NULL_HANDLE, &imageIndex);
+    VkResult result = vkAcquireNextImageKHR(
+        vulkanDevice->vkDevice, vkSwapchain, UINT64_MAX,
+        imageAcquiredSemaphores, VK_NULL_HANDLE, &imageIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
         swapchainRebuild = true;
     return imageIndex;
 };
 
-void WindowSwapchain::PresentImage(VkSemaphore renderFinishedSemaphores, uint32_t imageIndex)
+void WindowSwapchain::PresentImage(VulkanDevice* vulkanDevice,
+    VkSemaphore renderFinishedSemaphores, uint32_t imageIndex)
 {
     ZoneScopedN("WindowSwapchain::PresentImage");
 
@@ -101,37 +102,39 @@ void WindowSwapchain::PresentImage(VkSemaphore renderFinishedSemaphores, uint32_
     vkPresentInfo.swapchainCount = 1;
     vkPresentInfo.pSwapchains = &vkSwapchain;
     vkPresentInfo.pImageIndices = &imageIndex;
-    VkResult result = vkQueuePresentKHR(renderer::VulkanRenderer::GetInstance().vulkanDevice.graphicsQueue, &vkPresentInfo);
+    VkResult result = vkQueuePresentKHR(vulkanDevice->graphicsQueue, &vkPresentInfo);
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
         swapchainRebuild = true;
 }
 
-void WindowSwapchain::RebuildSwapchain()
+void WindowSwapchain::RebuildSwapchain(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::RebuildSwapchain");
 
-    Destroy();
-    GetSwapChainProperties(); // Get updated extent information 
-    Initialize();
+    Destroy(vulkanDevice);
+    Initialize(vulkanDevice);
 }
 
-void WindowSwapchain::GetSwapChainProperties()
+void WindowSwapchain::GetSwapChainProperties(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::GetSwapChainProperties");
 
-    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &vkSurfaceCapabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        vulkanDevice->vkPhysicalDevice, vkSurface, &vkSurfaceCapabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(
+        vulkanDevice->vkPhysicalDevice, vkSurface, &formatCount, nullptr);
     vkSurfaceFormats.resize(formatCount);
-    vkGetPhysicalDeviceSurfaceFormatsKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &formatCount, vkSurfaceFormats.data());
+    vkGetPhysicalDeviceSurfaceFormatsKHR(
+        vulkanDevice->vkPhysicalDevice, vkSurface, &formatCount, vkSurfaceFormats.data());
 
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(
+        vulkanDevice->vkPhysicalDevice, vkSurface, &presentModeCount, nullptr);
     vkPresentModes.resize(presentModeCount);
-    vkGetPhysicalDeviceSurfacePresentModesKHR(vkr.vulkanDevice.vkPhysicalDevice, vkSurface, &presentModeCount, vkPresentModes.data());
+    vkGetPhysicalDeviceSurfacePresentModesKHR(
+        vulkanDevice->vkPhysicalDevice, vkSurface, &presentModeCount, vkPresentModes.data());
 
     if (vkSurfaceFormats.empty() || vkPresentModes.empty()) {
         Logger::Write(

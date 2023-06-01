@@ -128,6 +128,7 @@ void VulkanRenderer::AllocateResources(
     ZoneScopedN("VulkanRenderer::AllocateResources");
 
     this->swapchain = glfwSwapchain;
+    swapchain->Initialize(&vulkanDevice);
     
     std::vector<VkDescriptorPoolSize> poolSizes =
     {
@@ -166,7 +167,7 @@ void VulkanRenderer::RebuildSwapchain()
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
     DestroyFramebuffers();
-    swapchain->RebuildSwapchain();
+    swapchain->RebuildSwapchain(&vulkanDevice);
     CreateFramebuffers();
 }
 
@@ -558,7 +559,7 @@ void VulkanRenderer::EndFrame()
     VkSemaphore imageAcquiredSemaphore = vcb.GetCurrImageSemaphore();
     VkSemaphore renderFinishedSemaphore = vcb.GetCurrRenderSemaphore();
 
-    int imageIndex = swapchain->GetNextImageIndex(imageAcquiredSemaphore);
+    int imageIndex = swapchain->GetNextImageIndex(&vulkanDevice, imageAcquiredSemaphore);
 
     defaultTechnique.ExecuteCommand(vkCommandBuffer);
 
@@ -611,7 +612,7 @@ void VulkanRenderer::EndFrame()
     vcb.EndCommand();
 
     // Present image
-    swapchain->PresentImage(renderFinishedSemaphore, imageIndex);
+    swapchain->PresentImage(&vulkanDevice, renderFinishedSemaphore, imageIndex);
 }
 
 void VulkanRenderer::DeallocateResources()
@@ -629,6 +630,7 @@ void VulkanRenderer::DeallocateResources()
     VulkanTextureCube::DestroyDefaultTexture();
 
     DestroyFramebuffers();
+    swapchain->Destroy(&vulkanDevice);
 
     pipelines.clear();
     pipelineImgui.reset();
