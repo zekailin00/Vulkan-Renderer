@@ -5,9 +5,10 @@
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 
-#include <vector>
-
 #include "vulkan_swapchain.h"
+#include "vk_primitives/vulkan_device.h"
+
+#include <vector>
 
 
 class OpenxrPlatform
@@ -19,6 +20,8 @@ public:
      * @return OpenxrPlatform* 
      */
     static OpenxrPlatform* Initialize();
+
+    void InitializeSession(VulkanDevice* vulkanDevice);
 
     IVulkanSwapchain* GetSwapchain() {return nullptr;};
     std::vector<const char*> GetVkInstanceExt() {return vulkanInstanceExt;}
@@ -32,12 +35,15 @@ public:
 private:
     OpenxrPlatform() = default;
 
+    void InitializeActions();
+
     void LoadViewConfig();
     void LoadVulkanRequirements();
     void PrintErrorMsg(XrResult result);
     std::vector<const char*> ParseExtensionString(char* names);
 
 private:
+    //------- Instance data -------//
     std::vector<XrApiLayerProperties> layerList{};
     std::vector<XrExtensionProperties> extensionList{};
     std::vector<XrViewConfigurationType> viewConfigTypeList{};
@@ -49,7 +55,10 @@ private:
     std::vector<char> vulkanDeviceExtStr;
     std::vector<const char*> vulkanDeviceExt{};
 
-
     XrInstance xrInstance = XR_NULL_HANDLE;
-    XrSystemId systemId = XR_NULL_HANDLE;
+    XrSystemId systemId = XR_NULL_SYSTEM_ID;
+    XrActionSet inputActionSet = XR_NULL_HANDLE;
+
+    //-------  Session data -------//
+    XrSession xrSession = XR_NULL_HANDLE;
 };
