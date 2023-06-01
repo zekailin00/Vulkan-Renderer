@@ -210,7 +210,7 @@ void OpenxrPlatform::LoadVulkanRequirements()
     for(const char* extension: vulkanInstanceExt)
     {
         Logger::Write(
-            extension,
+            "[OpenXR] vkInstance extension: " + std::string(extension),
             Logger::Level::Info, Logger::MsgType::Platform
         );
     }
@@ -229,7 +229,7 @@ void OpenxrPlatform::LoadVulkanRequirements()
     for(const char* extension: vulkanDeviceExt)
     {
         Logger::Write(
-            extension,
+            "[OpenXR] vkDevice extension: " + std::string(extension),
             Logger::Level::Info, Logger::MsgType::Platform
         );
     }

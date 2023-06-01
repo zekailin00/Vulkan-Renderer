@@ -7,11 +7,22 @@
 
 #include <vector>
 
+#include "vulkan_swapchain.h"
+
 
 class OpenxrPlatform
 {
 public:
+    /**
+     * @brief Get an instance of the OpenXR platform.
+     * If openxr instance cannot be created, nullptr is returned.
+     * @return OpenxrPlatform* 
+     */
     static OpenxrPlatform* Initialize();
+
+    IVulkanSwapchain* GetSwapchain() {return nullptr;};
+    std::vector<const char*> GetVkInstanceExt() {return vulkanInstanceExt;}
+    std::vector<const char*> GetVkDeviceExt() {return vulkanDeviceExt;}
 
     const OpenxrPlatform& operator=(const OpenxrPlatform&) = delete;
     OpenxrPlatform(const OpenxrPlatform&) = delete;

@@ -14,9 +14,8 @@ renderer::Node* Application::GetRootNode()
 Application::Application()
 {
     Logger::Write(
-        "Current path is " + std::filesystem::current_path().string(),
-        Logger::Level::Info,
-        Logger::MsgType::Platform
+        "Current path: " + std::filesystem::current_path().string(),
+        Logger::Level::Info, Logger::MsgType::Platform
     );
 
     GlfwWindow& window = GlfwWindow::GetInstance();
@@ -24,10 +23,12 @@ Application::Application()
     this->openxr = OpenxrPlatform::Initialize();
 
     window.InitializeWindow();
-    renderer.InitializeDevice(window.extensionsCount, window.extensions);
+    renderer.InitializeDevice(
+        MergeExtensions(window.GetVkInstanceExt(), openxr->GetVkInstanceExt()), 
+        MergeExtensions(window.GetVkDeviceExt(), openxr->GetVkDeviceExt()));
     window.InitializeSurface();
 
-    renderer.AllocateResources(window.GetSwapchain());
+    renderer.AllocateResources(window.GetSwapchain(), openxr->GetSwapchain());
     window.RegisterPeripherals();
 
     this->renderer = &renderer;
@@ -71,4 +72,28 @@ void Application::Run()
         FrameMark;
     }
     OnDestroy();
+}
+
+std::vector<const char*> Application::MergeExtensions(
+    std::vector<const char*> a, std::vector<const char*> b)
+{
+    for (const char* extension: a)
+    {
+        bool inList = false;
+        for (const char* addedExtension: b)
+        {
+            if (strcmp(addedExtension, extension) == 0)
+            {
+                inList = true;
+                break;
+            }
+        }
+
+        if (!inList)
+        {
+            b.push_back(extension);
+        }
+    }
+
+    return b;
 }

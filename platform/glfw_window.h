@@ -6,6 +6,8 @@
 
 #include "window_swapchain.h"
 
+#include <vector>
+
 
 class GlfwWindow {
 public:
@@ -22,10 +24,10 @@ public:
     void BeginFrame();
     void DestroySurface();
     void DestroyWindow();
-    IVulkanSwapchain* GetSwapchain() {return windowSwapchain;}
 
-    uint32_t extensionsCount;
-    const char** extensions;
+    IVulkanSwapchain* GetSwapchain() {return windowSwapchain;}
+    std::vector<const char*> GetVkInstanceExt() {return vkInstanceExt;}
+    std::vector<const char*> GetVkDeviceExt() {return {"VK_KHR_swapchain"};}
 
     GlfwWindow(GlfwWindow const&) = delete;
     void operator=(GlfwWindow const&) = delete;
@@ -48,4 +50,5 @@ private:
     GLFWwindow* window;
     VkSurfaceKHR surface;
     WindowSwapchain* windowSwapchain;
+    std::vector<const char*> vkInstanceExt{};
 };

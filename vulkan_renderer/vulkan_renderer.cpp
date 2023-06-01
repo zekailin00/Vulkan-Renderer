@@ -53,7 +53,8 @@ namespace renderer
 
 TracyVkCtx tracyVkCtx;
 
-void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** extensions)
+void VulkanRenderer::InitializeDevice(
+    std::vector<const char *> instanceExt, std::vector<const char *> deviceExt)
 {
     ZoneScopedN("VulkanRenderer::InitializeDevice");
 
@@ -61,9 +62,7 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
 
     // Create Vulkan Instance
     {
-        std::vector<const char*> extensionList;
-        extensionList.resize(extensionsCount);
-        memcpy(extensionList.data(), extensions, extensionsCount * sizeof(const char*));
+        std::vector<const char*> extensionList = instanceExt;
 
         VkInstanceCreateInfo vkCreateInfo = {};
         vkCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -111,7 +110,7 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
 #endif
     }
 
-    vulkanDevice.Initialize(vkInstance);
+    vulkanDevice.Initialize(vkInstance, deviceExt);
 
     {   // Tracy Vulkan context
         VulkanSingleCmd singleCmd;
@@ -123,11 +122,12 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
     }
 }
 
-void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
+void VulkanRenderer::AllocateResources(
+    IVulkanSwapchain* glfwSwapchain, IVulkanSwapchain* openxrSwapchain)
 {
     ZoneScopedN("VulkanRenderer::AllocateResources");
 
-    this->swapchain = swapchain;
+    this->swapchain = glfwSwapchain;
     
     std::vector<VkDescriptorPoolSize> poolSizes =
     {

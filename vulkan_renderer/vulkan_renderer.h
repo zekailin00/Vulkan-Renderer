@@ -39,8 +39,10 @@ public:
     }
 
     /* Update loop APIs */
-    void InitializeDevice(uint32_t extensionsCount, const char** extensions);
-    void AllocateResources(IVulkanSwapchain* swapchain);
+    void InitializeDevice(
+        std::vector<const char *> instanceExt, std::vector<const char *> deviceExt);
+    void AllocateResources(
+        IVulkanSwapchain* glfwSwapchain, IVulkanSwapchain* openxrSwapchain);
     void BeginFrame();
     void EndFrame();
     void DeallocateResources();

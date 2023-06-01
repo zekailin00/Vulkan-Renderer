@@ -26,6 +26,10 @@ protected:
     renderer::VulkanRenderer* renderer = nullptr;
 
 private:
+    std::vector<const char*> MergeExtensions(
+        std::vector<const char*> a, std::vector<const char*> b);
+
+private:
     GlfwWindow* window = nullptr;
     OpenxrPlatform* openxr = nullptr;
 };

@@ -24,14 +24,26 @@ void GlfwWindow::InitializeWindow()
             Logger::MsgType::Platform
         );
     }
-    extensionsCount = 0;
+
+    uint32_t extensionsCount;
+    const char** extensions;
     extensions = glfwGetRequiredInstanceExtensions(&extensionsCount);
+    vkInstanceExt.resize(extensionsCount);
+    memcpy(vkInstanceExt.data(), extensions, extensionsCount * sizeof(const char*));
 
     Logger::Write(
             "[GLFW Window] Number of extensions needed: " + std::to_string(extensionsCount),
             Logger::Level::Info,
             Logger::MsgType::Platform
         );
+    
+    for (const char* extension: vkInstanceExt)
+    {
+        Logger::Write(
+            "[GLFW Window] vkInstance extension: " + std::string(extension),
+            Logger::Level::Info, Logger::MsgType::Platform
+        );
+    }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(1280, 720, "Vulkan Renderer", NULL, NULL);
