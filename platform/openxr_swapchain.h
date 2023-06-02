@@ -17,7 +17,17 @@ class OpenxrSession: public IVulkanSwapchain
 {
 
 public:
-    void SetOpenxrContext(OpenxrPlatform* platform);
+    void SetOpenxrContext(OpenxrPlatform* platform)
+    {
+        this->platform = platform;
+    }
+
+    void SetSessionState(XrSessionState newState);
+
+    XrSessionState GetSessionState()
+    {
+        return this->sessionState;
+    }
 
 public:
     VkFormat GetImageFormat() override;
@@ -53,6 +63,8 @@ private:
     std::vector<VkImage> images{};
     std::vector<VkImageView> imageViews{};
     std::vector<VkFramebuffer> framebuffers{};
+
+    XrSessionState sessionState = XR_SESSION_STATE_UNKNOWN;
 
     int64_t imageFormat = 0;
     uint32_t imageCount = 0; //Total images (per eye * 2)

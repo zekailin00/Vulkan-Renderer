@@ -27,6 +27,7 @@ protected:
     renderer::VulkanRenderer* renderer = nullptr;
 
 private:
+    void PollEvents();
     std::vector<const char*> MergeExtensions(
         std::vector<const char*> a, std::vector<const char*> b);
 

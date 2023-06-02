@@ -13,11 +13,6 @@ static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 
 #define IMAGE_FORMAT VK_FORMAT_R8G8B8A8_SRGB
 
-void OpenxrSession::SetOpenxrContext(OpenxrPlatform* platform)
-{
-    this->platform = platform;
-}
-
 void OpenxrSession::CreateSession(VulkanDevice* vulkanDevice)
 {
     XrGraphicsBindingVulkanKHR vkBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
@@ -47,6 +42,48 @@ void OpenxrSession::CreateSession(VulkanDevice* vulkanDevice)
     createInfo.next = &vkBinding;
     createInfo.systemId = platform->xrSystemId;
     CHK_XRCMD(xrCreateSession(platform->xrInstance, &createInfo, &xrSession));
+
+    sessionState = XR_SESSION_STATE_IDLE;
+}
+
+void OpenxrSession::SetSessionState(XrSessionState newState)
+{
+    Logger::Write(
+        "[OpenXR] Session state changes from " +
+        std::to_string(sessionState) + " to " +
+        std::to_string(newState),
+        Logger::Level::Info, Logger::Platform
+    );
+
+    sessionState = newState;
+
+    switch (sessionState)
+    {
+        case XR_SESSION_STATE_READY:
+        {
+            XrSessionBeginInfo info{XR_TYPE_SESSION_BEGIN_INFO};
+            info.primaryViewConfigurationType = 
+                XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+            CHK_XRCMD(xrBeginSession(xrSession, &info));
+            break;
+        }
+        case XR_SESSION_STATE_STOPPING:
+        {
+            CHK_XRCMD(xrEndSession(xrSession))
+            break;
+        }
+        case XR_SESSION_STATE_EXITING:
+        {
+            break;
+        }
+        case XR_SESSION_STATE_LOSS_PENDING:
+        {
+            break;
+        }
+        default:
+            break;
+    }
+
 }
 
 void OpenxrSession::InitializeSpaces()
@@ -57,7 +94,7 @@ void OpenxrSession::InitializeSpaces()
     CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, spaceCount, &spaceCount, spaces.data()));
 
     Logger::Write(
-        "Available reference spaces: " + std::to_string(spaceCount),
+        "[OpenXR] Available reference spaces: " + std::to_string(spaceCount),
         Logger::Level::Info, Logger::MsgType::Platform
     );
 

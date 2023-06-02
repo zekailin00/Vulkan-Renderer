@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "timestep.h"
 
-bool launchXR = false;
+bool launchXR = true;
 
 renderer::Node* Application::GetRootNode()
 {
@@ -62,6 +62,13 @@ Application::~Application()
     openxr = nullptr;
 }
 
+void Application::PollEvents()
+{
+    //TODO:
+    openxr->PollEvents();
+    openxr->ShouldCloseSeesion();
+}
+
 void Application::Run()
 {
     OnCreated();
@@ -70,9 +77,15 @@ void Application::Run()
     while (!window->ShouldClose()) 
     {
         Timestep ts = timer.GetTimestep();
+        PollEvents();
 
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
+
+        if (launchXR)
+        {
+            openxr->BeginFrame();
+        }
 
         {
             ZoneScopedN("Application::OnUpdated");

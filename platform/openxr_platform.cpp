@@ -135,9 +135,108 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
 
 OpenxrSession* OpenxrPlatform::NewSession()
 {
-    OpenxrSession* session = new OpenxrSession();
+    session = new OpenxrSession();
     session->SetOpenxrContext(this);
     return session;
+}
+
+bool OpenxrPlatform::ShouldCloseSeesion()
+{
+    if (!session)
+        return false;
+    
+    if (session->GetSessionState() == XR_SESSION_STATE_EXITING ||
+        session->GetSessionState() == XR_SESSION_LOSS_PENDING)
+    {
+        session = nullptr;
+        return true;
+    }
+
+    return false;
+}
+
+void OpenxrPlatform::PollEvents()
+{
+    XrEventDataBuffer event{};
+    while (TryReadNextEvent(&event))
+    {
+        switch (event.type)
+        {
+            case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING:
+            {
+                const XrEventDataInstanceLossPending& instanceLossPending = 
+                    *reinterpret_cast<const XrEventDataInstanceLossPending*>(&event);
+                
+                //TODO: exit session?
+                Logger::Write("[OpenXR] XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING",
+                    Logger::Level::Error, Logger::MsgType::Platform);
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED:
+            {
+                const XrEventDataSessionStateChanged& sessionStateChangedEvent =
+                    *reinterpret_cast<const XrEventDataSessionStateChanged*>(&event);
+
+                if (session)
+                    session->SetSessionState(sessionStateChangedEvent.state);
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED:
+            {
+                Logger::Write("[OpenXR] XR_TYPE_EVENT_DATA_INTERACTION_PROFILE_CHANGED",
+                    Logger::Level::Info, Logger::MsgType::Platform);
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING:
+            {
+                Logger::Write("[OpenXR] XR_TYPE_EVENT_DATA_REFERENCE_SPACE_CHANGE_PENDING",
+                    Logger::Level::Info, Logger::MsgType::Platform);
+                break;
+            }
+            case XR_TYPE_EVENT_DATA_EVENTS_LOST:
+            {
+                const XrEventDataEventsLost& eventsLost =
+                    *reinterpret_cast<const XrEventDataEventsLost*>(&event);
+
+                Logger::Write(
+                    "[OpenXR] Events lost: " + std::to_string(eventsLost.lostEventCount),
+                    Logger::Level::Warning, Logger::MsgType::Platform
+                );
+            }
+            default:
+            {
+                Logger::Write("[OpenXR] Unknown event type " + std::to_string(event.type),
+                    Logger::Level::Info, Logger::MsgType::Platform);
+                break;
+            }
+        }
+    }
+    return;
+}
+
+bool OpenxrPlatform::TryReadNextEvent(XrEventDataBuffer* eventDataBuffer)
+{
+    XrEventDataBaseHeader* baseHeader =
+        reinterpret_cast<XrEventDataBaseHeader*>(eventDataBuffer);
+
+    *baseHeader = {XR_TYPE_EVENT_DATA_BUFFER};
+    const XrResult result = xrPollEvent(xrInstance, eventDataBuffer);
+    CHK_XRCMD(result);
+
+    if (result == XR_SUCCESS)
+        return true;
+
+    return false;
+}
+
+void OpenxrPlatform::BeginFrame()
+{
+    
+}
+
+void OpenxrPlatform::EndFrame()
+{
+
 }
 
 void OpenxrPlatform::InitializeActions()

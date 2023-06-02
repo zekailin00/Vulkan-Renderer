@@ -22,6 +22,11 @@ public:
     static OpenxrPlatform* Initialize();
 
     OpenxrSession* NewSession();
+    bool ShouldCloseSeesion();
+
+    void PollEvents();
+    void BeginFrame();
+    void EndFrame();
 
     IVulkanSwapchain* GetSwapchain() {return nullptr;};
     std::vector<const char*> GetVkInstanceExt() {return vulkanInstanceExt;}
@@ -36,6 +41,8 @@ public:
 
 private:
     OpenxrPlatform() = default;
+
+    bool TryReadNextEvent(XrEventDataBuffer* eventDataBuffer);
 
     void InitializeActions();
     void LoadViewConfig();
@@ -97,4 +104,7 @@ private:
     XrAction rGripPoseAction;
     XrAction lAimPoseAction;
     XrAction rAimPoseAction;
+
+    //Running session
+    OpenxrSession* session = nullptr;
 };
