@@ -27,6 +27,7 @@ public:
 
     VkImage GetImage(int index) override;
     VkImageView GetImageView(int index) override;
+    VkFramebuffer* GetFramebuffer(int index) override;
 
     void Initialize(VulkanDevice* vulkanDevice) override;
     void Destroy(VulkanDevice* vulkanDevice) override;

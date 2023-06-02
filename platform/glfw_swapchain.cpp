@@ -58,6 +58,8 @@ void WindowSwapchain::Initialize(VulkanDevice* vulkanDevice)
         CHECK_VKCMD(vkCreateImageView(vulkanDevice->vkDevice, &vkImageViewCreateInfo, nullptr, &imageViews[i]));
     }
 
+    this->framebuffers.resize(imageCount);
+
     Logger::Write(
         "[GLFW Window] Swapchain created with image count: " + std::to_string(imageCount),
         Logger::Level::Verbose,

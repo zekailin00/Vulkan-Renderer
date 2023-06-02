@@ -154,7 +154,7 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
 
     std::vector<XrViewConfigurationView>& viewList = platform->viewConfigViewList;
     ASSERT(viewList.size() == 2);
-    for (int i = 0; i < viewList.size(); i++)
+    for (unsigned int i = 0; i < viewList.size(); i++)
     {
         XrSwapchainCreateInfo createInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
         createInfo.usageFlags = XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT |
@@ -176,6 +176,10 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
     imageCount *= 2; // total number of images.
     imageWidth = viewList[0].recommendedImageRectWidth;
     imageHeight = viewList[0].recommendedImageRectHeight;
+
+    // get images
+    // get imageviews
+    // resize framebuffers
 }
 
 void OpenxrSession::Destroy(VulkanDevice* vulkanDevice)
@@ -239,6 +243,11 @@ VkImage OpenxrSession::GetImage(int index)
 }
 
 VkImageView OpenxrSession::GetImageView(int index)
+{
+    return 0;
+}
+
+VkFramebuffer* OpenxrSession::GetFramebuffer(int index)
 {
     return 0;
 }

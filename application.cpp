@@ -5,7 +5,7 @@
 #include "logger.h"
 #include "timestep.h"
 
-bool launchXR = true;
+bool launchXR = false;
 
 renderer::Node* Application::GetRootNode()
 {

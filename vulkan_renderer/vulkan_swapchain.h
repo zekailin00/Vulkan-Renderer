@@ -14,6 +14,7 @@ public:
 
     virtual VkImage GetImage(int index) = 0;
     virtual VkImageView GetImageView(int index) = 0;
+    virtual VkFramebuffer* GetFramebuffer(int index) = 0;
 
     virtual void Initialize(VulkanDevice* vulkanDevice) = 0;
     virtual void Destroy(VulkanDevice* vulkanDevice) = 0;

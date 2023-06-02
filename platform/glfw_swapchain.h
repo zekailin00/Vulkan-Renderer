@@ -22,6 +22,7 @@ public:
 
     virtual VkImage GetImage(int index) override {return images[index];}
     virtual VkImageView GetImageView(int index) override {return imageViews[index];}
+    virtual VkFramebuffer* GetFramebuffer(int index) override {return &framebuffers[index];};
 
     virtual uint32_t GetNextImageIndex(VulkanDevice* vulkanDevice,
         VkSemaphore imageAcquiredSemaphores) override;
@@ -42,6 +43,7 @@ private:
     uint32_t imageCount;
     std::vector<VkImage> images;
     std::vector<VkImageView> imageViews;
+    std::vector<VkFramebuffer> framebuffers;
 
     VkExtent2D vkExtent;
     VkFormat vkFormat;

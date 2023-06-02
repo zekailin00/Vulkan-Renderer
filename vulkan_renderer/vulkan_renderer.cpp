@@ -319,12 +319,11 @@ void VulkanRenderer::CreateFramebuffers()
     vkFramebufferCreateInfo.width = swapchain->GetWidth();
     vkFramebufferCreateInfo.height = swapchain->GetHeight();
     vkFramebufferCreateInfo.layers = 1;
-    //TODO: wrap framebuffer into swapchain class
-    vkFramebuffers.resize(swapchain->GetImageCount());
     for (uint32_t i = 0; i < swapchain->GetImageCount(); i++)
     {
         attachment[0] = swapchain->GetImageView(i);
-        CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice, &vkFramebufferCreateInfo, nullptr, &vkFramebuffers[i]));
+        CHECK_VKCMD(vkCreateFramebuffer(
+            vulkanDevice.vkDevice, &vkFramebufferCreateInfo,nullptr, swapchain->GetFramebuffer(i)));
     }
 }
 
@@ -332,8 +331,8 @@ void VulkanRenderer::DestroyFramebuffers()
 {
     ZoneScopedN("VulkanRenderer::DestroyFramebuffers");
 
-    for (uint32_t i = 0; i < vkFramebuffers.size(); i++)
-        vkDestroyFramebuffer(vulkanDevice.vkDevice, vkFramebuffers[i], nullptr);
+    for (uint32_t i = 0; i < swapchain->GetImageCount(); i++)
+        vkDestroyFramebuffer(vulkanDevice.vkDevice, *swapchain->GetFramebuffer(i), nullptr);
 }
 
 /**
@@ -570,7 +569,7 @@ void VulkanRenderer::EndFrame()
         VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
         VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         vkRenderPassinfo.renderPass = vkRenderPass.display;
-        vkRenderPassinfo.framebuffer = vkFramebuffers[imageIndex];
+        vkRenderPassinfo.framebuffer = *swapchain->GetFramebuffer(imageIndex);
         vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
         vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
         vkRenderPassinfo.clearValueCount = 1;
@@ -665,6 +664,8 @@ void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 {
     xrSwapchain->Initialize(&vulkanDevice);
     openxrSwapchain = xrSwapchain;
+
+
 }
 
 void VulkanRenderer::DestroyXrSession()
