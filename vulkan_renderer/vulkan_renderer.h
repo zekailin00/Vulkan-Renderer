@@ -104,7 +104,6 @@ public:
 
 private:
     VkDescriptorPool vkDescriptorPool;
-
     VulkanCmdBuffer vulkanCmdBuffer;
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
@@ -112,7 +111,14 @@ private:
 
     // Owned by glfw
     IVulkanSwapchain* swapchain = nullptr;
-    IVulkanSwapchain* openxrSwapchain = nullptr;
+
+    struct OpenxrContext
+    {
+        IVulkanSwapchain* swapchain;
+        VkRenderPass renderpass;
+    };
+
+    OpenxrContext* xrContext = nullptr;
 
     RenderTechnique defaultTechnique{};
 };

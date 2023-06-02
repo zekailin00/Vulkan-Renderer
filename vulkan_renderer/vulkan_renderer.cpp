@@ -150,7 +150,8 @@ void VulkanRenderer::AllocateResources(
     vkDescriptorPoolInfo.maxSets = 1000 * static_cast<uint32_t>(poolSizes.size());
     vkDescriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     vkDescriptorPoolInfo.pPoolSizes = poolSizes.data();
-    CHECK_VKCMD(vkCreateDescriptorPool(vulkanDevice.vkDevice, &vkDescriptorPoolInfo, nullptr, &vkDescriptorPool));
+    CHECK_VKCMD(vkCreateDescriptorPool(vulkanDevice.vkDevice,
+        &vkDescriptorPoolInfo, nullptr, &vkDescriptorPool));
 
     vulkanCmdBuffer.Initialize(&vulkanDevice, FRAME_IN_FLIGHT);
     
@@ -233,7 +234,8 @@ void VulkanRenderer::CreateRenderPasses()
         vkRenderPassCreateInfo.dependencyCount = 1;
         vkRenderPassCreateInfo.pDependencies = &dependency;
 
-        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.display));
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &vkRenderPass.display));
     }
 
     // Default camera render pass
@@ -263,7 +265,8 @@ void VulkanRenderer::CreateRenderPasses()
         vkRenderPassCreateInfo.dependencyCount = 1;
         vkRenderPassCreateInfo.pDependencies = &dependency;
 
-        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.defaultCamera));
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &vkRenderPass.defaultCamera));
     }
 
 
@@ -293,7 +296,8 @@ void VulkanRenderer::CreateRenderPasses()
         vkRenderPassCreateInfo.dependencyCount = 1;
         vkRenderPassCreateInfo.pDependencies = &dependency;
 
-        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.imgui));
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &vkRenderPass.imgui));
     }
 
 }
@@ -322,8 +326,8 @@ void VulkanRenderer::CreateFramebuffers()
     for (uint32_t i = 0; i < swapchain->GetImageCount(); i++)
     {
         attachment[0] = swapchain->GetImageView(i);
-        CHECK_VKCMD(vkCreateFramebuffer(
-            vulkanDevice.vkDevice, &vkFramebufferCreateInfo,nullptr, swapchain->GetFramebuffer(i)));
+        CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice,
+            &vkFramebufferCreateInfo, nullptr, swapchain->GetFramebuffer(i)));
     }
 }
 
@@ -332,7 +336,13 @@ void VulkanRenderer::DestroyFramebuffers()
     ZoneScopedN("VulkanRenderer::DestroyFramebuffers");
 
     for (uint32_t i = 0; i < swapchain->GetImageCount(); i++)
+    {
         vkDestroyFramebuffer(vulkanDevice.vkDevice, *swapchain->GetFramebuffer(i), nullptr);
+        *swapchain->GetFramebuffer(i) = VK_NULL_HANDLE;
+        // FIXME: better to destroy framebuffer inside the swapchan
+        // It had to be set to NULL here because it is destroyed again in swapchain
+        // if framebuffer is not NULL
+    }
 }
 
 /**
@@ -585,8 +595,8 @@ void VulkanRenderer::EndFrame()
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = swapchain->GetWidth();
-        viewport.height = swapchain->GetHeight();
+        viewport.width = static_cast<float>(swapchain->GetWidth());
+        viewport.height = static_cast<float>(swapchain->GetHeight());
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
@@ -663,15 +673,73 @@ void VulkanRenderer::Destroy()
 void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 {
     xrSwapchain->Initialize(&vulkanDevice);
-    openxrSwapchain = xrSwapchain;
 
+    xrContext = new OpenxrContext();
+    xrContext->swapchain = xrSwapchain;
 
+    {
+        VkAttachmentDescription colorAttachmentDesc{};
+        colorAttachmentDesc.format = xrContext->swapchain->GetImageFormat();
+        colorAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        VkAttachmentReference colorAttachment{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+        VkSubpassDescription subpass = {};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachment;
+        
+        // Dependency for vkQueuePresentKHR with attachment output semaphore.
+        VkSubpassDependency dependency = {};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo vkRenderPassCreateInfo{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
+        vkRenderPassCreateInfo.attachmentCount = 1;
+        vkRenderPassCreateInfo.pAttachments = &colorAttachmentDesc;
+        vkRenderPassCreateInfo.subpassCount = 1;
+        vkRenderPassCreateInfo.pSubpasses = &subpass;
+        vkRenderPassCreateInfo.dependencyCount = 1;
+        vkRenderPassCreateInfo.pDependencies = &dependency;
+
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &xrContext->renderpass));
+    }
+
+    VkImageView attachment[1];
+    VkFramebufferCreateInfo vkFramebufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+    vkFramebufferCreateInfo.renderPass = xrContext->renderpass;
+    vkFramebufferCreateInfo.attachmentCount = 1;
+    vkFramebufferCreateInfo.pAttachments = attachment;
+    vkFramebufferCreateInfo.width = xrContext->swapchain->GetWidth();
+    vkFramebufferCreateInfo.height = xrContext->swapchain->GetHeight();
+    vkFramebufferCreateInfo.layers = 1;
+    for (uint32_t i = 0; i < xrContext->swapchain->GetImageCount(); i++)
+    {
+        attachment[0] = xrContext->swapchain->GetImageView(i);
+        CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice,
+            &vkFramebufferCreateInfo, nullptr,  xrContext->swapchain->GetFramebuffer(i)));
+    }
 }
 
 void VulkanRenderer::DestroyXrSession()
 {
-    openxrSwapchain->Destroy(&vulkanDevice);
-    delete openxrSwapchain;
+    vkDestroyRenderPass(vulkanDevice.vkDevice, xrContext->renderpass, nullptr);
+
+    xrContext->swapchain->Destroy(&vulkanDevice);
+    delete xrContext->swapchain;
+    delete xrContext;
+    xrContext = nullptr;
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)

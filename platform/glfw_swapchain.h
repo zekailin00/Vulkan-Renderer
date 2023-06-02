@@ -38,6 +38,9 @@ public:
     bool swapchainRebuild = false;
 
 private:
+    VkSurfaceFormatKHR SelectSurfaceFormat(VkFormat imageFormat);
+
+private:
     VkSwapchainKHR vkSwapchain = VK_NULL_HANDLE;
 
     uint32_t imageCount;

@@ -152,7 +152,10 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
         );
     }
 
+    // Create the swapchain for each eye
     std::vector<XrViewConfigurationView>& viewList = platform->viewConfigViewList;
+    imageWidth = viewList[0].recommendedImageRectWidth;
+    imageHeight = viewList[0].recommendedImageRectHeight;
     ASSERT(viewList.size() == 2);
     for (unsigned int i = 0; i < viewList.size(); i++)
     {
@@ -172,14 +175,57 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
         swapchainList.push_back(xrSwapchain);
     }
 
-    xrEnumerateSwapchainImages(swapchainList[0], 0, &imageCount, nullptr);
-    imageCount *= 2; // total number of images.
-    imageWidth = viewList[0].recommendedImageRectWidth;
-    imageHeight = viewList[0].recommendedImageRectHeight;
+    uint32_t count;
+    std::vector<XrSwapchainImageVulkanKHR> swapchainImages;
+    xrEnumerateSwapchainImages(swapchainList[0], 0, &count, nullptr);
+    imageCount = 2 * count; // total number of images.
 
-    // get images
-    // get imageviews
-    // resize framebuffers
+    // Images from left eye (index 0)
+    swapchainImages.resize(count, {XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR});
+    xrEnumerateSwapchainImages(swapchainList[0], count, &count, 
+        reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data()));
+    for (XrSwapchainImageVulkanKHR& header: swapchainImages)
+    {
+        images.push_back(header.image);
+    }
+
+    xrEnumerateSwapchainImages(swapchainList[1], 0, &count, nullptr);
+    ASSERT(count * 2 == imageCount); // Both have the same number of images.
+
+    // Images from the right eye (index 1)
+    swapchainImages.resize(count, {XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR});
+    xrEnumerateSwapchainImages(swapchainList[1], count, &count, 
+        reinterpret_cast<XrSwapchainImageBaseHeader*>(swapchainImages.data()));
+    for (XrSwapchainImageVulkanKHR& header: swapchainImages)
+    {
+        images.push_back(header.image);
+    }
+
+    // Create image views
+    VkImageViewCreateInfo vkImageViewCreateInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    vkImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    vkImageViewCreateInfo.format = static_cast<VkFormat>(imageFormat);
+    vkImageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+    vkImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+    vkImageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+    vkImageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+    vkImageViewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+    imageViews.resize(imageCount);
+    for (uint32_t i = 0; i < imageCount; i++)
+    {
+        vkImageViewCreateInfo.image = images[i];
+        CHECK_VKCMD(vkCreateImageView(vulkanDevice->vkDevice,
+            &vkImageViewCreateInfo, nullptr, &imageViews[i]));
+    }
+
+    framebuffers.resize(imageCount);
+
+    Logger::Write(
+        "[Openxr] Swapchains created with total image count: " +
+        std::to_string(imageCount),
+        Logger::Level::Info, Logger::MsgType::Platform
+    );
 }
 
 void OpenxrSession::Destroy(VulkanDevice* vulkanDevice)
@@ -193,7 +239,14 @@ void OpenxrSession::Destroy(VulkanDevice* vulkanDevice)
     xrDestroySpace(lAimPoseSpace);
     xrDestroySpace(rAimPoseSpace);
 
-    for (int i = 0; i < swapchainList.size(); i++)
+    for (size_t i = 0; i < framebuffers.size(); i++)
+        if (framebuffers[i])
+            vkDestroyFramebuffer(vulkanDevice->vkDevice, framebuffers[i], nullptr);
+
+    for (size_t i = 0; i < imageViews.size(); i++) 
+        vkDestroyImageView(vulkanDevice->vkDevice, imageViews[i], nullptr);
+    
+    for (size_t i = 0; i < swapchainList.size(); i++)
         xrDestroySwapchain(swapchainList[i]);
     
     xrDestroySession(xrSession);
@@ -239,17 +292,17 @@ uint32_t OpenxrSession::GetHeight()
 
 VkImage OpenxrSession::GetImage(int index)
 {
-    return 0;
+    return images[index];
 }
 
 VkImageView OpenxrSession::GetImageView(int index)
 {
-    return 0;
+    return imageViews[index];
 }
 
 VkFramebuffer* OpenxrSession::GetFramebuffer(int index)
 {
-    return 0;
+    return &framebuffers[index];
 }
 
 void OpenxrSession::PrintErrorMsg(XrResult result)

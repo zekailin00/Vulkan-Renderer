@@ -5,15 +5,16 @@
 #include "logger.h"
 
 
+#define IMAGE_FORMAT VK_FORMAT_R8G8B8A8_SRGB
+
 void WindowSwapchain::Initialize(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::Initialize");
 
     GetSwapChainProperties(vulkanDevice);
 
-    //TODO: select other available swapchain properties by the caller
     // Swapchain settings
-    VkSurfaceFormatKHR surfaceFormat = vkSurfaceFormats[0];
+    VkSurfaceFormatKHR surfaceFormat = SelectSurfaceFormat(IMAGE_FORMAT);
     VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR; // Always available
     VkExtent2D extent = vkExtent = vkSurfaceCapabilities.currentExtent;
     const uint32_t minImageCount = 3;
@@ -71,6 +72,10 @@ void WindowSwapchain::Destroy(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::Destroy");
 
+    for (size_t i = 0; i < framebuffers.size(); i++)
+        if (framebuffers[i])
+            vkDestroyFramebuffer(vulkanDevice->vkDevice, framebuffers[i], nullptr);
+    
     for (size_t i = 0; i < imageViews.size(); i++) 
         vkDestroyImageView(vulkanDevice->vkDevice, imageViews[i], nullptr);
 
@@ -152,4 +157,15 @@ void WindowSwapchain::SetSurface(VkSurfaceKHR vkSurface)
     ZoneScopedN("WindowSwapchain::SetSurface");
 
     this->vkSurface = vkSurface;
+}
+
+VkSurfaceFormatKHR WindowSwapchain::SelectSurfaceFormat(VkFormat imageFormat)
+{
+    for (VkSurfaceFormatKHR surfaceFormat: vkSurfaceFormats)
+    {
+        if (surfaceFormat.format == imageFormat)
+            return surfaceFormat;
+    }
+
+    return vkSurfaceFormats[0];
 }

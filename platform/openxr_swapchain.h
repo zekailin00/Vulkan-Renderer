@@ -50,6 +50,10 @@ private:
 
     XrSession xrSession = XR_NULL_HANDLE;
     std::vector<XrSwapchain> swapchainList{};
+    std::vector<VkImage> images{};
+    std::vector<VkImageView> imageViews{};
+    std::vector<VkFramebuffer> framebuffers{};
+
     int64_t imageFormat = 0;
     uint32_t imageCount = 0; //Total images (per eye * 2)
     uint32_t imageWidth = 0;
