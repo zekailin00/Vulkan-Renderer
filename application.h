@@ -2,6 +2,7 @@
 
 #include "glfw_window.h"
 #include "openxr_platform.h"
+#include "openxr_swapchain.h"
 #include "vulkan_renderer.h"
 #include "renderer.h"
 

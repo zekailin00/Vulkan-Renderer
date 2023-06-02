@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "timestep.h"
 
+bool launchXR = true;
 
 renderer::Node* Application::GetRootNode()
 {
@@ -34,17 +35,20 @@ Application::Application()
     this->renderer = &renderer;
     this->window = &window;
 
-    bool launchXR = false;
+    
     if (launchXR)
     {
-        openxr->InitializeSession(&(renderer.vulkanDevice));
-        // renderer->InitializeXrSession();
+        renderer.InitializeXrSession(openxr->NewSession());
     }
-
 }
 
 Application::~Application()
 {
+    if (launchXR)
+    {
+        renderer->DestroyXrSession();
+    }
+
     renderer->DeallocateResources();
     window->DestroySurface();
 

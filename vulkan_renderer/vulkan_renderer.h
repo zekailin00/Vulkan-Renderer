@@ -49,6 +49,9 @@ public:
     void Destroy();
     void RebuildSwapchain();
 
+    void InitializeXrSession(IVulkanSwapchain* xrSwapchain);
+    void DestroyXrSession();
+
 public:
     VkInstance vkInstance;
     VulkanDevice vulkanDevice;
@@ -112,6 +115,7 @@ private:
 
     // Owned by glfw
     IVulkanSwapchain* swapchain = nullptr;
+    IVulkanSwapchain* openxrSwapchain = nullptr;
 
     RenderTechnique defaultTechnique{};
 };

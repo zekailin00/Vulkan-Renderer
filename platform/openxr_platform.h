@@ -10,7 +10,7 @@
 
 #include <vector>
 
-
+class OpenxrSession;
 class OpenxrPlatform
 {
 public:
@@ -21,7 +21,7 @@ public:
      */
     static OpenxrPlatform* Initialize();
 
-    void InitializeSession(VulkanDevice* vulkanDevice);
+    OpenxrSession* NewSession();
 
     IVulkanSwapchain* GetSwapchain() {return nullptr;};
     std::vector<const char*> GetVkInstanceExt() {return vulkanInstanceExt;}
@@ -32,12 +32,12 @@ public:
 
     ~OpenxrPlatform() = default;
 
+    friend OpenxrSession;
+
 private:
     OpenxrPlatform() = default;
 
     void InitializeActions();
-    void InitializeSpaces();
-
     void LoadViewConfig();
     void LoadVulkanRequirements();
     void PrintErrorMsg(XrResult result);
@@ -57,7 +57,7 @@ private:
     std::vector<const char*> vulkanDeviceExt{};
 
     XrInstance xrInstance = XR_NULL_HANDLE;
-    XrSystemId systemId = XR_NULL_SYSTEM_ID;
+    XrSystemId xrSystemId = XR_NULL_SYSTEM_ID;
     XrActionSet inputActionSet = XR_NULL_HANDLE;
 
     XrAction lSqueezeValueAction;
@@ -97,15 +97,4 @@ private:
     XrAction rGripPoseAction;
     XrAction lAimPoseAction;
     XrAction rAimPoseAction;
-
-    //-------  Session data -------//
-    XrSession xrSession = XR_NULL_HANDLE;
-    XrSpace viewSpace;
-    XrSpace localSpace;
-    XrSpace stageSpace;
-    XrSpace lGripPoseSpace;
-    XrSpace rGripPoseSpace;
-    XrSpace lAimPoseSpace;
-    XrSpace rAimPoseSpace;
-
 };

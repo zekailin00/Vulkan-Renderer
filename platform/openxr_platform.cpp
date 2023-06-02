@@ -1,5 +1,6 @@
 #include "openxr_platform.h"
 
+#include "openxr_swapchain.h"
 #include "logger.h"
 
 #include <vector>
@@ -96,8 +97,8 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     systemInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
     // Will fail if VR headset is not plugged into the computer
-    XrSystemId systemId;
-    result = xrGetSystem(xrInstance, &systemInfo, &systemId);
+    XrSystemId xrSystemId;
+    result = xrGetSystem(xrInstance, &systemInfo, &xrSystemId);
 
     if (XR_FAILED(result))
     {
@@ -111,7 +112,7 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     }
 
     XrSystemProperties systemProp{XR_TYPE_SYSTEM_PROPERTIES};
-    xrGetSystemProperties(xrInstance, systemId, &systemProp);
+    xrGetSystemProperties(xrInstance, xrSystemId, &systemProp);
 
     Logger::Write(
         "[OpenXR] System name: " + std::string(systemProp.systemName),
@@ -123,7 +124,7 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     platform->layerList = layerList;
     platform->extensionList = extensionList;
     platform->xrInstance = xrInstance;
-    platform->systemId = systemId;
+    platform->xrSystemId = xrSystemId;
 
     platform->LoadViewConfig();
     platform->LoadVulkanRequirements();
@@ -132,116 +133,11 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     return platform;
 }
 
-void OpenxrPlatform::InitializeSession(VulkanDevice* vulkanDevice)
+OpenxrSession* OpenxrPlatform::NewSession()
 {
-    XrGraphicsBindingVulkanKHR vkBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
-    vkBinding.instance = vulkanDevice->vkInstance;
-    vkBinding.physicalDevice = vulkanDevice->vkPhysicalDevice;
-    vkBinding.device = vulkanDevice->vkDevice;
-    vkBinding.queueFamilyIndex = vulkanDevice->graphicsIndex;
-    vkBinding.queueIndex = 0;
-
-    PFN_xrGetVulkanGraphicsDeviceKHR xrGetVulkanGraphicsDeviceKHR;
-    CHK_XRCMD(xrGetInstanceProcAddr(
-        xrInstance, "xrGetVulkanGraphicsDeviceKHR",
-        reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsDeviceKHR)));
-
-    // Ensure the physical device used by Vulkan renderer has a VR headset connected.
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    xrGetVulkanGraphicsDeviceKHR(
-        xrInstance, systemId, vulkanDevice->vkInstance, &physicalDevice);
-    if (physicalDevice != vulkanDevice->vkPhysicalDevice)
-    {
-        //TODO:
-        throw;
-    }
-
-    //FIXME:  vkCreateShaderModule() vulkan validation error
-    XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
-    createInfo.next = &vkBinding;
-    createInfo.systemId = systemId;
-    CHK_XRCMD(xrCreateSession(xrInstance, &createInfo, &xrSession));
-
-    InitializeSpaces();
-
-    XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
-    attachInfo.countActionSets = 1;
-    attachInfo.actionSets = &inputActionSet;
-    CHK_XRCMD(xrAttachSessionActionSets(xrSession, &attachInfo));
-
-    // XrPath leftSubpath, rightSubpath;
-    // XrInteractionProfileState profileState{XR_TYPE_INTERACTION_PROFILE_STATE};
-    // CHK_XRCMD(xrStringToPath(xrInstance, "/user", &leftSubpath));
-    // CHK_XRCMD(xrStringToPath(xrInstance, "/user", &rightSubpath));
-    // CHK_XRCMD(xrGetCurrentInteractionProfile(xrSession, leftSubpath, &profileState));
-
-    // unsigned int count;
-    // XrPath profilePath = profileState.interactionProfile;
-    // std::vector<char> profileStr;
-    // CHK_XRCMD(xrPathToString(xrInstance, profilePath, 0, &count, nullptr));
-    // profileStr.resize(count);
-    // CHK_XRCMD(xrPathToString(
-    //     xrInstance, profilePath, count, &count, profileStr.data()));
-
-    // Logger::Write(
-    //     "[OpenXR] Current profile: " + std::string(profileStr.data()),
-    //     Logger::Level::Info,
-    //     Logger::MsgType::Platform
-    // );
-}
-
-void OpenxrPlatform::InitializeSpaces()
-{
-    uint32_t spaceCount;
-    CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, 0, &spaceCount, nullptr));
-    std::vector<XrReferenceSpaceType> spaces(spaceCount);
-    CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, spaceCount, &spaceCount, spaces.data()));
-
-    Logger::Write(
-        "Available reference spaces: " + std::to_string(spaceCount),
-        Logger::Level::Info, Logger::MsgType::Platform
-    );
-
-    if (spaceCount != 3){
-        Logger::Write(
-            "[OpenXR] Reference space check failed.",
-            Logger::Level::Error, Logger::MsgType::Platform
-        );
-    }
-
-    for (XrReferenceSpaceType space: spaces)
-    {
-        std::string spaceName;
-        switch (space)
-        {
-        case XR_REFERENCE_SPACE_TYPE_VIEW:
-            spaceName = "XR_REFERENCE_SPACE_TYPE_VIEW";
-            break;
-        case XR_REFERENCE_SPACE_TYPE_LOCAL:
-            spaceName = "XR_REFERENCE_SPACE_TYPE_LOCAL";
-            break;
-        case XR_REFERENCE_SPACE_TYPE_STAGE:
-            spaceName = "XR_REFERENCE_SPACE_TYPE_STAGE";
-            break;
-        default:
-            spaceName = "Enum number: " + std::to_string(space);
-            break;
-        }
-        Logger::Write(spaceName,
-            Logger::Level::Info, Logger::MsgType::Platform);
-    }
-
-    // XrActionSpaceCreateInfo createInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
-    // createInfo.poseInActionSpace.orientation.w = 1.0f;
-    // createInfo.action = lGripPoseAction;
-    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &lGripPoseSpace));
-    // createInfo.action = rGripPoseAction;
-    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &rGripPoseSpace));
-    // createInfo.action = lAimPoseAction;
-    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &lAimPoseSpace));
-    // createInfo.action = rAimPoseAction;
-    // CHK_XRCMD(xrCreateActionSpace(xrSession, &createInfo, &rAimPoseSpace));
-
+    OpenxrSession* session = new OpenxrSession();
+    session->SetOpenxrContext(this);
+    return session;
 }
 
 void OpenxrPlatform::InitializeActions()
@@ -586,11 +482,11 @@ void OpenxrPlatform::LoadViewConfig()
 {
     unsigned int count;
     CHK_XRCMD(xrEnumerateViewConfigurations
-        (xrInstance, systemId, 0, &count, nullptr));
+        (xrInstance, xrSystemId, 0, &count, nullptr));
 
     viewConfigTypeList.resize(count);
     CHK_XRCMD(xrEnumerateViewConfigurations(
-        xrInstance, systemId, count, &count, viewConfigTypeList.data()));
+        xrInstance, xrSystemId, count, &count, viewConfigTypeList.data()));
     
     bool configFound = false;
     for (auto& configType: viewConfigTypeList)
@@ -609,12 +505,12 @@ void OpenxrPlatform::LoadViewConfig()
         );
     
     CHK_XRCMD(xrEnumerateViewConfigurationViews(
-        xrInstance, systemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+        xrInstance, xrSystemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
         0, &count, nullptr));
     
     viewConfigViewList.resize(count, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
     CHK_XRCMD(xrEnumerateViewConfigurationViews(
-        xrInstance, systemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+        xrInstance, xrSystemId, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
         count, &count, viewConfigViewList.data()));
 
     Logger::Write(
@@ -645,7 +541,7 @@ void OpenxrPlatform::LoadVulkanRequirements()
         xrInstance, "xrGetVulkanGraphicsRequirementsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanGraphicsReqKHR)));
     vkRequirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
-    xrGetVulkanGraphicsReqKHR(xrInstance, systemId, &vkRequirements);
+    xrGetVulkanGraphicsReqKHR(xrInstance, xrSystemId, &vkRequirements);
 
     PFN_xrGetVulkanInstanceExtensionsKHR xrGetVulkanInstanceExtKHR;
     CHK_XRCMD(xrGetInstanceProcAddr(
@@ -653,10 +549,10 @@ void OpenxrPlatform::LoadVulkanRequirements()
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanInstanceExtKHR)));
 
     unsigned int count;
-    xrGetVulkanInstanceExtKHR(xrInstance, systemId, 0, &count, nullptr);
+    xrGetVulkanInstanceExtKHR(xrInstance, xrSystemId, 0, &count, nullptr);
     vulkanInstanceExtStr.resize(count);
     xrGetVulkanInstanceExtKHR(
-        xrInstance, systemId, count, &count, vulkanInstanceExtStr.data());
+        xrInstance, xrSystemId, count, &count, vulkanInstanceExtStr.data());
     vulkanInstanceExt = ParseExtensionString(vulkanInstanceExtStr.data());
 
     for(const char* extension: vulkanInstanceExt)
@@ -672,10 +568,10 @@ void OpenxrPlatform::LoadVulkanRequirements()
         xrInstance, "xrGetVulkanDeviceExtensionsKHR",
         reinterpret_cast<PFN_xrVoidFunction*>(&xrGetVulkanDeviceExtKHR)));
 
-    xrGetVulkanDeviceExtKHR(xrInstance, systemId, 0, &count, nullptr);
+    xrGetVulkanDeviceExtKHR(xrInstance, xrSystemId, 0, &count, nullptr);
     vulkanDeviceExtStr.resize(count);
     xrGetVulkanDeviceExtKHR(
-        xrInstance, systemId, count, &count, vulkanDeviceExtStr.data());
+        xrInstance, xrSystemId, count, &count, vulkanDeviceExtStr.data());
     vulkanDeviceExt = ParseExtensionString(vulkanDeviceExtStr.data());
 
     for(const char* extension: vulkanDeviceExt)

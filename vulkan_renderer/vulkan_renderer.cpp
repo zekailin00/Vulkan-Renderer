@@ -661,6 +661,18 @@ void VulkanRenderer::Destroy()
     vkDestroyInstance(vkInstance, nullptr);
 }
 
+void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
+{
+    xrSwapchain->Initialize(&vulkanDevice);
+    openxrSwapchain = xrSwapchain;
+}
+
+void VulkanRenderer::DestroyXrSession()
+{
+    openxrSwapchain->Destroy(&vulkanDevice);
+    delete openxrSwapchain;
+}
+
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)
 {
     ZoneScopedN("VulkanRenderer::GetPipelineLayout");
