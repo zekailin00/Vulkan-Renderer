@@ -24,10 +24,20 @@ public:
 
     void SetSessionState(XrSessionState newState);
 
-    XrSessionState GetSessionState()
-    {
-        return this->sessionState;
-    }
+    void BeginFrame();
+    void EndFrame();
+
+    XrSessionState GetSessionState() {return sessionState;}
+    XrSession GetSession() {return xrSession;}
+
+    // XrSpace GetViewSpace() {return viewSpace;}
+    // XrSpace GetLocalSpace() {return localSpace;}
+    // XrSpace GetStageSpace() {return stageSpace;}
+
+    // XrSpace GetLGripPoseSpace() {return lGripPoseSpace;}
+    // XrSpace GetRGripPoseSpace() {return rGripPoseSpace;}
+    // XrSpace GetLAimPoseSpace() {return lAimPoseSpace;}
+    // XrSpace GetRAimPoseSpace() {return rAimPoseSpace;}
 
 public:
     VkFormat GetImageFormat() override;
@@ -80,4 +90,11 @@ private:
     XrSpace rGripPoseSpace = VK_NULL_HANDLE;
     XrSpace lAimPoseSpace = VK_NULL_HANDLE;
     XrSpace rAimPoseSpace = VK_NULL_HANDLE;
+
+
+    // Render loop context
+    // reset when enter XR_SESSION_STATE_READY
+    XrFrameState frameState;
+    bool leftImageDone, rightImageDone;
+    int nextImageIndex;
 };

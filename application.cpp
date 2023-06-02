@@ -81,11 +81,8 @@ void Application::Run()
 
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-
-        if (launchXR)
-        {
-            openxr->BeginFrame();
-        }
+        openxr->BeginFrame();
+        
 
         {
             ZoneScopedN("Application::OnUpdated");
@@ -93,6 +90,7 @@ void Application::Run()
         }
 
         renderer->EndFrame();
+        openxr->EndFrame();
 
         FrameMark;
     }

@@ -146,7 +146,7 @@ bool OpenxrPlatform::ShouldCloseSeesion()
         return false;
     
     if (session->GetSessionState() == XR_SESSION_STATE_EXITING ||
-        session->GetSessionState() == XR_SESSION_LOSS_PENDING)
+        session->GetSessionState() == XR_SESSION_STATE_LOSS_PENDING)
     {
         session = nullptr;
         return true;
@@ -231,12 +231,31 @@ bool OpenxrPlatform::TryReadNextEvent(XrEventDataBuffer* eventDataBuffer)
 
 void OpenxrPlatform::BeginFrame()
 {
-    
+    if (!session) return;
+
+    XrActiveActionSet activeActionSet{inputActionSet, XR_NULL_PATH};
+    XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
+    syncInfo.countActiveActionSets = 1;
+    syncInfo.activeActionSets = &activeActionSet;
+    CHK_XRCMD(xrSyncActions(session->GetSession(), &syncInfo));
+
+    session->BeginFrame();
+
+    XrActionStateFloat lSqueezeValueState{XR_TYPE_ACTION_STATE_FLOAT};
+    XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+    getInfo.action = lSqueezeValueAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &lSqueezeValueState));
+
+    lSqueezeValueState.currentState;
+
+    //TODO: poll actions
 }
 
 void OpenxrPlatform::EndFrame()
 {
-
+    if (!session) return;
+    session->EndFrame();
 }
 
 void OpenxrPlatform::InitializeActions()

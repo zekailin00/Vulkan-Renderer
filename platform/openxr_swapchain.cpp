@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "validation.h"
 
+#include <vector>
 
 static XrResult result;
 static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
@@ -48,10 +49,25 @@ void OpenxrSession::CreateSession(VulkanDevice* vulkanDevice)
 
 void OpenxrSession::SetSessionState(XrSessionState newState)
 {
+    static const std::vector<std::string> stateNames
+    {
+        "XR_SESSION_STATE_UNKNOWN",
+        "XR_SESSION_STATE_IDLE",
+        "XR_SESSION_STATE_READY",
+        "XR_SESSION_STATE_SYNCHRONIZED",
+        "XR_SESSION_STATE_VISIBLE",
+        "XR_SESSION_STATE_FOCUSED",
+        "XR_SESSION_STATE_STOPPING",
+        "XR_SESSION_STATE_LOSS_PENDING",
+        "XR_SESSION_STATE_EXITING",
+    };
+
+    ASSERT(newState < stateNames.size());
+
     Logger::Write(
         "[OpenXR] Session state changes from " +
-        std::to_string(sessionState) + " to " +
-        std::to_string(newState),
+        stateNames[sessionState] + " to " +
+        stateNames[newState],
         Logger::Level::Info, Logger::Platform
     );
 
@@ -65,6 +81,9 @@ void OpenxrSession::SetSessionState(XrSessionState newState)
             info.primaryViewConfigurationType = 
                 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
             CHK_XRCMD(xrBeginSession(xrSession, &info));
+            leftImageDone = true;
+            rightImageDone = true;
+            nextImageIndex = 0;
             break;
         }
         case XR_SESSION_STATE_STOPPING:
@@ -289,15 +308,79 @@ void OpenxrSession::Destroy(VulkanDevice* vulkanDevice)
     xrDestroySession(xrSession);
 }
 
+void OpenxrSession::BeginFrame()
+{
+    if (sessionState == XR_SESSION_STATE_READY ||
+        sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
+        sessionState == XR_SESSION_STATE_VISIBLE ||
+        sessionState == XR_SESSION_STATE_FOCUSED)
+    {
+        // Wait for a new frame.
+        XrFrameWaitInfo frameWaitInfo {XR_TYPE_FRAME_WAIT_INFO};
+        frameState.type = XR_TYPE_FRAME_STATE;
+        CHK_XRCMD(xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
+
+        // Begin frame immediately before GPU work
+        XrFrameBeginInfo frameBeginInfo {XR_TYPE_FRAME_BEGIN_INFO};
+        CHK_XRCMD(xrBeginFrame(xrSession, &frameBeginInfo));
+
+        XrViewLocateInfo locateInfo {XR_TYPE_VIEW_LOCATE_INFO};
+        locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+        locateInfo.displayTime = frameState.predictedDisplayTime;
+        locateInfo.space = localSpace; // FIXME:??
+
+        XrViewState viewState{XR_TYPE_VIEW_STATE};
+        XrView views[2] = { {XR_TYPE_VIEW}, {XR_TYPE_VIEW}};
+        uint32_t count;
+        CHK_XRCMD(xrLocateViews(xrSession, &locateInfo, &viewState, 2, &count, views));
+    }
+}
+
+void OpenxrSession::EndFrame()
+{
+    if (sessionState == XR_SESSION_STATE_READY ||
+        sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
+        sessionState == XR_SESSION_STATE_VISIBLE ||
+        sessionState == XR_SESSION_STATE_FOCUSED)
+    {
+        XrFrameEndInfo frameEndInfo {XR_TYPE_FRAME_END_INFO};
+        frameEndInfo.displayTime = frameState.predictedDisplayTime;
+        frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+        frameEndInfo.layerCount = 0;
+        frameEndInfo.layers = nullptr;
+        CHK_XRCMD(xrEndFrame(xrSession, &frameEndInfo));
+    }
+}
+
 uint32_t OpenxrSession::GetNextImageIndex(VulkanDevice* vulkanDevice,
     VkSemaphore imageAcquiredSemaphores)
 {
+    nextImageIndex = nextImageIndex % (imageCount/2);
+
+
+    // xrAcquireSwapchainImage
+    // xrWaitSwapchainImage
+
+    if (leftImageDone && rightImageDone)
+    {
+        leftImageDone = false;
+        return nextImageIndex++;
+    }
+    else if (!leftImageDone || rightImageDone)
+    {
+        rightImageDone = false;
+        return imageCount/2 + nextImageIndex++;
+    }
+    else
+        Logger::Write("[OpenXR] Swapchain error: both eyes have to be presented.",
+            Logger::Level::Error, Logger::MsgType::Platform);
     return 0;
 }
 
 void OpenxrSession::PresentImage(VulkanDevice* vulkanDevic,
     VkSemaphore renderFinishedSemaphores, uint32_t imageIndex)
 {
+    // xrReleaseSwapchainImage
 
 }
 
