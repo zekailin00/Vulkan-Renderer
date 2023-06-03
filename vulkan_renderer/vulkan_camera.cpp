@@ -28,7 +28,6 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     {
         camera->properties.Extent.x = camera->swapchain->GetWidth();
         camera->properties.Extent.y = camera->swapchain->GetHeight();
-        //TODO: needs to be tested, extent values from swapchain interface.
     }
 
     // Create color image
@@ -115,7 +114,7 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     vkFramebufferCreateInfo.attachmentCount = attachments.size();
     vkFramebufferCreateInfo.pAttachments = attachments.data();
     vkFramebufferCreateInfo.width = camera->properties.Extent.x;
-    vkFramebufferCreateInfo.height = camera->properties.Extent.y; //TODO:CHECK
+    vkFramebufferCreateInfo.height = camera->properties.Extent.y;
     vkFramebufferCreateInfo.layers = 1;
 
     CHECK_VKCMD(vkCreateFramebuffer(
