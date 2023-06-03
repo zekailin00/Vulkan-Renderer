@@ -19,6 +19,7 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     std::shared_ptr<VulkanCamera> camera = std::make_unique<VulkanCamera>();
 
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    camera->cameraType = CameraType::CAMERA;
     camera->vulkanDevice = &vkr.vulkanDevice;
     camera->swapchain = vkr.GetSwapchain();
 
@@ -226,6 +227,31 @@ void VulkanCamera::Destroy()
     vulkanDevice = nullptr;
     swapchain = nullptr;
     vpMap = nullptr;
+}
+
+std::shared_ptr<VulkanVrDisplay> VulkanVrDisplay::BuildCamera()
+{
+    std::shared_ptr<VulkanVrDisplay> display =
+        std::make_shared<VulkanVrDisplay>();
+    display->cameraType = CameraType::VR_DISPLAY;
+
+    return display;
+}
+
+void VulkanVrDisplay::Initialize(glm::vec2 extent)
+{
+    CameraProperties prop{};
+    prop.UseFrameExtent = false;
+    prop.Extent = extent;
+
+    cameras[0] = VulkanCamera::BuildCamera(prop);
+    cameras[1] = VulkanCamera::BuildCamera(prop);
+}
+
+void VulkanVrDisplay::Destory()
+{
+    cameras[0] = nullptr;
+    cameras[1] = nullptr;
 }
 
 } // namespace renderer

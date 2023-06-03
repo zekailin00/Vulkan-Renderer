@@ -49,11 +49,8 @@ public:
     VulkanCamera(const VulkanCamera&) = delete;
     VulkanCamera& operator=(const VulkanCamera&) = delete;
 
-    // ViewProjection* MapCameraUniform();
     VkFramebuffer GetFrameBuffer(){return framebuffer;}
     VkDescriptorSet* GetDescriptorSet(){return &cameraDescSet;}
-    // VulkanTexture& GetColorImage() {return colorImage;}
-    // VkDescriptorSet cameraTexture; /*FIXME: render to texture; used by ImGui. */
 
     friend RenderTechnique; // Have access to colorTexDescSet
 
@@ -77,5 +74,40 @@ private:
     IVulkanSwapchain* swapchain = nullptr;
 };
 
+
+class VulkanVrDisplay: public VrDisplay
+{
+
+public:
+    /**
+     * @brief It is only a placeholder so that 
+     * there is a VR HMD in the scene.
+     * The vulkan resources are initialized when
+     * a new XR session is created.
+     * 
+     * @return std::shared_ptr<VulkanVrDisplay> 
+     */
+    static std::shared_ptr<VulkanVrDisplay> BuildCamera();
+
+    /**
+     * @brief Allocating vulkan resources when a new XR sessions is created.
+     * The extent is the resolution of the displays acquired from the session.
+     * 
+     * @param extent 
+     */
+    void Initialize(glm::vec2 extent);
+
+    /**
+     * @brief When XR session is destroyed,
+     * the VR display also needs to be destroyed.
+     * 
+     */
+    void Destory();
+
+    friend RenderTechnique;
+
+private:
+    std::shared_ptr<VulkanCamera> cameras[2] = {nullptr, nullptr};
+};
 
 } // namespace renderer
