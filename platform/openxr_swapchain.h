@@ -98,6 +98,7 @@ private:
 
     // Render loop context
     // reset when enter XR_SESSION_STATE_READY
+    // index 0 = left eye, index 1 = right eye
     XrFrameState frameState{};
     XrCompositionLayerProjection layer;
     XrCompositionLayerProjectionView layerViews[2]; 
