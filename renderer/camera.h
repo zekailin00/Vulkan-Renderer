@@ -9,13 +9,27 @@ namespace renderer
 struct CameraProperties
 {
     bool       UseFrameExtent = true;
-    glm::uvec2 Extent         = {1920, 1080};
+    glm::uvec2 Extent         = {3840, 2160};
     float      Fov            = 45.0f;
     float      ZNear          = 0.1f;
     float      ZFar           = 100.0f;
 };
 
-class Camera
+enum class CameraType
+{
+    CAMERA,
+    VR_DISPLAY,
+    PHYSICAL_CAMERA
+};
+
+class BaseCamera
+{
+public:
+    CameraType cameraType;
+    virtual ~BaseCamera() = default;
+};
+
+class Camera: public BaseCamera
 {
 
 public:
@@ -27,6 +41,16 @@ public:
 
     Camera(const Camera&) = delete;
     Camera& operator=(const Camera&) = delete;
+};
+
+class VrDisplay: public BaseCamera
+{
+public:
+    VrDisplay() = default;
+    virtual ~VrDisplay() = default;
+
+    VrDisplay(const VrDisplay&) = delete;
+    VrDisplay& operator=(const VrDisplay&) = delete;
 };
 
 } // namespace renderer

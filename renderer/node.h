@@ -28,9 +28,9 @@ public:
 
     virtual void SetMesh(std::shared_ptr<Mesh> mesh) = 0;
 
-    virtual std::shared_ptr<Camera> GetCamera() = 0;
+    virtual std::shared_ptr<BaseCamera> GetCamera() = 0;
 
-    virtual void SetCamera(std::shared_ptr<Camera> camera) = 0;
+    virtual void SetCamera(std::shared_ptr<BaseCamera> camera) = 0;
 
     virtual std::shared_ptr<Light> GetLight() = 0;
 
