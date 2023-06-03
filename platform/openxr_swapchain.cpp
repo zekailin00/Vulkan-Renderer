@@ -330,18 +330,41 @@ void OpenxrSession::BeginFrame()
         XrFrameBeginInfo frameBeginInfo {XR_TYPE_FRAME_BEGIN_INFO};
         CHK_XRCMD(xrBeginFrame(xrSession, &frameBeginInfo));
 
-        XrViewLocateInfo locateInfo {XR_TYPE_VIEW_LOCATE_INFO};
-        locateInfo.viewConfigurationType = 
-            XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
-        locateInfo.displayTime = frameState.predictedDisplayTime;
-        locateInfo.space = localSpace;
+        {   // Locate eyes
+            XrViewLocateInfo locateInfo {XR_TYPE_VIEW_LOCATE_INFO};
+            locateInfo.viewConfigurationType = 
+                XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+            locateInfo.displayTime = frameState.predictedDisplayTime;
+            locateInfo.space = localSpace;
 
-        XrViewState viewState{XR_TYPE_VIEW_STATE};
-        views[0] = {XR_TYPE_VIEW};
-        views[1] = {XR_TYPE_VIEW};
-        uint32_t count;
-        CHK_XRCMD(xrLocateViews(
-            xrSession, &locateInfo, &viewState, 2, &count, views));
+            XrViewState viewState{XR_TYPE_VIEW_STATE};
+            views[0] = {XR_TYPE_VIEW};
+            views[1] = {XR_TYPE_VIEW};
+            uint32_t count;
+            CHK_XRCMD(xrLocateViews(
+                xrSession, &locateInfo, &viewState, 2, &count, views));
+
+            platform->input->xr_left_eye_fov =
+                *reinterpret_cast<glm::vec4*>(&views[0].fov);
+            platform->input->xr_right_eye_fov =
+                *reinterpret_cast<glm::vec4*>(&views[1].fov);
+            platform->input->xr_left_eye_pos = 
+                *reinterpret_cast<glm::vec3*>(&views[0].pose.position);
+            platform->input->xr_right_eye_pos = 
+                *reinterpret_cast<glm::vec3*>(&views[1].pose.position);
+            platform->input->xr_left_eye_quat = 
+                *reinterpret_cast<glm::vec4*>(&views[0].pose.orientation);
+            platform->input->xr_right_eye_quat = 
+                *reinterpret_cast<glm::vec4*>(&views[1].pose.orientation);
+        }
+
+        {   // Locate hand aims
+
+        }
+
+        {   // Locate hand grips
+
+        }
     }
 }
 

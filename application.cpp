@@ -21,25 +21,20 @@ Application::Application()
 
     GlfwWindow& window = GlfwWindow::GetInstance();
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
-    this->openxr = OpenxrPlatform::Initialize();
+    this->input = Input::GetInstance();
+    this->openxr = OpenxrPlatform::Initialize(this->input);
 
     window.InitializeWindow();
     renderer.InitializeDevice(
         MergeExtensions(window.GetVkInstanceExt(), openxr->GetVkInstanceExt()), 
         MergeExtensions(window.GetVkDeviceExt(), openxr->GetVkDeviceExt()));
-    window.InitializeSurface();
 
+    window.InitializeSurface();
     renderer.AllocateResources(window.GetSwapchain(), openxr->GetSwapchain());
-    window.RegisterPeripherals();
 
     this->renderer = &renderer;
     this->window = &window;
 
-    
-    if (launchXR)
-    {
-        renderer.InitializeXrSession(openxr->NewSession());
-    }
 }
 
 Application::~Application()
@@ -55,7 +50,7 @@ Application::~Application()
     renderer->Destroy();
     window->DestroyWindow();
 
-    delete openxr;
+    delete openxr; //TODO: Destroy resources
 
     renderer = nullptr;
     window = nullptr;
@@ -72,6 +67,12 @@ void Application::PollEvents()
 void Application::Run()
 {
     OnCreated();
+
+    if (launchXR)
+    {
+        renderer->InitializeXrSession(openxr->NewSession());
+        // TODO: intialization failed
+    }
     
     Timer timer{};
     while (!window->ShouldClose()) 

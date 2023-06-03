@@ -7,6 +7,7 @@
 
 #include "vulkan_swapchain.h"
 #include "vk_primitives/vulkan_device.h"
+#include "input.h"
 
 #include <vector>
 
@@ -19,7 +20,7 @@ public:
      * If openxr instance cannot be created, nullptr is returned.
      * @return OpenxrPlatform* 
      */
-    static OpenxrPlatform* Initialize();
+    static OpenxrPlatform* Initialize(Input* input);
 
     OpenxrSession* NewSession();
     bool ShouldCloseSeesion();
@@ -51,6 +52,8 @@ private:
     std::vector<const char*> ParseExtensionString(char* names);
 
 private:
+    Input* input;
+
     //------- Instance data -------//
     std::vector<XrApiLayerProperties> layerList{};
     std::vector<XrExtensionProperties> extensionList{};

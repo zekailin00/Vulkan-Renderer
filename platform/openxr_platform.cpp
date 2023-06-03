@@ -16,7 +16,7 @@ static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 #define CHK_XRCMD(result)                                                      \
     if (XR_FAILED(result)) {PrintErrorMsg(result);}                                                                   
 
-OpenxrPlatform* OpenxrPlatform::Initialize()
+OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
 {
     unsigned int layerCount;
     std::vector<XrApiLayerProperties> layerList;
@@ -125,6 +125,8 @@ OpenxrPlatform* OpenxrPlatform::Initialize()
     platform->extensionList = extensionList;
     platform->xrInstance = xrInstance;
     platform->xrSystemId = xrSystemId;
+
+    platform->input = input;
 
     platform->LoadViewConfig();
     platform->LoadVulkanRequirements();

@@ -49,7 +49,7 @@ public:
     void Destroy();
     void RebuildSwapchain();
 
-    void InitializeXrSession(IVulkanSwapchain* xrSwapchain);
+    bool InitializeXrSession(IVulkanSwapchain* xrSwapchain);
     void DestroyXrSession();
 
 public:
@@ -118,6 +118,8 @@ private:
     {
         IVulkanSwapchain* swapchain;
         VkRenderPass renderpass;
+        VulkanVrDisplay* display;
+        std::unique_ptr<VulkanPipeline> pipeline;
     };
 
     OpenxrContext* xrContext = nullptr;

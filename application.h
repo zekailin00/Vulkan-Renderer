@@ -1,5 +1,6 @@
 #pragma once
 
+#include "input.h"
 #include "glfw_window.h"
 #include "openxr_platform.h"
 #include "openxr_swapchain.h"
@@ -34,4 +35,5 @@ private:
 private:
     GlfwWindow* window = nullptr;
     OpenxrPlatform* openxr = nullptr;
+    Input* input = nullptr;
 };

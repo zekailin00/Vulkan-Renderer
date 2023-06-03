@@ -8,13 +8,78 @@
 
 #include "vk_primitives/vulkan_pipeline_layout.h"
 #include "loaders/gltfloader.h"
+#include "input.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <array>
 #include <vector>
 #include <memory>
 #include <tracy/TracyVulkan.hpp>
 
+
+// Creates a projection matrix based on the specified FOV.
+inline static void XrProjectionFov(
+    glm::mat4& result, glm::vec4 fov, float nearZ, float farZ)
+{
+    const float tanAngleLeft = tanf(fov[0]);
+    const float tanAngleRight = tanf(fov[1]);
+
+    const float tanAngleDown = tanf(fov[3]);
+    const float tanAngleUp = tanf(fov[2]);
+
+    const float tanAngleWidth = tanAngleRight - tanAngleLeft;
+    const float tanAngleHeight = tanAngleUp - tanAngleDown;
+
+    // Set to zero for a [0,1] Z clip space (Vulkan).
+    const float offsetZ = 0;
+
+    if (farZ <= nearZ) {
+        // place the far plane at infinity
+        result[0][0] = 2.0f / tanAngleWidth;
+        result[1][0] = 0.0f;
+        result[2][0] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = 2.0f / tanAngleHeight;
+        result[2][1] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = -1.0f;
+        result[3][2] = -(nearZ + offsetZ);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+    } else {
+        // normal projection
+        result[0][0] = 2.0f / tanAngleWidth;
+        result[1][0] = 0.0f;
+        result[2][0] = (tanAngleRight + tanAngleLeft) / tanAngleWidth;
+        result[3][0] = 0.0f;
+
+        result[0][1] = 0.0f;
+        result[1][1] = 2.0f / tanAngleHeight;
+        result[2][1] = (tanAngleUp + tanAngleDown) / tanAngleHeight;
+        result[3][1] = 0.0f;
+
+        result[0][2] = 0.0f;
+        result[1][2] = 0.0f;
+        result[2][2] = -(farZ + offsetZ) / (farZ - nearZ);
+        result[3][2] = -(farZ * (nearZ + offsetZ)) / (farZ - nearZ);
+
+        result[0][3] = 0.0f;
+        result[1][3] = 0.0f;
+        result[2][3] = -1.0f;
+        result[3][3] = 0.0f;
+    }
+}
 
 namespace renderer
 {
@@ -292,11 +357,82 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
     }
     else if (node->camera)
     {
-        std::shared_ptr<VulkanCamera> vkCamera =
-            std::dynamic_pointer_cast<VulkanCamera>(node->camera);
-        vkCamera->SetTransform(globTransform);
+        if (node->camera->cameraType == CameraType::CAMERA)
+        {
+            std::shared_ptr<VulkanCamera> vkCamera =
+                std::dynamic_pointer_cast<VulkanCamera>(node->camera);
+            vkCamera->SetTransform(globTransform);
 
-        cameraList.push_back(std::dynamic_pointer_cast<VulkanCamera>(node->camera));
+            cameraList.push_back(
+                std::dynamic_pointer_cast<VulkanCamera>(node->camera));
+        }
+        else if (node->camera->cameraType == CameraType::VR_DISPLAY)
+        {
+            std::shared_ptr<VulkanVrDisplay> vkCamera =
+                std::dynamic_pointer_cast<VulkanVrDisplay>(node->camera);
+
+            Input* input = Input::GetInstance();
+
+            {   // project matrices of the left eye
+                glm::vec4 xrFoV = input->xr_left_eye_fov;
+                glm::mat4 proj;
+                XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
+
+                vkCamera->cameras[0]->vpMap->projection = proj;
+            }
+
+            {   // project matrices of the right eye
+                glm::vec4 xrFoV = input->xr_right_eye_fov;
+                glm::mat4 proj;
+                XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
+
+                vkCamera->cameras[1]->vpMap->projection = proj;
+            }
+
+            {   // view matrix of the left eye
+                glm::vec4 xrQuat = input->xr_left_eye_quat;
+                glm::vec3 xrPos = input->xr_left_eye_pos;
+                glm::quat quat{};
+                quat.x = xrQuat[0];
+                quat.y = xrQuat[1];
+                quat.z = xrQuat[2];
+                quat.w = xrQuat[3];
+
+                glm::mat4 rotation = glm::toMat4(quat);
+                glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
+
+                vkCamera->cameras[0]->SetTransform(
+                    globTransform * translation * rotation);
+            }
+
+            {   // view matrix of the right eye
+                glm::vec4 xrQuat = input->xr_right_eye_quat;
+                glm::vec3 xrPos = input->xr_right_eye_pos;
+                glm::quat quat{};
+                quat.x = xrQuat[0];
+                quat.y = xrQuat[1];
+                quat.z = xrQuat[2];
+                quat.w = xrQuat[3];
+
+                glm::mat4 rotation = glm::toMat4(quat);
+                glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
+
+                vkCamera->cameras[1]->SetTransform(
+                    globTransform * translation * rotation);
+
+                // Correct the transform of HMD object
+                globTransform = globTransform * translation * rotation;
+                *node->transform = globTransform;
+            }
+
+            cameraList.push_back(
+                std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[0]));
+            cameraList.push_back(
+                std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[1]));
+
+            xrDisplay[0] = vkCamera->cameras[0]->colorTexDescSet;
+            xrDisplay[1] = vkCamera->cameras[1]->colorTexDescSet;
+        }
     } 
     else if (!node->wireList.empty())
     {

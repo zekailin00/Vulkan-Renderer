@@ -421,13 +421,13 @@ void VulkanRenderer::CreatePipelines()
     }
 
     {
-        std::unique_ptr<VulkanPipeline> quadPipeline = 
+        std::unique_ptr<VulkanPipeline> displayPipeline = 
             std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
         PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
-        std::unique_ptr<VulkanPipelineLayout> quadLayout;
+        std::unique_ptr<VulkanPipelineLayout> displayLayout;
 
-        quadPipeline->LoadShader("resources/vulkan_shaders/quad/vert.spv",
-                                "resources/vulkan_shaders/quad/frag.spv");
+        displayPipeline->LoadShader("resources/vulkan_shaders/transfer/vert.spv",
+                                    "resources/vulkan_shaders/transfer/frag.spv");
         
         layoutBuilder.PushDescriptorSetLayout("texture",
         {
@@ -435,23 +435,23 @@ void VulkanRenderer::CreatePipelines()
                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
         });
 
-        quadLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+        displayLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
 
         VkPipelineVertexInputStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         info.vertexAttributeDescriptionCount = 0;
         info.vertexBindingDescriptionCount = 0;
 
-        quadPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
-        quadPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        displayPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
+        displayPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
-        quadPipeline->BuildPipeline(
+        displayPipeline->BuildPipeline(
             &info,
-            std::move(quadLayout),
+            std::move(displayLayout),
             vkRenderPass.display
         );
 
-        pipelines["display"] = std::move(quadPipeline);
+        pipelines["display"] = std::move(displayPipeline);
     }
 
     {
@@ -580,8 +580,8 @@ void VulkanRenderer::EndFrame()
         VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         vkRenderPassinfo.renderPass = vkRenderPass.display;
         vkRenderPassinfo.framebuffer = *swapchain->GetFramebuffer(imageIndex);
-        vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
         vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
+        vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
         vkRenderPassinfo.clearValueCount = 1;
         vkRenderPassinfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -637,21 +637,46 @@ void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
     {
         uint32_t imageIndex = xrContext->swapchain->GetNextImageIndex(
             &vulkanDevice, VK_NULL_HANDLE );
-
-        xrContext->swapchain->GetFramebuffer(imageIndex);
     
         // Initialize swapchain image
         VkClearValue clearValue{{{0.0f, 1.0f, 0.0f, 1.0f}}};
         VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         vkRenderPassinfo.renderPass = xrContext->renderpass;
         vkRenderPassinfo.framebuffer = *xrContext->swapchain->GetFramebuffer(imageIndex);
-        vkRenderPassinfo.renderArea.extent.height = xrContext->swapchain->GetHeight();
         vkRenderPassinfo.renderArea.extent.width = xrContext->swapchain->GetWidth();
+        vkRenderPassinfo.renderArea.extent.height = xrContext->swapchain->GetHeight();
         vkRenderPassinfo.clearValueCount = 1;
         vkRenderPassinfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        // render render  
+        VkDescriptorSet descSet = defaultTechnique.GetXrDisplayDescSet()[i];
+
+        vkCmdBindPipeline(vkCommandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            xrContext->pipeline->pipeline);
+
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(xrContext->swapchain->GetWidth());
+        viewport.height = static_cast<float>(xrContext->swapchain->GetHeight());
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = {
+            xrContext->swapchain->GetWidth(),
+            xrContext->swapchain->GetHeight()
+        };
+        vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
+
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            xrContext->pipeline->pipelineLayout->layout,
+            0, 1, &descSet, 0, nullptr);
+
+        vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
 
         vkCmdEndRenderPass(vkCommandBuffer);
         xrContext->swapchain->PresentImage(&vulkanDevice, VK_NULL_HANDLE, imageIndex);
@@ -704,12 +729,28 @@ void VulkanRenderer::Destroy()
     vkDestroyInstance(vkInstance, nullptr);
 }
 
-void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
+bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 {
+
+    VulkanVrDisplay* display = nullptr;
+    for (const auto& n: dynamic_cast<VulkanNode*>(scene->GetRootNode())->nodeLists)
+    {
+        VulkanNode* vulkanNode = static_cast<VulkanNode*>(n.get());
+        if (vulkanNode->camera &&
+            vulkanNode->camera->cameraType == CameraType::VR_DISPLAY)
+            display = static_cast<VulkanVrDisplay*>(vulkanNode->camera.get());
+    }
+
+    if (display == nullptr)
+        return false;
+
     xrSwapchain->Initialize(&vulkanDevice);
+    // Software antialising by a factor of 4
+    display->Initialize({swapchain->GetWidth() * 4, swapchain->GetHeight() * 4});
 
     xrContext = new OpenxrContext();
     xrContext->swapchain = xrSwapchain;
+    xrContext->display = display;
 
     {
         VkAttachmentDescription colorAttachmentDesc{};
@@ -750,6 +791,40 @@ void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
             &vkRenderPassCreateInfo, nullptr, &xrContext->renderpass));
     }
 
+    {
+        std::unique_ptr<VulkanPipeline> displayPipeline = 
+            std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
+        PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
+        std::unique_ptr<VulkanPipelineLayout> displayLayout;
+
+        displayPipeline->LoadShader("resources/vulkan_shaders/transfer/vert.spv",
+                                    "resources/vulkan_shaders/transfer/frag.spv");
+        
+        layoutBuilder.PushDescriptorSetLayout("texture",
+        {
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+        });
+
+        displayLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+
+        VkPipelineVertexInputStateCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        info.vertexAttributeDescriptionCount = 0;
+        info.vertexBindingDescriptionCount = 0;
+
+        displayPipeline->rasterState.cullMode = VK_CULL_MODE_NONE;
+        displayPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+        displayPipeline->BuildPipeline(
+            &info,
+            std::move(displayLayout),
+            xrContext->renderpass
+        );
+
+        xrContext->pipeline = std::move(displayPipeline);
+    }
+
     VkImageView attachment[1];
     VkFramebufferCreateInfo vkFramebufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     vkFramebufferCreateInfo.renderPass = xrContext->renderpass;
@@ -764,13 +839,18 @@ void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
         CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice,
             &vkFramebufferCreateInfo, nullptr,  xrContext->swapchain->GetFramebuffer(i)));
     }
+
+    return true;
 }
 
 void VulkanRenderer::DestroyXrSession()
 {
+    xrContext->pipeline = nullptr;
     vkDestroyRenderPass(vulkanDevice.vkDevice, xrContext->renderpass, nullptr);
 
+    xrContext->display->Destory();
     xrContext->swapchain->Destroy(&vulkanDevice);
+
     delete xrContext->swapchain;
     delete xrContext;
     xrContext = nullptr;
