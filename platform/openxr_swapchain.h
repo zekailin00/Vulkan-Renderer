@@ -40,6 +40,7 @@ public:
     // XrSpace GetRAimPoseSpace() {return rAimPoseSpace;}
 
 public:
+    // Swapchain interface
     VkFormat GetImageFormat() override;
     uint32_t GetImageCount() override;
     uint32_t GetWidth() override;
@@ -53,12 +54,14 @@ public:
     void Destroy(VulkanDevice* vulkanDevice) override;
     uint32_t GetNextImageIndex(VulkanDevice* vulkanDevice,
         VkSemaphore imageAcquiredSemaphores) override;
-    void PresentImage(VulkanDevice* vulkanDevic,
+    void PresentImage(VulkanDevice* vulkanDevice,
         VkSemaphore renderFinishedSemaphores, uint32_t imageIndex) override;
+    bool ShouldRender() override;
 
     void RebuildSwapchain(VulkanDevice* vulkanDevice) override;
 
 private:
+    // Helper methods
     void CreateSession(VulkanDevice* vukanDevice);
     void InitializeSpaces();
     bool SelectImageFormat(VkFormat format);
@@ -77,7 +80,8 @@ private:
     XrSessionState sessionState = XR_SESSION_STATE_UNKNOWN;
 
     int64_t imageFormat = 0;
-    uint32_t imageCount = 0; //Total images (per eye * 2)
+    uint32_t totalImageCount = 0; //Total images (per eye * 2)
+    uint32_t imageCount = 0;
     uint32_t imageWidth = 0;
     uint32_t imageHeight = 0;
 
@@ -95,6 +99,8 @@ private:
     // Render loop context
     // reset when enter XR_SESSION_STATE_READY
     XrFrameState frameState;
-    bool leftImageDone, rightImageDone;
-    int nextImageIndex;
+    XrCompositionLayerProjection layer;
+    XrCompositionLayerProjectionView layerViews[2]; 
+    XrView views[2];
+    int eye;
 };

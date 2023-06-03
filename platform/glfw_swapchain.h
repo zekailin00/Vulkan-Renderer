@@ -28,6 +28,7 @@ public:
         VkSemaphore imageAcquiredSemaphores) override;
     virtual void PresentImage(VulkanDevice* vulkanDevice,
         VkSemaphore renderFinishedSemaphores, uint32_t imageIndex) override;
+    virtual bool ShouldRender() override;
     virtual void RebuildSwapchain(VulkanDevice* vulkanDevice) override;
     virtual void Initialize(VulkanDevice* vulkanDevice) override;
     virtual void Destroy(VulkanDevice* vulkanDevice) override;

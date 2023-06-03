@@ -88,6 +88,8 @@ private: /* Private Vulkan helpers */
     VulkanRenderer(VulkanRenderer const&) = delete;
     void operator=(VulkanRenderer const&) = delete;
 
+    void RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer);
+
     void CreateRenderPasses();
     void CreateFramebuffers();
     void CreatePipelines();

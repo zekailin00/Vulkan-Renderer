@@ -81,9 +81,7 @@ void OpenxrSession::SetSessionState(XrSessionState newState)
             info.primaryViewConfigurationType = 
                 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
             CHK_XRCMD(xrBeginSession(xrSession, &info));
-            leftImageDone = true;
-            rightImageDone = true;
-            nextImageIndex = 0;
+            eye = 0;
             break;
         }
         case XR_SESSION_STATE_STOPPING:
@@ -147,7 +145,8 @@ void OpenxrSession::InitializeSpaces()
     }
 
     {   // Create reference spaces
-        XrReferenceSpaceCreateInfo createInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
+        XrReferenceSpaceCreateInfo createInfo
+            {XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
         createInfo.poseInReferenceSpace.orientation.w = 1.0f;
         createInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
         CHK_XRCMD(xrCreateReferenceSpace(xrSession, &createInfo, &viewSpace));
@@ -195,7 +194,8 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
     CreateSession(vulkanDevice);
     InitializeSpaces();
 
-    XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
+    XrSessionActionSetsAttachInfo attachInfo
+        {XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
     attachInfo.countActionSets = 1;
     attachInfo.actionSets = &platform->inputActionSet;
     CHK_XRCMD(xrAttachSessionActionSets(xrSession, &attachInfo));
@@ -234,7 +234,8 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
     uint32_t count;
     std::vector<XrSwapchainImageVulkanKHR> swapchainImages;
     xrEnumerateSwapchainImages(swapchainList[0], 0, &count, nullptr);
-    imageCount = 2 * count; // total number of images.
+    totalImageCount = 2 * count; // total number of images.
+    imageCount = count;
 
     // Images from left eye (index 0)
     swapchainImages.resize(count, {XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR});
@@ -246,7 +247,7 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
     }
 
     xrEnumerateSwapchainImages(swapchainList[1], 0, &count, nullptr);
-    ASSERT(count * 2 == imageCount); // Both have the same number of images.
+    ASSERT(count == imageCount); // Both have the same number of images.
 
     // Images from the right eye (index 1)
     swapchainImages.resize(count, {XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR});
@@ -258,28 +259,30 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
     }
 
     // Create image views
-    VkImageViewCreateInfo vkImageViewCreateInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    VkImageViewCreateInfo vkImageViewCreateInfo
+        {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
     vkImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
     vkImageViewCreateInfo.format = static_cast<VkFormat>(imageFormat);
     vkImageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
     vkImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
     vkImageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
     vkImageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-    vkImageViewCreateInfo.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+    vkImageViewCreateInfo.subresourceRange = 
+        { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
-    imageViews.resize(imageCount);
-    for (uint32_t i = 0; i < imageCount; i++)
+    imageViews.resize(totalImageCount);
+    for (uint32_t i = 0; i < totalImageCount; i++)
     {
         vkImageViewCreateInfo.image = images[i];
         CHECK_VKCMD(vkCreateImageView(vulkanDevice->vkDevice,
             &vkImageViewCreateInfo, nullptr, &imageViews[i]));
     }
 
-    framebuffers.resize(imageCount);
+    framebuffers.resize(totalImageCount);
 
     Logger::Write(
         "[Openxr] Swapchains created with total image count: " +
-        std::to_string(imageCount),
+        std::to_string(totalImageCount),
         Logger::Level::Info, Logger::MsgType::Platform
     );
 }
@@ -315,24 +318,44 @@ void OpenxrSession::BeginFrame()
         sessionState == XR_SESSION_STATE_VISIBLE ||
         sessionState == XR_SESSION_STATE_FOCUSED)
     {
+
+        XrResult debug_result;
+
         // Wait for a new frame.
         XrFrameWaitInfo frameWaitInfo {XR_TYPE_FRAME_WAIT_INFO};
         frameState.type = XR_TYPE_FRAME_STATE;
-        CHK_XRCMD(xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
+        CHK_XRCMD(debug_result = xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
+
+        xrResultToString(platform->xrInstance, debug_result, resultBuffer);
+        Logger::Write(
+            "[OpenXR] API call error: " + std::string(resultBuffer),
+            Logger::Level::Warning, Logger::MsgType::Platform
+        );
+
 
         // Begin frame immediately before GPU work
         XrFrameBeginInfo frameBeginInfo {XR_TYPE_FRAME_BEGIN_INFO};
-        CHK_XRCMD(xrBeginFrame(xrSession, &frameBeginInfo));
+        CHK_XRCMD(debug_result = xrBeginFrame(xrSession, &frameBeginInfo));
+
+        xrResultToString(platform->xrInstance, debug_result, resultBuffer);
+        Logger::Write(
+            "[OpenXR] API call error: " + std::string(resultBuffer),
+            Logger::Level::Warning, Logger::MsgType::Platform
+        );
+
 
         XrViewLocateInfo locateInfo {XR_TYPE_VIEW_LOCATE_INFO};
-        locateInfo.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
+        locateInfo.viewConfigurationType = 
+            XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
         locateInfo.displayTime = frameState.predictedDisplayTime;
-        locateInfo.space = localSpace; // FIXME:??
+        locateInfo.space = localSpace;
 
         XrViewState viewState{XR_TYPE_VIEW_STATE};
-        XrView views[2] = { {XR_TYPE_VIEW}, {XR_TYPE_VIEW}};
+        views[0] = {XR_TYPE_VIEW};
+        views[1] = {XR_TYPE_VIEW};
         uint32_t count;
-        CHK_XRCMD(xrLocateViews(xrSession, &locateInfo, &viewState, 2, &count, views));
+        CHK_XRCMD(xrLocateViews(
+            xrSession, &locateInfo, &viewState, 2, &count, views));
     }
 }
 
@@ -343,11 +366,20 @@ void OpenxrSession::EndFrame()
         sessionState == XR_SESSION_STATE_VISIBLE ||
         sessionState == XR_SESSION_STATE_FOCUSED)
     {
+        layer.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
+        layer.next = 0;
+        layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+        layer.space = localSpace;
+        layer.viewCount = 2;
+        layer.views = layerViews;
+
+        const XrCompositionLayerBaseHeader* pLayer =
+            reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer);
+
         XrFrameEndInfo frameEndInfo {XR_TYPE_FRAME_END_INFO};
         frameEndInfo.displayTime = frameState.predictedDisplayTime;
-        frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
-        frameEndInfo.layerCount = 0;
-        frameEndInfo.layers = nullptr;
+        frameEndInfo.layerCount = 1;
+        frameEndInfo.layers = &pLayer;
         CHK_XRCMD(xrEndFrame(xrSession, &frameEndInfo));
     }
 }
@@ -355,35 +387,47 @@ void OpenxrSession::EndFrame()
 uint32_t OpenxrSession::GetNextImageIndex(VulkanDevice* vulkanDevice,
     VkSemaphore imageAcquiredSemaphores)
 {
-    nextImageIndex = nextImageIndex % (imageCount/2);
+    uint32_t index;
+    XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
+    CHK_XRCMD(xrAcquireSwapchainImage(swapchainList[eye], &acquireInfo, &index));
 
+    XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
+    waitInfo.timeout = XR_INFINITE_DURATION;
+    CHK_XRCMD(xrWaitSwapchainImage(swapchainList[eye], &waitInfo));
 
-    // xrAcquireSwapchainImage
-    // xrWaitSwapchainImage
-
-    if (leftImageDone && rightImageDone)
+    layerViews[eye].type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
+    layerViews[eye].next = 0;
+    layerViews[eye].pose = views[eye].pose;
+    layerViews[eye].fov = views[eye].fov;
+    layerViews[eye].subImage.swapchain = swapchainList[eye];
+    layerViews[eye].subImage.imageArrayIndex = 0;
+    layerViews[eye].subImage.imageRect.offset = {0, 0};
+    layerViews[eye].subImage.imageRect.extent =
     {
-        leftImageDone = false;
-        return nextImageIndex++;
-    }
-    else if (!leftImageDone || rightImageDone)
-    {
-        rightImageDone = false;
-        return imageCount/2 + nextImageIndex++;
-    }
-    else
-        Logger::Write("[OpenXR] Swapchain error: both eyes have to be presented.",
-            Logger::Level::Error, Logger::MsgType::Platform);
-    return 0;
+        static_cast<int>(imageWidth),
+        static_cast<int>(imageHeight)
+    };
+
+    int offset = eye? imageCount:0;
+    eye = (eye + 1) % 2;
+    return index + offset;
 }
 
 void OpenxrSession::PresentImage(VulkanDevice* vulkanDevic,
     VkSemaphore renderFinishedSemaphores, uint32_t imageIndex)
 {
-    // xrReleaseSwapchainImage
-
+    int index = (imageIndex >= imageCount)? 1:0;
+    XrSwapchainImageReleaseInfo info{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
+    CHK_XRCMD(xrReleaseSwapchainImage(swapchainList[index], &info));
 }
 
+bool OpenxrSession::ShouldRender()
+{
+    return sessionState == XR_SESSION_STATE_READY ||
+        sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
+        sessionState == XR_SESSION_STATE_VISIBLE ||
+        sessionState == XR_SESSION_STATE_FOCUSED;
+}
 
 void OpenxrSession::RebuildSwapchain(VulkanDevice* vulkanDevice)
 {
@@ -398,8 +442,9 @@ VkFormat OpenxrSession::GetImageFormat()
 
 uint32_t OpenxrSession::GetImageCount()
 {
-    return imageCount;
+    return totalImageCount;
 }
+
 uint32_t OpenxrSession::GetWidth()
 {
     return imageWidth;

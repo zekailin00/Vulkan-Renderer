@@ -114,6 +114,11 @@ void WindowSwapchain::PresentImage(VulkanDevice* vulkanDevice,
         swapchainRebuild = true;
 }
 
+bool WindowSwapchain::ShouldRender()
+{
+    return true;
+}
+
 void WindowSwapchain::RebuildSwapchain(VulkanDevice* vulkanDevice)
 {
     ZoneScopedN("WindowSwapchain::RebuildSwapchain");

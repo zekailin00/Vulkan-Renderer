@@ -617,11 +617,45 @@ void VulkanRenderer::EndFrame()
         vkCmdEndRenderPass(vkCommandBuffer);
     }
 
+    RenderOpenxrFrame(vkCommandBuffer);
+
     TracyVkCollect(tracyVkCtx, vkCommandBuffer);
     vcb.EndCommand();
 
     // Present image
     swapchain->PresentImage(&vulkanDevice, renderFinishedSemaphore, imageIndex);
+}
+
+void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
+{
+    TracyVkZone(tracyVkCtx, vkCommandBuffer, "VulkanRenderer::RenderOpenxrFrame");
+    //if (!xrContext->swapchain->ShouldRender())
+        return;
+
+    // Once image per eye
+    for (int i = 0; i < 2; i++)
+    {
+        uint32_t imageIndex = xrContext->swapchain->GetNextImageIndex(
+            &vulkanDevice, VK_NULL_HANDLE );
+
+        xrContext->swapchain->GetFramebuffer(imageIndex);
+    
+        // Initialize swapchain image
+        VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        vkRenderPassinfo.renderPass = xrContext->renderpass;
+        vkRenderPassinfo.framebuffer = *xrContext->swapchain->GetFramebuffer(imageIndex);
+        vkRenderPassinfo.renderArea.extent.height = xrContext->swapchain->GetHeight();
+        vkRenderPassinfo.renderArea.extent.width = xrContext->swapchain->GetWidth();
+        vkRenderPassinfo.clearValueCount = 1;
+        vkRenderPassinfo.pClearValues = &clearValue;
+        vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        // render render  
+
+        vkCmdEndRenderPass(vkCommandBuffer);
+        xrContext->swapchain->PresentImage(&vulkanDevice, VK_NULL_HANDLE, imageIndex);
+    }
 }
 
 void VulkanRenderer::DeallocateResources()

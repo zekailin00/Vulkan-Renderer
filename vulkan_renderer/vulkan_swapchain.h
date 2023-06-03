@@ -22,6 +22,7 @@ public:
         VkSemaphore imageAcquiredSemaphores) = 0;
     virtual void PresentImage(VulkanDevice* vulkanDevic,
         VkSemaphore renderFinishedSemaphores, uint32_t imageIndex) = 0;
+    virtual bool ShouldRender() = 0;
 
     /**
      * @brief Rebuild swapchain, images, and image views. 
