@@ -98,7 +98,7 @@ private:
 
     // Render loop context
     // reset when enter XR_SESSION_STATE_READY
-    XrFrameState frameState;
+    XrFrameState frameState{};
     XrCompositionLayerProjection layer;
     XrCompositionLayerProjectionView layerViews[2]; 
     XrView views[2];

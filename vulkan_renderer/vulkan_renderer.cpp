@@ -629,7 +629,7 @@ void VulkanRenderer::EndFrame()
 void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
 {
     TracyVkZone(tracyVkCtx, vkCommandBuffer, "VulkanRenderer::RenderOpenxrFrame");
-    //if (!xrContext->swapchain->ShouldRender())
+    if (!xrContext->swapchain->ShouldRender())
         return;
 
     // Once image per eye
@@ -641,7 +641,7 @@ void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
         xrContext->swapchain->GetFramebuffer(imageIndex);
     
         // Initialize swapchain image
-        VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkClearValue clearValue{{{0.0f, 1.0f, 0.0f, 1.0f}}};
         VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         vkRenderPassinfo.renderPass = xrContext->renderpass;
         vkRenderPassinfo.framebuffer = *xrContext->swapchain->GetFramebuffer(imageIndex);
@@ -720,7 +720,7 @@ void VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
         colorAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference colorAttachment{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 

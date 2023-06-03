@@ -82,11 +82,14 @@ void OpenxrSession::SetSessionState(XrSessionState newState)
                 XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
             CHK_XRCMD(xrBeginSession(xrSession, &info));
             eye = 0;
+            frameState = {XR_TYPE_FRAME_STATE};
             break;
         }
         case XR_SESSION_STATE_STOPPING:
         {
             CHK_XRCMD(xrEndSession(xrSession))
+            eye = 0;
+            frameState = {XR_TYPE_FRAME_STATE};
             break;
         }
         case XR_SESSION_STATE_EXITING:
@@ -318,31 +321,14 @@ void OpenxrSession::BeginFrame()
         sessionState == XR_SESSION_STATE_VISIBLE ||
         sessionState == XR_SESSION_STATE_FOCUSED)
     {
-
-        XrResult debug_result;
-
         // Wait for a new frame.
         XrFrameWaitInfo frameWaitInfo {XR_TYPE_FRAME_WAIT_INFO};
-        frameState.type = XR_TYPE_FRAME_STATE;
-        CHK_XRCMD(debug_result = xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
-
-        xrResultToString(platform->xrInstance, debug_result, resultBuffer);
-        Logger::Write(
-            "[OpenXR] API call error: " + std::string(resultBuffer),
-            Logger::Level::Warning, Logger::MsgType::Platform
-        );
-
+        frameState = {XR_TYPE_FRAME_STATE};
+        CHK_XRCMD(xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
 
         // Begin frame immediately before GPU work
         XrFrameBeginInfo frameBeginInfo {XR_TYPE_FRAME_BEGIN_INFO};
-        CHK_XRCMD(debug_result = xrBeginFrame(xrSession, &frameBeginInfo));
-
-        xrResultToString(platform->xrInstance, debug_result, resultBuffer);
-        Logger::Write(
-            "[OpenXR] API call error: " + std::string(resultBuffer),
-            Logger::Level::Warning, Logger::MsgType::Platform
-        );
-
+        CHK_XRCMD(xrBeginFrame(xrSession, &frameBeginInfo));
 
         XrViewLocateInfo locateInfo {XR_TYPE_VIEW_LOCATE_INFO};
         locateInfo.viewConfigurationType = 
@@ -377,9 +363,11 @@ void OpenxrSession::EndFrame()
             reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer);
 
         XrFrameEndInfo frameEndInfo {XR_TYPE_FRAME_END_INFO};
+        frameEndInfo.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
         frameEndInfo.displayTime = frameState.predictedDisplayTime;
-        frameEndInfo.layerCount = 1;
-        frameEndInfo.layers = &pLayer;
+        frameEndInfo.layerCount = ShouldRender()? 1:0;
+        frameEndInfo.layers = ShouldRender()? &pLayer:nullptr;
+        
         CHK_XRCMD(xrEndFrame(xrSession, &frameEndInfo));
     }
 }
@@ -423,10 +411,7 @@ void OpenxrSession::PresentImage(VulkanDevice* vulkanDevic,
 
 bool OpenxrSession::ShouldRender()
 {
-    return sessionState == XR_SESSION_STATE_READY ||
-        sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
-        sessionState == XR_SESSION_STATE_VISIBLE ||
-        sessionState == XR_SESSION_STATE_FOCUSED;
+    return frameState.shouldRender;
 }
 
 void OpenxrSession::RebuildSwapchain(VulkanDevice* vulkanDevice)
