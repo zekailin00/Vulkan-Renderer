@@ -157,6 +157,13 @@ bool OpenxrPlatform::ShouldCloseSeesion()
     return false;
 }
 
+void OpenxrPlatform::Destroy()
+{
+    // xrDestroyAction()
+    xrDestroyActionSet(inputActionSet);
+    xrDestroyInstance(xrInstance);
+}
+
 void OpenxrPlatform::PollEvents()
 {
     XrEventDataBuffer event{};

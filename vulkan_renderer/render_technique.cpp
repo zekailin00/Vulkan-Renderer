@@ -373,65 +373,68 @@ void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
 
             Input* input = Input::GetInstance();
 
-            {   // project matrices of the left eye
-                glm::vec4 xrFoV = input->xr_left_eye_fov;
-                glm::mat4 proj;
-                XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
+            if (vkCamera->cameras[0] && vkCamera->cameras[1])
+            {
+                {   // project matrices of the left eye
+                    glm::vec4 xrFoV = input->xr_left_eye_fov;
+                    glm::mat4 proj;
+                    XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
 
-                vkCamera->cameras[0]->vpMap->projection = proj;
+                    vkCamera->cameras[0]->vpMap->projection = proj;
+                }
+
+                {   // project matrices of the right eye
+                    glm::vec4 xrFoV = input->xr_right_eye_fov;
+                    glm::mat4 proj;
+                    XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
+
+                    vkCamera->cameras[1]->vpMap->projection = proj;
+                }
+
+                {   // view matrix of the left eye
+                    glm::vec4 xrQuat = input->xr_left_eye_quat;
+                    glm::vec3 xrPos = input->xr_left_eye_pos;
+                    glm::quat quat{};
+                    quat.x = xrQuat[0];
+                    quat.y = xrQuat[1];
+                    quat.z = xrQuat[2];
+                    quat.w = xrQuat[3];
+
+                    glm::mat4 rotation = glm::toMat4(quat);
+                    glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
+
+                    vkCamera->cameras[0]->SetTransform(
+                        globTransform * translation * rotation);
+                }
+
+                {   // view matrix of the right eye
+                    glm::vec4 xrQuat = input->xr_right_eye_quat;
+                    glm::vec3 xrPos = input->xr_right_eye_pos;
+                    glm::quat quat{};
+                    quat.x = xrQuat[0];
+                    quat.y = xrQuat[1];
+                    quat.z = xrQuat[2];
+                    quat.w = xrQuat[3];
+
+                    glm::mat4 rotation = glm::toMat4(quat);
+                    glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
+
+                    vkCamera->cameras[1]->SetTransform(
+                        globTransform * translation * rotation);
+
+                    // Correct the transform of HMD object
+                    globTransform = globTransform * translation * rotation;
+                    *node->transform = globTransform;
+                }
+
+                cameraList.push_back(
+                    std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[0]));
+                cameraList.push_back(
+                    std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[1]));
+
+                xrDisplay[0] = vkCamera->cameras[0]->colorTexDescSet;
+                xrDisplay[1] = vkCamera->cameras[1]->colorTexDescSet;
             }
-
-            {   // project matrices of the right eye
-                glm::vec4 xrFoV = input->xr_right_eye_fov;
-                glm::mat4 proj;
-                XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
-
-                vkCamera->cameras[1]->vpMap->projection = proj;
-            }
-
-            {   // view matrix of the left eye
-                glm::vec4 xrQuat = input->xr_left_eye_quat;
-                glm::vec3 xrPos = input->xr_left_eye_pos;
-                glm::quat quat{};
-                quat.x = xrQuat[0];
-                quat.y = xrQuat[1];
-                quat.z = xrQuat[2];
-                quat.w = xrQuat[3];
-
-                glm::mat4 rotation = glm::toMat4(quat);
-                glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
-
-                vkCamera->cameras[0]->SetTransform(
-                    globTransform * translation * rotation);
-            }
-
-            {   // view matrix of the right eye
-                glm::vec4 xrQuat = input->xr_right_eye_quat;
-                glm::vec3 xrPos = input->xr_right_eye_pos;
-                glm::quat quat{};
-                quat.x = xrQuat[0];
-                quat.y = xrQuat[1];
-                quat.z = xrQuat[2];
-                quat.w = xrQuat[3];
-
-                glm::mat4 rotation = glm::toMat4(quat);
-                glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
-
-                vkCamera->cameras[1]->SetTransform(
-                    globTransform * translation * rotation);
-
-                // Correct the transform of HMD object
-                globTransform = globTransform * translation * rotation;
-                *node->transform = globTransform;
-            }
-
-            cameraList.push_back(
-                std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[0]));
-            cameraList.push_back(
-                std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[1]));
-
-            xrDisplay[0] = vkCamera->cameras[0]->colorTexDescSet;
-            xrDisplay[1] = vkCamera->cameras[1]->colorTexDescSet;
         }
     } 
     else if (!node->wireList.empty())

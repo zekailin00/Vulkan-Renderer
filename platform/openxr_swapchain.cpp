@@ -94,10 +94,12 @@ void OpenxrSession::SetSessionState(XrSessionState newState)
         }
         case XR_SESSION_STATE_EXITING:
         {
+
             break;
         }
         case XR_SESSION_STATE_LOSS_PENDING:
         {
+            // could not be tested.
             break;
         }
         default:
@@ -321,14 +323,28 @@ void OpenxrSession::BeginFrame()
         sessionState == XR_SESSION_STATE_VISIBLE ||
         sessionState == XR_SESSION_STATE_FOCUSED)
     {
+        XrResult result;
+
         // Wait for a new frame.
         XrFrameWaitInfo frameWaitInfo {XR_TYPE_FRAME_WAIT_INFO};
         frameState = {XR_TYPE_FRAME_STATE};
-        CHK_XRCMD(xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
+        CHK_XRCMD(result = xrWaitFrame(xrSession, &frameWaitInfo, &frameState));
+
+        if (result == XR_SESSION_LOSS_PENDING)
+        {
+            SetSessionState(XR_SESSION_STATE_LOSS_PENDING);
+            return;
+        }
 
         // Begin frame immediately before GPU work
         XrFrameBeginInfo frameBeginInfo {XR_TYPE_FRAME_BEGIN_INFO};
-        CHK_XRCMD(xrBeginFrame(xrSession, &frameBeginInfo));
+        CHK_XRCMD(result = xrBeginFrame(xrSession, &frameBeginInfo));
+
+        if (result == XR_SESSION_LOSS_PENDING)
+        {
+            SetSessionState(XR_SESSION_STATE_LOSS_PENDING);
+            return;
+        }
 
         {   // Locate eyes
             XrViewLocateInfo locateInfo {XR_TYPE_VIEW_LOCATE_INFO};
@@ -375,6 +391,8 @@ void OpenxrSession::EndFrame()
         sessionState == XR_SESSION_STATE_VISIBLE ||
         sessionState == XR_SESSION_STATE_FOCUSED)
     {
+        XrResult result;
+
         layer.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
         layer.next = 0;
         layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
@@ -391,7 +409,13 @@ void OpenxrSession::EndFrame()
         frameEndInfo.layerCount = ShouldRender()? 1:0;
         frameEndInfo.layers = ShouldRender()? &pLayer:nullptr;
         
-        CHK_XRCMD(xrEndFrame(xrSession, &frameEndInfo));
+        CHK_XRCMD(result = xrEndFrame(xrSession, &frameEndInfo));
+
+        if (result == XR_SESSION_LOSS_PENDING)
+        {
+            SetSessionState(XR_SESSION_STATE_LOSS_PENDING);
+            return;
+        }
     }
 }
 
@@ -434,7 +458,11 @@ void OpenxrSession::PresentImage(VulkanDevice* vulkanDevic,
 
 bool OpenxrSession::ShouldRender()
 {
-    return frameState.shouldRender;
+    return frameState.shouldRender && (
+        sessionState == XR_SESSION_STATE_READY ||
+        sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
+        sessionState == XR_SESSION_STATE_VISIBLE ||
+        sessionState == XR_SESSION_STATE_FOCUSED);
 }
 
 void OpenxrSession::RebuildSwapchain(VulkanDevice* vulkanDevice)

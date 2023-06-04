@@ -24,6 +24,7 @@ public:
 
     OpenxrSession* NewSession();
     bool ShouldCloseSeesion();
+    void Destroy();
 
     void PollEvents();
     void BeginFrame();

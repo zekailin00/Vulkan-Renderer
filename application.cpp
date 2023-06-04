@@ -50,7 +50,8 @@ Application::~Application()
     renderer->Destroy();
     window->DestroyWindow();
 
-    delete openxr; //TODO: Destroy resources
+    openxr->Destroy();
+    delete openxr;
 
     renderer = nullptr;
     window = nullptr;
@@ -59,9 +60,10 @@ Application::~Application()
 
 void Application::PollEvents()
 {
-    //TODO:
     openxr->PollEvents();
-    openxr->ShouldCloseSeesion();
+
+    if(openxr->ShouldCloseSeesion())
+        renderer->DestroyXrSession();
 }
 
 void Application::Run()

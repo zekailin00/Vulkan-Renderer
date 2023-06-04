@@ -629,7 +629,7 @@ void VulkanRenderer::EndFrame()
 void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
 {
     TracyVkZone(tracyVkCtx, vkCommandBuffer, "VulkanRenderer::RenderOpenxrFrame");
-    if (!xrContext->swapchain->ShouldRender())
+    if (!xrContext || !xrContext->swapchain->ShouldRender())
         return;
 
     // Once image per eye
@@ -845,6 +845,9 @@ bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 
 void VulkanRenderer::DestroyXrSession()
 {
+    if (!xrContext)
+        return;
+    
     xrContext->pipeline = nullptr;
     vkDestroyRenderPass(vulkanDevice.vkDevice, xrContext->renderpass, nullptr);
 
