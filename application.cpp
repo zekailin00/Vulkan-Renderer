@@ -9,11 +9,15 @@ bool launchXR = true;
 
 renderer::Node* Application::GetRootNode()
 {
+    ZoneScopedN("Application::GetRootNode");
+
     return renderer->GetScene()->GetRootNode();
 }
 
 Application::Application()
 {
+    ZoneScopedN("Application::Application");
+
     Logger::Write(
         "Current path: " + std::filesystem::current_path().string(),
         Logger::Level::Info, Logger::MsgType::Platform
@@ -39,6 +43,8 @@ Application::Application()
 
 Application::~Application()
 {
+    ZoneScopedN("Application::~Application");
+
     if (launchXR)
     {
         renderer->DestroyXrSession();
@@ -60,6 +66,8 @@ Application::~Application()
 
 void Application::PollEvents()
 {
+    ZoneScopedN("Application::PollEvents");
+
     openxr->PollEvents();
 
     if(openxr->ShouldCloseSeesion())
@@ -68,6 +76,8 @@ void Application::PollEvents()
 
 void Application::Run()
 {
+    ZoneScopedN("Application::Run");
+
     OnCreated();
 
     if (launchXR)
@@ -103,6 +113,8 @@ void Application::Run()
 std::vector<const char*> Application::MergeExtensions(
     std::vector<const char*> a, std::vector<const char*> b)
 {
+    ZoneScopedN("Application::MergeExtensions");
+
     for (const char* extension: a)
     {
         bool inList = false;

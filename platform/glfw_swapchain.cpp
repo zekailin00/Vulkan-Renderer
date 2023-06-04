@@ -116,6 +116,8 @@ void WindowSwapchain::PresentImage(VulkanDevice* vulkanDevice,
 
 bool WindowSwapchain::ShouldRender()
 {
+    ZoneScopedN("WindowSwapchain::ShouldRender");
+
     return true;
 }
 
@@ -166,6 +168,8 @@ void WindowSwapchain::SetSurface(VkSurfaceKHR vkSurface)
 
 VkSurfaceFormatKHR WindowSwapchain::SelectSurfaceFormat(VkFormat imageFormat)
 {
+    ZoneScopedN("WindowSwapchain::SelectSurfaceFormat");
+
     for (VkSurfaceFormatKHR surfaceFormat: vkSurfaceFormats)
     {
         if (surfaceFormat.format == imageFormat)

@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <string>
+#include <tracy/Tracy.hpp>
 
 #define XR_SUCCEEDED(result) ((result) >= 0)
 #define XR_FAILED(result) ((result) < 0)
@@ -18,6 +19,8 @@ static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 
 OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
 {
+    ZoneScopedN("OpenxrPlatform::Initialize");
+
     unsigned int layerCount;
     std::vector<XrApiLayerProperties> layerList;
     unsigned int extensionCount;
@@ -137,6 +140,8 @@ OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
 
 OpenxrSession* OpenxrPlatform::NewSession()
 {
+    ZoneScopedN("OpenxrPlatform::NewSession");
+
     session = new OpenxrSession();
     session->SetOpenxrContext(this);
     return session;
@@ -144,6 +149,8 @@ OpenxrSession* OpenxrPlatform::NewSession()
 
 bool OpenxrPlatform::ShouldCloseSeesion()
 {
+    ZoneScopedN("OpenxrPlatform::ShouldCloseSeesion");
+
     if (!session)
         return false;
     
@@ -159,6 +166,8 @@ bool OpenxrPlatform::ShouldCloseSeesion()
 
 void OpenxrPlatform::Destroy()
 {
+    ZoneScopedN("OpenxrPlatform::Destroy");
+
     // xrDestroyAction()
     xrDestroyActionSet(inputActionSet);
     xrDestroyInstance(xrInstance);
@@ -166,6 +175,8 @@ void OpenxrPlatform::Destroy()
 
 void OpenxrPlatform::PollEvents()
 {
+    ZoneScopedN("OpenxrPlatform::PollEvents");
+
     XrEventDataBuffer event{};
     while (TryReadNextEvent(&event))
     {
@@ -225,6 +236,8 @@ void OpenxrPlatform::PollEvents()
 
 bool OpenxrPlatform::TryReadNextEvent(XrEventDataBuffer* eventDataBuffer)
 {
+    ZoneScopedN("OpenxrPlatform::TryReadNextEvent");
+
     XrEventDataBaseHeader* baseHeader =
         reinterpret_cast<XrEventDataBaseHeader*>(eventDataBuffer);
 

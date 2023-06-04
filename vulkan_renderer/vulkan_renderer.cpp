@@ -628,7 +628,9 @@ void VulkanRenderer::EndFrame()
 
 void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
 {
-    TracyVkZone(tracyVkCtx, vkCommandBuffer, "VulkanRenderer::RenderOpenxrFrame");
+    ZoneScopedN("VulkanRenderer::RenderOpenxrFrame");
+    TracyVkZone(tracyVkCtx, vkCommandBuffer, "RenderOpenxrFrame#VrDisplay");
+
     if (!xrContext || !xrContext->swapchain->ShouldRender())
         return;
 
@@ -731,6 +733,7 @@ void VulkanRenderer::Destroy()
 
 bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 {
+    ZoneScopedN("VulkanRenderer::InitializeXrSession");
 
     VulkanVrDisplay* display = nullptr;
     for (const auto& n: dynamic_cast<VulkanNode*>(scene->GetRootNode())->nodeLists)
@@ -845,6 +848,8 @@ bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 
 void VulkanRenderer::DestroyXrSession()
 {
+    ZoneScopedN("VulkanRenderer::DestroyXrSession");
+
     if (!xrContext)
         return;
     

@@ -230,6 +230,8 @@ void VulkanCamera::Destroy()
 
 std::shared_ptr<VulkanVrDisplay> VulkanVrDisplay::BuildCamera()
 {
+    ZoneScopedN("VulkanVrDisplay::BuildCamera");
+
     std::shared_ptr<VulkanVrDisplay> display =
         std::make_shared<VulkanVrDisplay>();
     display->cameraType = CameraType::VR_DISPLAY;
@@ -239,6 +241,8 @@ std::shared_ptr<VulkanVrDisplay> VulkanVrDisplay::BuildCamera()
 
 void VulkanVrDisplay::Initialize(glm::vec2 extent)
 {
+    ZoneScopedN("VulkanVrDisplay::Initialize");
+
     CameraProperties prop{};
     prop.UseFrameExtent = false;
     prop.Extent = extent;
@@ -249,6 +253,8 @@ void VulkanVrDisplay::Initialize(glm::vec2 extent)
 
 void VulkanVrDisplay::Destory()
 {
+    ZoneScopedN("VulkanVrDisplay::Destory");
+
     cameras[0] = nullptr;
     cameras[1] = nullptr;
 }

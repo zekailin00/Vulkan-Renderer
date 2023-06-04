@@ -5,6 +5,7 @@
 #include "validation.h"
 
 #include <vector>
+#include <tracy/Tracy.hpp>
 
 static XrResult result;
 static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
@@ -16,6 +17,8 @@ static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 
 void OpenxrSession::CreateSession(VulkanDevice* vulkanDevice)
 {
+    ZoneScopedN("OpenxrSession::CreateSession");
+
     XrGraphicsBindingVulkanKHR vkBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
     vkBinding.instance = vulkanDevice->vkInstance;
     vkBinding.physicalDevice = vulkanDevice->vkPhysicalDevice;
@@ -49,6 +52,8 @@ void OpenxrSession::CreateSession(VulkanDevice* vulkanDevice)
 
 void OpenxrSession::SetSessionState(XrSessionState newState)
 {
+    ZoneScopedN("OpenxrSession::SetSessionState");
+
     static const std::vector<std::string> stateNames
     {
         "XR_SESSION_STATE_UNKNOWN",
@@ -110,6 +115,8 @@ void OpenxrSession::SetSessionState(XrSessionState newState)
 
 void OpenxrSession::InitializeSpaces()
 {
+    ZoneScopedN("OpenxrSession::InitializeSpaces");
+
     uint32_t spaceCount;
     CHK_XRCMD(xrEnumerateReferenceSpaces(xrSession, 0, &spaceCount, nullptr));
     std::vector<XrReferenceSpaceType> spaces(spaceCount);
@@ -177,6 +184,8 @@ void OpenxrSession::InitializeSpaces()
 
 bool OpenxrSession::SelectImageFormat(VkFormat format)
 {
+    ZoneScopedN("OpenxrSession::SelectImageFormat");
+
     unsigned int count;
     std::vector<int64_t> formatList;
     xrEnumerateSwapchainFormats(xrSession, 0, &count, nullptr);
@@ -196,6 +205,8 @@ bool OpenxrSession::SelectImageFormat(VkFormat format)
 
 void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
 {
+    ZoneScopedN("OpenxrSession::Initialize");
+
     CreateSession(vulkanDevice);
     InitializeSpaces();
 
@@ -294,6 +305,8 @@ void OpenxrSession::Initialize(VulkanDevice* vulkanDevice)
 
 void OpenxrSession::Destroy(VulkanDevice* vulkanDevice)
 {
+    ZoneScopedN("OpenxrSession::Destroy");
+
     xrDestroySpace(viewSpace);
     xrDestroySpace(localSpace);
     xrDestroySpace(stageSpace);
@@ -318,6 +331,8 @@ void OpenxrSession::Destroy(VulkanDevice* vulkanDevice)
 
 void OpenxrSession::BeginFrame()
 {
+    ZoneScopedN("OpenxrSession::BeginFrame");
+
     if (sessionState == XR_SESSION_STATE_READY ||
         sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
         sessionState == XR_SESSION_STATE_VISIBLE ||
@@ -386,6 +401,8 @@ void OpenxrSession::BeginFrame()
 
 void OpenxrSession::EndFrame()
 {
+    ZoneScopedN("OpenxrSession::EndFrame");
+
     if (sessionState == XR_SESSION_STATE_READY ||
         sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
         sessionState == XR_SESSION_STATE_VISIBLE ||
@@ -422,6 +439,8 @@ void OpenxrSession::EndFrame()
 uint32_t OpenxrSession::GetNextImageIndex(VulkanDevice* vulkanDevice,
     VkSemaphore imageAcquiredSemaphores)
 {
+    ZoneScopedN("OpenxrSession::GetNextImageIndex");
+
     uint32_t index;
     XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
     CHK_XRCMD(xrAcquireSwapchainImage(swapchainList[eye], &acquireInfo, &index));
@@ -451,6 +470,8 @@ uint32_t OpenxrSession::GetNextImageIndex(VulkanDevice* vulkanDevice,
 void OpenxrSession::PresentImage(VulkanDevice* vulkanDevic,
     VkSemaphore renderFinishedSemaphores, uint32_t imageIndex)
 {
+    ZoneScopedN("OpenxrSession::PresentImage");
+
     int index = (imageIndex >= imageCount)? 1:0;
     XrSwapchainImageReleaseInfo info{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
     CHK_XRCMD(xrReleaseSwapchainImage(swapchainList[index], &info));
@@ -458,6 +479,8 @@ void OpenxrSession::PresentImage(VulkanDevice* vulkanDevic,
 
 bool OpenxrSession::ShouldRender()
 {
+    ZoneScopedN("OpenxrSession::ShouldRender");
+
     return frameState.shouldRender && (
         sessionState == XR_SESSION_STATE_READY ||
         sessionState == XR_SESSION_STATE_SYNCHRONIZED ||
@@ -508,6 +531,8 @@ VkFramebuffer* OpenxrSession::GetFramebuffer(int index)
 
 void OpenxrSession::PrintErrorMsg(XrResult result)
 {
+    ZoneScopedN("OpenxrSession::PrintErrorMsg");
+
     xrResultToString(platform->xrInstance, result, resultBuffer);
     Logger::Write(
         "[OpenXR] API call error: " + std::string(resultBuffer),
