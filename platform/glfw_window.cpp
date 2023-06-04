@@ -11,9 +11,9 @@
 #include <tracy/Tracy.hpp>
 
 
-GlfwWindow::GlfwWindow()
+void GlfwWindow::InitializeWindow()
 {
-    ZoneScopedN("GlfwWindow::GlfwWindow");
+    ZoneScopedN("GlfwWindow::InitializeWindow");
 
     glfwSetErrorCallback(glfwErrorCallback);
     if (!glfwInit() || !glfwVulkanSupported())
@@ -24,24 +24,36 @@ GlfwWindow::GlfwWindow()
             Logger::MsgType::Platform
         );
     }
-    extensionsCount = 0;
+
+    uint32_t extensionsCount;
+    const char** extensions;
     extensions = glfwGetRequiredInstanceExtensions(&extensionsCount);
+    vkInstanceExt.resize(extensionsCount);
+    memcpy(vkInstanceExt.data(), extensions, extensionsCount * sizeof(const char*));
 
     Logger::Write(
             "[GLFW Window] Number of extensions needed: " + std::to_string(extensionsCount),
             Logger::Level::Info,
             Logger::MsgType::Platform
         );
-}
-
-void GlfwWindow::InitializeWindow()
-{
-    ZoneScopedN("GlfwWindow::InitializeWindow");
-
-    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
+    
+    for (const char* extension: vkInstanceExt)
+    {
+        Logger::Write(
+            "[GLFW Window] vkInstance extension: " + std::string(extension),
+            Logger::Level::Info, Logger::MsgType::Platform
+        );
+    }
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     window = glfwCreateWindow(1280, 720, "Vulkan Renderer", NULL, NULL);
+}
+
+void GlfwWindow::InitializeSurface()
+{
+    ZoneScopedN("GlfwWindow::InitializeSurface");
+
+    renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
     CHECK_VKCMD(glfwCreateWindowSurface(vkr.vkInstance, window, nullptr, &surface));
 
     glfwSetWindowUserPointer(window, this);
@@ -58,8 +70,8 @@ void GlfwWindow::InitializeWindow()
         );
     }
 
-    windowSwapchain.SetSurface(surface);
-    windowSwapchain.GetSwapChainProperties();
+    windowSwapchain = new WindowSwapchain();
+    windowSwapchain->SetSurface(surface);
 }
 
 void GlfwWindow::RegisterPeripherals()
@@ -80,7 +92,7 @@ void GlfwWindow::BeginFrame()
     glfwPollEvents();
 
     // Rebuild swapchain when window size changes
-    if (windowSwapchain.swapchainRebuild)
+    if (windowSwapchain->swapchainRebuild)
     {
         // Stall the program if window is minimized.
         int width, height;
@@ -92,22 +104,24 @@ void GlfwWindow::BeginFrame()
         }
 
         renderer::VulkanRenderer::GetInstance().RebuildSwapchain();
-        windowSwapchain.swapchainRebuild = false;
+        windowSwapchain->swapchainRebuild = false;
     }  
 }
 
-void GlfwWindow::CloseWindow()
+void GlfwWindow::DestroySurface()
 {
-    ZoneScopedN("GlfwWindow::CloseWindow");
+    ZoneScopedN("GlfwWindow::DestroySurface");
+
+    delete windowSwapchain;
 
     // Destory surface before vkInstance
     renderer::VulkanRenderer& vkr = renderer::VulkanRenderer::GetInstance();
     vkDestroySurfaceKHR(vkr.vkInstance, surface, nullptr);
 }
 
-void GlfwWindow::Destroy()
+void GlfwWindow::DestroyWindow()
 {
-    ZoneScopedN("GlfwWindow::Destroy");
+    ZoneScopedN("GlfwWindow::DestroyWindow");
 
     glfwDestroyWindow(window);
     glfwTerminate();

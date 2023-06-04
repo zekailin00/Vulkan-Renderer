@@ -31,6 +31,8 @@ public:
     void ProcessScene(VulkanNode* node);
     void ExecuteCommand(VkCommandBuffer commandBuffer);
     VkDescriptorSet GetDisplayDescSet() {return display;}
+    VkDescriptorSet* GetXrDisplayDescSet() {return xrDisplay;}
+
 
 private:
     void ScanNode(VulkanNode* node, const glm::mat4& transform);
@@ -61,10 +63,12 @@ private:
     std::vector<WirePushConst> wireList{};
     std::vector<std::shared_ptr<VulkanUI>> uiList{};
 
+
     VulkanUniform sceneUniform{};
     VkDescriptorSet sceneDescSet;
     SceneData *sceneMap = nullptr; // 5 directional light elements
 
+    VkDescriptorSet xrDisplay[2];
     VkDescriptorSet display; // The image that will be displayed in application
     VkDescriptorSet defaultDisplay; // Image that will be displayed when no camera is created.
 

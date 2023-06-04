@@ -9,13 +9,13 @@
 #include <tracy/Tracy.hpp>
 
 
-void VulkanDevice::Initialize(VkInstance vkInstance)
+void VulkanDevice::Initialize(VkInstance vkInstance, std::vector<const char*> deviceExt)
 {
     ZoneScopedN("VulkanDevice::Initialize");
 
     this->vkInstance = vkInstance;
     InitializePhysicalDevice();
-    InitializeLogicalDevice();
+    InitializeLogicalDevice(deviceExt);
 }
 
 uint32_t VulkanDevice::GetMemoryTypeIndex(uint32_t memoryType, VkMemoryPropertyFlags memoryProperties)

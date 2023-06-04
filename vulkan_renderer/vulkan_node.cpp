@@ -24,12 +24,12 @@ void VulkanNode::SetMesh(std::shared_ptr<Mesh> mesh)
     this->mesh = mesh;
 }
 
-std::shared_ptr<Camera> VulkanNode::GetCamera()
+std::shared_ptr<BaseCamera> VulkanNode::GetCamera()
 {
     return camera;
 }
 
-void VulkanNode::SetCamera(std::shared_ptr<Camera> camera)
+void VulkanNode::SetCamera(std::shared_ptr<BaseCamera> camera)
 {
     if ((camera != nullptr) &&
         (this->mesh || this->camera || this->light))

@@ -53,7 +53,8 @@ namespace renderer
 
 TracyVkCtx tracyVkCtx;
 
-void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** extensions)
+void VulkanRenderer::InitializeDevice(
+    std::vector<const char *> instanceExt, std::vector<const char *> deviceExt)
 {
     ZoneScopedN("VulkanRenderer::InitializeDevice");
 
@@ -61,9 +62,7 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
 
     // Create Vulkan Instance
     {
-        std::vector<const char*> extensionList;
-        extensionList.resize(extensionsCount);
-        memcpy(extensionList.data(), extensions, extensionsCount * sizeof(const char*));
+        std::vector<const char*> extensionList = instanceExt;
 
         VkInstanceCreateInfo vkCreateInfo = {};
         vkCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -111,7 +110,7 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
 #endif
     }
 
-    vulkanDevice.Initialize(vkInstance);
+    vulkanDevice.Initialize(vkInstance, deviceExt);
 
     {   // Tracy Vulkan context
         VulkanSingleCmd singleCmd;
@@ -123,13 +122,14 @@ void VulkanRenderer::InitializeDevice(uint32_t extensionsCount, const char** ext
     }
 }
 
-void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
+void VulkanRenderer::AllocateResources(
+    IVulkanSwapchain* glfwSwapchain, IVulkanSwapchain* openxrSwapchain)
 {
     ZoneScopedN("VulkanRenderer::AllocateResources");
 
-    this->swapchain = swapchain;
-    swapchain->Initialize();
-
+    this->swapchain = glfwSwapchain;
+    swapchain->Initialize(&vulkanDevice);
+    
     std::vector<VkDescriptorPoolSize> poolSizes =
     {
         { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
@@ -150,7 +150,8 @@ void VulkanRenderer::AllocateResources(IVulkanSwapchain* swapchain)
     vkDescriptorPoolInfo.maxSets = 1000 * static_cast<uint32_t>(poolSizes.size());
     vkDescriptorPoolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     vkDescriptorPoolInfo.pPoolSizes = poolSizes.data();
-    CHECK_VKCMD(vkCreateDescriptorPool(vulkanDevice.vkDevice, &vkDescriptorPoolInfo, nullptr, &vkDescriptorPool));
+    CHECK_VKCMD(vkCreateDescriptorPool(vulkanDevice.vkDevice,
+        &vkDescriptorPoolInfo, nullptr, &vkDescriptorPool));
 
     vulkanCmdBuffer.Initialize(&vulkanDevice, FRAME_IN_FLIGHT);
     
@@ -167,7 +168,7 @@ void VulkanRenderer::RebuildSwapchain()
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
     DestroyFramebuffers();
-    swapchain->RebuildSwapchain();
+    swapchain->RebuildSwapchain(&vulkanDevice);
     CreateFramebuffers();
 }
 
@@ -233,7 +234,8 @@ void VulkanRenderer::CreateRenderPasses()
         vkRenderPassCreateInfo.dependencyCount = 1;
         vkRenderPassCreateInfo.pDependencies = &dependency;
 
-        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.display));
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &vkRenderPass.display));
     }
 
     // Default camera render pass
@@ -263,7 +265,8 @@ void VulkanRenderer::CreateRenderPasses()
         vkRenderPassCreateInfo.dependencyCount = 1;
         vkRenderPassCreateInfo.pDependencies = &dependency;
 
-        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.defaultCamera));
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &vkRenderPass.defaultCamera));
     }
 
 
@@ -293,7 +296,8 @@ void VulkanRenderer::CreateRenderPasses()
         vkRenderPassCreateInfo.dependencyCount = 1;
         vkRenderPassCreateInfo.pDependencies = &dependency;
 
-        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice, &vkRenderPassCreateInfo, nullptr, &vkRenderPass.imgui));
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &vkRenderPass.imgui));
     }
 
 }
@@ -319,12 +323,11 @@ void VulkanRenderer::CreateFramebuffers()
     vkFramebufferCreateInfo.width = swapchain->GetWidth();
     vkFramebufferCreateInfo.height = swapchain->GetHeight();
     vkFramebufferCreateInfo.layers = 1;
-    //TODO: wrap framebuffer into swapchain class
-    vkFramebuffers.resize(swapchain->GetImageCount());
     for (uint32_t i = 0; i < swapchain->GetImageCount(); i++)
     {
         attachment[0] = swapchain->GetImageView(i);
-        CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice, &vkFramebufferCreateInfo, nullptr, &vkFramebuffers[i]));
+        CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice,
+            &vkFramebufferCreateInfo, nullptr, swapchain->GetFramebuffer(i)));
     }
 }
 
@@ -332,8 +335,14 @@ void VulkanRenderer::DestroyFramebuffers()
 {
     ZoneScopedN("VulkanRenderer::DestroyFramebuffers");
 
-    for (uint32_t i = 0; i < vkFramebuffers.size(); i++)
-        vkDestroyFramebuffer(vulkanDevice.vkDevice, vkFramebuffers[i], nullptr);
+    for (uint32_t i = 0; i < swapchain->GetImageCount(); i++)
+    {
+        vkDestroyFramebuffer(vulkanDevice.vkDevice, *swapchain->GetFramebuffer(i), nullptr);
+        *swapchain->GetFramebuffer(i) = VK_NULL_HANDLE;
+        // FIXME: better to destroy framebuffer inside the swapchan
+        // It had to be set to NULL here because it is destroyed again in swapchain
+        // if framebuffer is not NULL
+    }
 }
 
 /**
@@ -412,13 +421,13 @@ void VulkanRenderer::CreatePipelines()
     }
 
     {
-        std::unique_ptr<VulkanPipeline> quadPipeline = 
+        std::unique_ptr<VulkanPipeline> displayPipeline = 
             std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
         PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
-        std::unique_ptr<VulkanPipelineLayout> quadLayout;
+        std::unique_ptr<VulkanPipelineLayout> displayLayout;
 
-        quadPipeline->LoadShader("resources/vulkan_shaders/quad/vert.spv",
-                                "resources/vulkan_shaders/quad/frag.spv");
+        displayPipeline->LoadShader("resources/vulkan_shaders/transfer/vert.spv",
+                                    "resources/vulkan_shaders/transfer/frag.spv");
         
         layoutBuilder.PushDescriptorSetLayout("texture",
         {
@@ -426,23 +435,23 @@ void VulkanRenderer::CreatePipelines()
                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
         });
 
-        quadLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+        displayLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
 
         VkPipelineVertexInputStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         info.vertexAttributeDescriptionCount = 0;
         info.vertexBindingDescriptionCount = 0;
 
-        quadPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
-        quadPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+        displayPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
+        displayPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
-        quadPipeline->BuildPipeline(
+        displayPipeline->BuildPipeline(
             &info,
-            std::move(quadLayout),
+            std::move(displayLayout),
             vkRenderPass.display
         );
 
-        pipelines["display"] = std::move(quadPipeline);
+        pipelines["display"] = std::move(displayPipeline);
     }
 
     {
@@ -559,7 +568,7 @@ void VulkanRenderer::EndFrame()
     VkSemaphore imageAcquiredSemaphore = vcb.GetCurrImageSemaphore();
     VkSemaphore renderFinishedSemaphore = vcb.GetCurrRenderSemaphore();
 
-    int imageIndex = swapchain->GetNextImageIndex(imageAcquiredSemaphore);
+    int imageIndex = swapchain->GetNextImageIndex(&vulkanDevice, imageAcquiredSemaphore);
 
     defaultTechnique.ExecuteCommand(vkCommandBuffer);
 
@@ -570,9 +579,9 @@ void VulkanRenderer::EndFrame()
         VkClearValue clearValue{{{0.0f, 0.0f, 0.0f, 1.0f}}};
         VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         vkRenderPassinfo.renderPass = vkRenderPass.display;
-        vkRenderPassinfo.framebuffer = vkFramebuffers[imageIndex];
-        vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
+        vkRenderPassinfo.framebuffer = *swapchain->GetFramebuffer(imageIndex);
         vkRenderPassinfo.renderArea.extent.width = swapchain->GetWidth();
+        vkRenderPassinfo.renderArea.extent.height = swapchain->GetHeight();
         vkRenderPassinfo.clearValueCount = 1;
         vkRenderPassinfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -586,8 +595,8 @@ void VulkanRenderer::EndFrame()
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = swapchain->GetWidth();
-        viewport.height = swapchain->GetHeight();
+        viewport.width = static_cast<float>(swapchain->GetWidth());
+        viewport.height = static_cast<float>(swapchain->GetHeight());
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
@@ -608,11 +617,72 @@ void VulkanRenderer::EndFrame()
         vkCmdEndRenderPass(vkCommandBuffer);
     }
 
+    RenderOpenxrFrame(vkCommandBuffer);
+
     TracyVkCollect(tracyVkCtx, vkCommandBuffer);
     vcb.EndCommand();
 
     // Present image
-    swapchain->PresentImage(renderFinishedSemaphore, imageIndex);
+    swapchain->PresentImage(&vulkanDevice, renderFinishedSemaphore, imageIndex);
+}
+
+void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
+{
+    ZoneScopedN("VulkanRenderer::RenderOpenxrFrame");
+    TracyVkZone(tracyVkCtx, vkCommandBuffer, "RenderOpenxrFrame#VrDisplay");
+
+    if (!xrContext || !xrContext->swapchain->ShouldRender())
+        return;
+
+    // Once image per eye
+    for (int i = 0; i < 2; i++)
+    {
+        uint32_t imageIndex = xrContext->swapchain->GetNextImageIndex(
+            &vulkanDevice, VK_NULL_HANDLE );
+    
+        // Initialize swapchain image
+        VkClearValue clearValue{{{0.0f, 1.0f, 0.0f, 1.0f}}};
+        VkRenderPassBeginInfo vkRenderPassinfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        vkRenderPassinfo.renderPass = xrContext->renderpass;
+        vkRenderPassinfo.framebuffer = *xrContext->swapchain->GetFramebuffer(imageIndex);
+        vkRenderPassinfo.renderArea.extent.width = xrContext->swapchain->GetWidth();
+        vkRenderPassinfo.renderArea.extent.height = xrContext->swapchain->GetHeight();
+        vkRenderPassinfo.clearValueCount = 1;
+        vkRenderPassinfo.pClearValues = &clearValue;
+        vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        VkDescriptorSet descSet = defaultTechnique.GetXrDisplayDescSet()[i];
+
+        vkCmdBindPipeline(vkCommandBuffer, 
+            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            xrContext->pipeline->pipeline);
+
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(xrContext->swapchain->GetWidth());
+        viewport.height = static_cast<float>(xrContext->swapchain->GetHeight());
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(vkCommandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissor{};
+        scissor.offset = {0, 0};
+        scissor.extent = {
+            xrContext->swapchain->GetWidth(),
+            xrContext->swapchain->GetHeight()
+        };
+        vkCmdSetScissor(vkCommandBuffer, 0, 1, &scissor);
+
+        vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+            xrContext->pipeline->pipelineLayout->layout,
+            0, 1, &descSet, 0, nullptr);
+
+        vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
+
+        vkCmdEndRenderPass(vkCommandBuffer);
+        xrContext->swapchain->PresentImage(&vulkanDevice, VK_NULL_HANDLE, imageIndex);
+    }
 }
 
 void VulkanRenderer::DeallocateResources()
@@ -630,7 +700,7 @@ void VulkanRenderer::DeallocateResources()
     VulkanTextureCube::DestroyDefaultTexture();
 
     DestroyFramebuffers();
-    swapchain->Destroy();
+    swapchain->Destroy(&vulkanDevice);
 
     pipelines.clear();
     pipelineImgui.reset();
@@ -638,6 +708,11 @@ void VulkanRenderer::DeallocateResources()
 
     vulkanCmdBuffer.Destroy();
     vkDestroyDescriptorPool(vulkanDevice.vkDevice, vkDescriptorPool, nullptr);
+}
+
+void VulkanRenderer::Destroy()
+{
+    ZoneScopedN("VulkanRenderer::Destroy");
 
     TracyVkDestroy(tracyVkCtx);
     vulkanDevice.Destroy();
@@ -652,14 +727,141 @@ void VulkanRenderer::DeallocateResources()
 
 #endif
 
-}
-
-void VulkanRenderer::Destroy()
-{
-    ZoneScopedN("VulkanRenderer::Destroy");
-
     // Destory VkSurfaceKHR and sdebugUtilsMessengerEXT before vkInstance
     vkDestroyInstance(vkInstance, nullptr);
+}
+
+bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
+{
+    ZoneScopedN("VulkanRenderer::InitializeXrSession");
+
+    VulkanVrDisplay* display = nullptr;
+    for (const auto& n: dynamic_cast<VulkanNode*>(scene->GetRootNode())->nodeLists)
+    {
+        VulkanNode* vulkanNode = static_cast<VulkanNode*>(n.get());
+        if (vulkanNode->camera &&
+            vulkanNode->camera->cameraType == CameraType::VR_DISPLAY)
+            display = static_cast<VulkanVrDisplay*>(vulkanNode->camera.get());
+    }
+
+    if (display == nullptr)
+        return false;
+
+    xrSwapchain->Initialize(&vulkanDevice);
+    // Software antialising by a factor of 4
+    display->Initialize({swapchain->GetWidth() * 4, swapchain->GetHeight() * 4});
+
+    xrContext = new OpenxrContext();
+    xrContext->swapchain = xrSwapchain;
+    xrContext->display = display;
+
+    {
+        VkAttachmentDescription colorAttachmentDesc{};
+        colorAttachmentDesc.format = xrContext->swapchain->GetImageFormat();
+        colorAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        colorAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+        VkAttachmentReference colorAttachment{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+        VkSubpassDescription subpass = {};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = 1;
+        subpass.pColorAttachments = &colorAttachment;
+        
+        // Dependency for vkQueuePresentKHR with attachment output semaphore.
+        VkSubpassDependency dependency = {};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+        VkRenderPassCreateInfo vkRenderPassCreateInfo{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
+        vkRenderPassCreateInfo.attachmentCount = 1;
+        vkRenderPassCreateInfo.pAttachments = &colorAttachmentDesc;
+        vkRenderPassCreateInfo.subpassCount = 1;
+        vkRenderPassCreateInfo.pSubpasses = &subpass;
+        vkRenderPassCreateInfo.dependencyCount = 1;
+        vkRenderPassCreateInfo.pDependencies = &dependency;
+
+        CHECK_VKCMD(vkCreateRenderPass(vulkanDevice.vkDevice,
+            &vkRenderPassCreateInfo, nullptr, &xrContext->renderpass));
+    }
+
+    {
+        std::unique_ptr<VulkanPipeline> displayPipeline = 
+            std::make_unique<VulkanPipeline>(vulkanDevice.vkDevice);
+        PipelineLayoutBuilder layoutBuilder(&vulkanDevice);
+        std::unique_ptr<VulkanPipelineLayout> displayLayout;
+
+        displayPipeline->LoadShader("resources/vulkan_shaders/transfer/vert.spv",
+                                    "resources/vulkan_shaders/transfer/frag.spv");
+        
+        layoutBuilder.PushDescriptorSetLayout("texture",
+        {
+            layoutBuilder.descriptorSetLayoutBinding(
+                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
+        });
+
+        displayLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+
+        VkPipelineVertexInputStateCreateInfo info{};
+        info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        info.vertexAttributeDescriptionCount = 0;
+        info.vertexBindingDescriptionCount = 0;
+
+        displayPipeline->rasterState.cullMode = VK_CULL_MODE_NONE;
+        displayPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+
+        displayPipeline->BuildPipeline(
+            &info,
+            std::move(displayLayout),
+            xrContext->renderpass
+        );
+
+        xrContext->pipeline = std::move(displayPipeline);
+    }
+
+    VkImageView attachment[1];
+    VkFramebufferCreateInfo vkFramebufferCreateInfo{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+    vkFramebufferCreateInfo.renderPass = xrContext->renderpass;
+    vkFramebufferCreateInfo.attachmentCount = 1;
+    vkFramebufferCreateInfo.pAttachments = attachment;
+    vkFramebufferCreateInfo.width = xrContext->swapchain->GetWidth();
+    vkFramebufferCreateInfo.height = xrContext->swapchain->GetHeight();
+    vkFramebufferCreateInfo.layers = 1;
+    for (uint32_t i = 0; i < xrContext->swapchain->GetImageCount(); i++)
+    {
+        attachment[0] = xrContext->swapchain->GetImageView(i);
+        CHECK_VKCMD(vkCreateFramebuffer(vulkanDevice.vkDevice,
+            &vkFramebufferCreateInfo, nullptr,  xrContext->swapchain->GetFramebuffer(i)));
+    }
+
+    return true;
+}
+
+void VulkanRenderer::DestroyXrSession()
+{
+    ZoneScopedN("VulkanRenderer::DestroyXrSession");
+
+    if (!xrContext)
+        return;
+    
+    xrContext->pipeline = nullptr;
+    vkDestroyRenderPass(vulkanDevice.vkDevice, xrContext->renderpass, nullptr);
+
+    xrContext->display->Destory();
+    xrContext->swapchain->Destroy(&vulkanDevice);
+
+    delete xrContext->swapchain;
+    delete xrContext;
+    xrContext = nullptr;
 }
 
 VulkanPipelineLayout& VulkanRenderer::GetPipelineLayout(std::string name)

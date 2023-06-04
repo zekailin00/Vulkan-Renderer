@@ -39,13 +39,18 @@ public:
     }
 
     /* Update loop APIs */
-    void InitializeDevice(uint32_t extensionsCount, const char** extensions);
-    void AllocateResources(IVulkanSwapchain* swapchain);
+    void InitializeDevice(
+        std::vector<const char *> instanceExt, std::vector<const char *> deviceExt);
+    void AllocateResources(
+        IVulkanSwapchain* glfwSwapchain, IVulkanSwapchain* openxrSwapchain);
     void BeginFrame();
     void EndFrame();
     void DeallocateResources();
     void Destroy();
     void RebuildSwapchain();
+
+    bool InitializeXrSession(IVulkanSwapchain* xrSwapchain);
+    void DestroyXrSession();
 
 public:
     VkInstance vkInstance;
@@ -83,6 +88,8 @@ private: /* Private Vulkan helpers */
     VulkanRenderer(VulkanRenderer const&) = delete;
     void operator=(VulkanRenderer const&) = delete;
 
+    void RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer);
+
     void CreateRenderPasses();
     void CreateFramebuffers();
     void CreatePipelines();
@@ -99,16 +106,23 @@ public:
 
 private:
     VkDescriptorPool vkDescriptorPool;
-
-    // Framebuffers are created from images returned from the window system
-    std::vector<VkFramebuffer> vkFramebuffers;
-    
     VulkanCmdBuffer vulkanCmdBuffer;
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
     std::unique_ptr<PipelineImgui> pipelineImgui;
 
+    // Owned by glfw
     IVulkanSwapchain* swapchain = nullptr;
+
+    struct OpenxrContext
+    {
+        IVulkanSwapchain* swapchain;
+        VkRenderPass renderpass;
+        VulkanVrDisplay* display;
+        std::unique_ptr<VulkanPipeline> pipeline;
+    };
+
+    OpenxrContext* xrContext = nullptr;
 
     RenderTechnique defaultTechnique{};
 };

@@ -13,6 +13,7 @@ namespace renderer
 
 // Forward declaration
 class RenderTechnique;
+class VulkanRenderer;
 
 class VulkanNode: public Node
 {
@@ -22,9 +23,9 @@ public:
 
     void SetMesh(std::shared_ptr<Mesh> mesh) override;
 
-    std::shared_ptr<Camera> GetCamera() override;
+    std::shared_ptr<BaseCamera> GetCamera() override;
 
-    void SetCamera(std::shared_ptr<Camera> camera) override;
+    void SetCamera(std::shared_ptr<BaseCamera> camera) override;
 
     std::shared_ptr<Light> GetLight() override;
 
@@ -48,6 +49,7 @@ public:
     ~VulkanNode() override;
 
     friend RenderTechnique;
+    friend VulkanRenderer;
 
     std::vector<WirePushConst> wireList;
     std::shared_ptr<UI> ui;
@@ -55,7 +57,7 @@ public:
 private:
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Light> light;
-    std::shared_ptr<Camera> camera;
+    std::shared_ptr<BaseCamera> camera;
 
     VulkanUniform uniform{};
     VkDescriptorSet descSet = VK_NULL_HANDLE;

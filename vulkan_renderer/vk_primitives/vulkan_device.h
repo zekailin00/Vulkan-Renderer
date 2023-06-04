@@ -7,7 +7,7 @@
 class VulkanDevice
 {
 public:
-    void Initialize(VkInstance vkInstance);
+    void Initialize(VkInstance vkInstance, std::vector<const char*> deviceExt);
     uint32_t GetMemoryTypeIndex(uint32_t memoryType, VkMemoryPropertyFlags memoryProperties);
     VkFormat GetDepthFormat();
     void Destroy();

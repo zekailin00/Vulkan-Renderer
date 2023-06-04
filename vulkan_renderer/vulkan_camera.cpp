@@ -19,6 +19,7 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     std::shared_ptr<VulkanCamera> camera = std::make_unique<VulkanCamera>();
 
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
+    camera->cameraType = CameraType::CAMERA;
     camera->vulkanDevice = &vkr.vulkanDevice;
     camera->swapchain = vkr.GetSwapchain();
 
@@ -27,7 +28,6 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     {
         camera->properties.Extent.x = camera->swapchain->GetWidth();
         camera->properties.Extent.y = camera->swapchain->GetHeight();
-        //TODO: needs to be tested, extent values from swapchain interface.
     }
 
     // Create color image
@@ -114,7 +114,7 @@ std::shared_ptr<VulkanCamera> VulkanCamera::BuildCamera(CameraProperties& proper
     vkFramebufferCreateInfo.attachmentCount = attachments.size();
     vkFramebufferCreateInfo.pAttachments = attachments.data();
     vkFramebufferCreateInfo.width = camera->properties.Extent.x;
-    vkFramebufferCreateInfo.height = camera->properties.Extent.y; //TODO:CHECK
+    vkFramebufferCreateInfo.height = camera->properties.Extent.y;
     vkFramebufferCreateInfo.layers = 1;
 
     CHECK_VKCMD(vkCreateFramebuffer(
@@ -226,6 +226,37 @@ void VulkanCamera::Destroy()
     vulkanDevice = nullptr;
     swapchain = nullptr;
     vpMap = nullptr;
+}
+
+std::shared_ptr<VulkanVrDisplay> VulkanVrDisplay::BuildCamera()
+{
+    ZoneScopedN("VulkanVrDisplay::BuildCamera");
+
+    std::shared_ptr<VulkanVrDisplay> display =
+        std::make_shared<VulkanVrDisplay>();
+    display->cameraType = CameraType::VR_DISPLAY;
+
+    return display;
+}
+
+void VulkanVrDisplay::Initialize(glm::vec2 extent)
+{
+    ZoneScopedN("VulkanVrDisplay::Initialize");
+
+    CameraProperties prop{};
+    prop.UseFrameExtent = false;
+    prop.Extent = extent;
+
+    cameras[0] = VulkanCamera::BuildCamera(prop);
+    cameras[1] = VulkanCamera::BuildCamera(prop);
+}
+
+void VulkanVrDisplay::Destory()
+{
+    ZoneScopedN("VulkanVrDisplay::Destory");
+
+    cameras[0] = nullptr;
+    cameras[1] = nullptr;
 }
 
 } // namespace renderer
