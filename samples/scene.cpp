@@ -36,6 +36,7 @@ class TestApp: public Application
     std::shared_ptr<Texture> rough;
     std::shared_ptr<Texture> metal;
 
+    Node* vrCamNode = nullptr;
     Node* camNode = nullptr;
     Node* lightNode = nullptr;
     Node* lightDebug = nullptr;
@@ -59,7 +60,7 @@ void TestApp::OnCreated()
 
     {
         GltfModel model;
-        model.LoadModel("/Users/zekailin00/Desktop/rusk.gltf");
+        model.LoadModel("/Users/zekai/Desktop/rusk.gltf");
         node = std::make_unique<VulkanNode>();
         nodePtr = root->AddChildNode(std::move(node));
         rusk = nodePtr->AddChildNode(model.GetNode());
@@ -74,7 +75,7 @@ void TestApp::OnCreated()
     {
         node = std::make_unique<VulkanNode>();
         BuildMeshInfo meshInfo{};
-        std::string path = "/Users/zekailin00/Desktop/quad.obj";
+        std::string path = "/Users/zekai/Desktop/quad.obj";
         renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         std::shared_ptr<Mesh> uiMesh = VulkanMesh::BuildMesh(meshInfo);
 
@@ -102,7 +103,7 @@ void TestApp::OnCreated()
     {
         node = std::make_unique<VulkanNode>();
         BuildMeshInfo meshInfo{};
-        std::string path = "/Users/zekailin00/Desktop/quad.obj";
+        std::string path = "/Users/zekai/Desktop/quad.obj";
         renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         std::shared_ptr<Mesh> uiMesh = VulkanMesh::BuildMesh(meshInfo);
 
@@ -132,7 +133,7 @@ void TestApp::OnCreated()
     {
         node = std::make_unique<VulkanNode>();
         BuildMeshInfo meshInfo{};
-        std::string path = "/Users/zekailin00/Desktop/quad.obj";
+        std::string path = "/Users/zekai/Desktop/quad.obj";
         renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
         std::shared_ptr<Mesh> uiMesh = VulkanMesh::BuildMesh(meshInfo);
 
@@ -196,6 +197,7 @@ void TestApp::OnCreated()
         nodePtr = root->AddChildNode(std::move(node));
 
         CameraProperties prop{};
+        prop.UseFrameExtent = false;
         this->camera = VulkanCamera::BuildCamera(prop);
         nodePtr->SetCamera(this->camera);
 
@@ -204,6 +206,32 @@ void TestApp::OnCreated()
                 * glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 3.0f, 10));
         nodePtr->SetTransform(view);
         camNode = nodePtr;
+    }
+
+    {
+        node = std::make_unique<VulkanNode>();
+        nodePtr = root->AddChildNode(std::move(node));
+
+        nodePtr->SetCamera(VulkanVrDisplay::BuildCamera());
+
+        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 5.0f, 3.0));
+        nodePtr->SetTransform(view);
+        vrCamNode = nodePtr;
+    }
+
+    {
+        node = std::make_unique<VulkanNode>();
+        nodePtr = vrCamNode->AddChildNode(std::move(node));
+
+        BuildMeshInfo meshInfo{};
+        std::string path = "resources/models/debug/arrow_debug.obj";
+        renderer::ObjLoader(path, meshInfo.vertices, meshInfo.indices);
+        mesh_test = VulkanMesh::BuildMesh(meshInfo);
+
+        nodePtr->SetMesh(mesh_test);
+
+        view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0));
+        nodePtr->SetTransform(view);
     }
 
 
@@ -281,7 +309,7 @@ void TestApp::OnCreated()
 void TestApp::OnUpdated(float ts)
 {
 
-    std::cout << "Frame frate: " << 1/ts << "| ts: " << ts << "\r"; 
+    // std::cout << "Frame frate: " << 1/ts << "| ts: " << ts << "\r"; 
     glm::mat4 view;
     static float totalTime = 0;
     totalTime += ts;
@@ -313,7 +341,8 @@ void TestApp::OnDestroy()
 
 int main(int argv, char** argc)
 {
-    TestApp app{};
-    app.Run();
-    std::cout << "Hello world." << std::endl;
+    {   
+        TestApp app{};
+        app.Run();
+    }
 }
