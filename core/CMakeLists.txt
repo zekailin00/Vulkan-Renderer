@@ -17,4 +17,4 @@ target_link_libraries(engine_core PUBLIC
 # Build settings
 set_property(TARGET engine_core PROPERTY CXX_STANDARD 17)
 
-add_subdirectory(test)
+add_subdirectory(tests)
