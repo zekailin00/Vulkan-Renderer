@@ -35,7 +35,6 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/external/OpenXR-SDK")
 option(TRACY_ENABLE "" ON)
 add_subdirectory ("${CMAKE_SOURCE_DIR}/external/tracy")
 
-
 # GLFW
 set(GLFW_DIR "${CMAKE_SOURCE_DIR}/external/glfw") # Set this to point to an up-to-date GLFW repo
 option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)
@@ -64,39 +63,45 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/utility")
 # core
 add_subdirectory("${CMAKE_SOURCE_DIR}/core")
 
-# Vulkan Renderer
-add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
+# Renderer
+add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
 
-# Target settings
-add_library(renderer
-    ${LOCAL_HEADERS}
-    ${LOCAL_SOURCE}
+
+# platform library
+add_library(platform
     ${PLT_HEADERS}
     ${PLT_SOURCE}
 )
 
-# Target settings
-target_include_directories(renderer PUBLIC
-    ${Vulkan_INCLUDE_DIRS}
-    ${IMGUI_DIR}
-    ${IMGUI_DIR}/backends
+target_include_directories(platform PUBLIC
     platform
+)
+
+target_link_libraries(platform
+    renderer
+    openxr_loader
+    glfw
+)
+
+
+# Target settings
+add_library(engine
+    ${LOCAL_HEADERS}
+    ${LOCAL_SOURCE}
+)
+
+# Target settings
+target_include_directories(engine PUBLIC
     .
 )
 
-# platforms 
-target_link_libraries(renderer 
-    glfw
-    openxr_loader
-)
-
 # libraries
-target_link_libraries(renderer
-    VulkanRenderer
-    utility
+target_link_libraries(engine
+    renderer
+    platform
 )
 
 # Build settings
-set_property(TARGET renderer PROPERTY CXX_STANDARD 17)
+set_property(TARGET engine PROPERTY CXX_STANDARD 17)
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")

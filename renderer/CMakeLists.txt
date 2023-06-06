@@ -16,7 +16,7 @@ file(GLOB IMGUI_SOURCE "${IMGUI_DIR}/*.cpp")
 # stb image
 set(STB_IMAGE "${CMAKE_SOURCE_DIR}/external/stb/include")
 
-add_library(VulkanRenderer    
+add_library(renderer    
     ${LOCAL_HEADERS}
     ${LOCAL_SOURCE}
     ${PRIM_HEADERS}
@@ -24,31 +24,25 @@ add_library(VulkanRenderer
     ${LOADER_HEADERS}
     ${LOADER_SOURCE}
 
-    ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp
     ${IMGUI_SOURCE}
 )
 
 # Target settings
-target_include_directories(VulkanRenderer PUBLIC 
+target_include_directories(renderer PUBLIC 
     ${Vulkan_INCLUDE_DIRS}
-    
+
     ${IMGUI_DIR}
-    ${IMGUI_DIR}/backends
-    
     ${STB_IMAGE}
-    ${CMAKE_SOURCE_DIR}/renderer
     ${TINY_OBJ_DIR}
-    
+
+    interface
     .
 )
 
-target_link_libraries(VulkanRenderer PUBLIC
+target_link_libraries(renderer PUBLIC
     ${Vulkan_LIBRARY}
     utility
-    jsoncpp_static
-    glm
 )
 
-
 # Build settings
-set_property(TARGET VulkanRenderer PROPERTY CXX_STANDARD 17)
+set_property(TARGET renderer PROPERTY CXX_STANDARD 17)
