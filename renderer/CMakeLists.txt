@@ -41,7 +41,7 @@ target_include_directories(renderer PUBLIC
 
 target_link_libraries(renderer PUBLIC
     ${Vulkan_LIBRARY}
-    core
+    engine_core
 )
 
 # Build settings

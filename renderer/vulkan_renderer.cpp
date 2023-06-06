@@ -2,7 +2,6 @@
 
 #include "vulkan_swapchain.h"
 #include "vulkan_texture.h"
-#include "vulkan_scene.h"
 #include "vulkan_wireframe.h"
 
 #include "vk_primitives/vulkan_vertexbuffer.h"
