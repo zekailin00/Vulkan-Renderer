@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23.0)
 
-project(vulkan_renderer)
+project(SemaLink_Engine)
 
 include(CTest)
 
@@ -99,6 +99,7 @@ target_include_directories(engine PUBLIC
 target_link_libraries(engine
     renderer
     platform
+    core
 )
 
 # Build settings
