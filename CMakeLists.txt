@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.23.0)
 
 project(vulkan_renderer)
+
+include(CTest)
 
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
@@ -53,6 +55,7 @@ set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
 set(TINY_OBJ_DIR "${CMAKE_SOURCE_DIR}/external/tiny_obj_loader/tiny-obj-loader-submodule/include")
 
 # json cpp
+option(JSONCPP_WITH_TESTS "Compile and (for jsoncpp_check) run JsonCpp test executables" OFF)
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/jsoncpp")
 
 # utility
