@@ -6,7 +6,7 @@
 
 Component* Entity::AddComponent(Component::Type type)
 {
-    Component* component = ComponentAllocator::Get(type)(this);
+    Component* component = ComponentLocator::GetInitializer(type)(this);
     componentList[(int)type] = component;
 
     ASSERT(component->entity == this);
@@ -79,7 +79,7 @@ bool Entity::Deserialize(Json::Value& json)
         if (!jsonComponents[i].isNull())
         {
             Json::Value& jsonComponent = jsonComponents[i];
-            componentList[i] = ComponentDeserailizer::Get(
+            componentList[i] = ComponentLocator::GetDeserializer(
                 (Component::Type)i)(this, jsonComponent);
 
             ASSERT(componentList[i]->entity == this);
