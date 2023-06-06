@@ -58,6 +58,9 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/external/jsoncpp")
 # utility
 add_subdirectory("${CMAKE_SOURCE_DIR}/utility")
 
+# core
+add_subdirectory("${CMAKE_SOURCE_DIR}/core")
+
 # Vulkan Renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
 
