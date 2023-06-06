@@ -40,7 +40,6 @@ class ComponentLocator
 {
 
 public:
-
     static void SetInitializer(Component::Type type, CompInitializer callback)
     {
         initializerList[(int)type] = callback;
