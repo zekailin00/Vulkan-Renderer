@@ -8,10 +8,15 @@ struct Event
 {
     enum class Type
     {
-        Input
+        InputViews,
+        InputPoses,
+        InputFloats,
+        InputKeyboard
     };
 
     Type type;
+
+    virtual ~Event() = default;
 };
 
 /**
@@ -25,10 +30,17 @@ public:
     enum Category
     {
         None = 0,
-        Input,
+        InputXR,
+        InputGFLW,
         Subsystem,
         CategorySize
     };
+
+    static EventQueue* GetInstance()
+    {
+        static EventQueue queue;
+        return &queue;
+    }
 
     void Publish(Category category, Event* event);
     void Subscribe(Category category, std::function<void(Event*)> callback);
