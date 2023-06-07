@@ -20,6 +20,7 @@ struct Vertex
 
 struct BuildMeshInfo
 {
+    std::string resourcePath;
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 };

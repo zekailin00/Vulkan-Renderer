@@ -11,13 +11,16 @@
 namespace renderer
 {
 
+class VulkanRenderer;
+
 class MeshInitializer
 {
     RenderTechnique* technique;
+    VulkanRenderer* renderer;
 
 public:
-    MeshInitializer(RenderTechnique* technique)
-    :technique(technique){}
+    MeshInitializer(RenderTechnique* technique, VulkanRenderer* renderer)
+    :technique(technique), renderer(renderer){}
 
     Component* operator()(Entity* entity);
 };
@@ -25,18 +28,23 @@ public:
 class MeshDeserializer
 {
     RenderTechnique* technique;
+    VulkanRenderer* renderer;
 
 public:
-    MeshDeserializer(RenderTechnique* technique)
-    :technique(technique){}
+    MeshDeserializer(RenderTechnique* technique, VulkanRenderer* renderer)
+    :technique(technique), renderer(renderer){}
 
     Component* operator()(Entity* entity, Json::Value& json);
 };
 
 struct MeshComponent: public Component
 {
-
     std::shared_ptr<VulkanMesh> mesh;
+
+    VulkanUniform uniform{};
+    VkDescriptorSet descSet = VK_NULL_HANDLE;
+    VulkanDevice* vulkanDevice = nullptr;
+    glm::mat4* transform = nullptr;
 
     void Update(Timestep ts) override;
     void Serialize(Json::Value& json) override;

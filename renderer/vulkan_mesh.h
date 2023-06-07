@@ -32,6 +32,8 @@ private:
     VulkanUniform uniform{};
     glm::mat4* map = nullptr;
     VkDescriptorSet descSet = VK_NULL_HANDLE;
+    
+    std::string resourcePath;
 };
 
 } // namespace renderer

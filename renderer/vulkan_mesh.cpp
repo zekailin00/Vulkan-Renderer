@@ -54,6 +54,7 @@ std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
 
     mesh->material = VulkanMaterial::GetDefaultMaterial();
 
+    mesh->resourcePath = info.resourcePath;
     return mesh;
 }
 
