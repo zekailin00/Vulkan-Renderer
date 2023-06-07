@@ -33,6 +33,7 @@ public:
 struct LightComponent: public Component
 {
     LightProperties properties;
+    std::shared_ptr<VulkanLight> light;
 
     void Update(Timestep ts) override;
     void Serialize(Json::Value& json) override;
@@ -43,7 +44,6 @@ private:
     friend LightDeserializer;
 
     RenderTechnique* technique;
-    std::shared_ptr<VulkanLight> light;
 };
 
 } // namespace renderer

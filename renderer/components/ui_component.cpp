@@ -10,7 +10,7 @@ Component* UIInitializer::operator()(Entity* entity)
     component->type = Component::Type::UI;
     component->technique = technique;
 
-    component->ui == nullptr;
+    component->ui = nullptr;
     component->uiTexture = nullptr;
 
     return component;

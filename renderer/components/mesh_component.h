@@ -55,7 +55,6 @@ private:
     friend MeshDeserializer;
 
     RenderTechnique* technique;
-    std::shared_ptr<VulkanMesh> Mesh;
 };
 
 } // namespace renderer

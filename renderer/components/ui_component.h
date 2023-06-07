@@ -48,7 +48,6 @@ private:
     friend UIDeserializer;
 
     RenderTechnique* technique;
-    std::shared_ptr<VulkanUI> UI;
 };
 
 } // namespace renderer
