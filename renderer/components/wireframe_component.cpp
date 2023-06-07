@@ -1,4 +1,4 @@
-#include "Wireframe_component.h"
+#include "wireframe_component.h"
 
 #include "entity.h"
 #include "serialization.h" 
