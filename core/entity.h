@@ -5,6 +5,7 @@
 
 #include <json/json.h>
 #include <glm/mat4x4.hpp>
+#include <glm/gtx/quaternion.hpp>
 #include <list>
 
 class Scene;
@@ -28,6 +29,20 @@ public:
     bool operator==(const Entity& e);
 
 public:
+    glm::mat4 GetGlobalTransform();
+    glm::mat4 GetLocalTransform();
+
+    void SetLocalTransform(glm::mat4 transform);
+    void SetLocalTransform(glm::vec3 postion, glm::quat rotation, glm::vec3 scale);
+
+    glm::vec3 GetLocalTranslation();
+    glm::quat GetLocalRotation();
+    glm::vec3 GetLocalScale();
+
+    Entity* GetChildByName(std::string name);
+    std::list<Entity*>& GetChildren();
+
+public:
     std::string name;
 
 private:
@@ -38,9 +53,6 @@ private:
 
     Entity() = default;
     ~Entity() = default;
-
-    void SerializeMat4(Json::Value& json);
-    void DeserializeMat4(Json::Value& json);
 
 private:
     Component* componentList[(int)Component::Type::Size];
