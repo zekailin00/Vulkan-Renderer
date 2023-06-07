@@ -15,25 +15,24 @@ struct Component
 {
     enum class Type
     {
-        CompA,
-        CompB,
+        Camera,
+        Light,
+        Mesh,
+        UI,
+        Wireframe,
         Size
     };
 
     bool enabled = true;
     Type type = Type::Size;
-
     Entity* entity;
 
-    virtual void OnCreated() = 0;
-    virtual void OnUpdated(Timestep ts) = 0;
-    virtual void OnDestroyed() = 0;
+public:
+    virtual void Update(Timestep ts) = 0;
     virtual void Serialize(Json::Value& json) = 0;
-    virtual bool Deserialize(Json::Value& json) = 0;
-    virtual Component* replicate() = 0;
+    virtual ~Component() = default;
 
     Component() = default;
-    virtual ~Component() = default;
 };
 
 class ComponentLocator
