@@ -1,5 +1,5 @@
 add_executable(scene1 scene1.cpp)
-target_link_libraries(scene1 renderer)
+target_link_libraries(scene1 engine)
 set_property(TARGET scene1 PROPERTY CXX_STANDARD 17)
 
 add_custom_command(TARGET scene1 POST_BUILD
@@ -8,7 +8,7 @@ add_custom_command(TARGET scene1 POST_BUILD
 
 
 add_executable(scene2 scene2.cpp)
-target_link_libraries(scene2 renderer)
+target_link_libraries(scene2 engine)
 set_property(TARGET scene2 PROPERTY CXX_STANDARD 17)
 
 add_custom_command(TARGET scene2 POST_BUILD

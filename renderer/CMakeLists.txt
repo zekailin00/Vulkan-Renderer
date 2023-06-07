@@ -8,6 +8,8 @@ file(GLOB PRIM_HEADERS "vk_primitives/*.h")
 file(GLOB PRIM_SOURCE "vk_primitives/*.cpp")
 file(GLOB LOADER_HEADERS "loaders/*.h")
 file(GLOB LOADER_SOURCE "loaders/*.cpp")
+file(GLOB COMPONENT_HEADERS "components/*.h")
+file(GLOB COMPONENT_SOURCE "components/*.cpp")
 
 # Dear ImGui
 set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
@@ -23,6 +25,8 @@ add_library(renderer
     ${PRIM_SOURCE}
     ${LOADER_HEADERS}
     ${LOADER_SOURCE}
+    ${COMPONENT_HEADERS}
+    ${COMPONENT_SOURCE}
 
     ${IMGUI_SOURCE}
 )
@@ -35,6 +39,7 @@ target_include_directories(renderer PUBLIC
     ${STB_IMAGE}
     ${TINY_OBJ_DIR}
 
+    components
     interface
     .
 )
