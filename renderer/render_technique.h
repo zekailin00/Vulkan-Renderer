@@ -20,6 +20,15 @@ namespace renderer
 class RenderTechnique
 {
 public:
+    struct MeshPacket
+    {
+        std::shared_ptr<VulkanMesh> mesh;
+        VkDescriptorSet descSet; // Mesh transform
+        // FIXME: descset is not protected by shared_ptr
+        // freee std::__ptr node can have memory access error. 
+    };
+
+public:
     RenderTechnique() = default;
     ~RenderTechnique();
     void Destroy();
@@ -28,25 +37,18 @@ public:
     RenderTechnique& operator=(const RenderTechnique&) = delete;
 
     void Initialize(VulkanDevice* vulkanDevice);
-    void ProcessScene(VulkanNode* node);
+    void ResetSceneData();
     void ExecuteCommand(VkCommandBuffer commandBuffer);
     VkDescriptorSet GetDisplayDescSet() {return display;}
     VkDescriptorSet* GetXrDisplayDescSet() {return xrDisplay;}
 
+    void PushRendererData(const DirLight& dirLight);
+    void PushRendererData(const MeshPacket& meshPacket);
+    void PushRendererData(const std::shared_ptr<VulkanUI>& ui);
+    void PushRendererData(const std::vector<renderer::WirePushConst>& wireList);
+    void PushRendererData(const std::shared_ptr<BaseCamera>& camera);
 
 private:
-    void ScanNode(VulkanNode* node, const glm::mat4& transform);
-    void DrawCamera(VkCommandBuffer vkCommandBuffer);
-
-private:
-
-    struct MeshPacket
-    {
-        std::shared_ptr<VulkanMesh> mesh;
-        VkDescriptorSet descSet; // Mesh transform
-        // FIXME: descset is not protected by shared_ptr
-        // freee std::__ptr node can have memory access error. 
-    };
 
     struct SceneData
     { // only the first element is nLight is used.

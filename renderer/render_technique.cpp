@@ -102,24 +102,21 @@ void RenderTechnique::Destroy()
     textureCube = nullptr;
 }
 
-void RenderTechnique::ProcessScene(VulkanNode* root)
+void RenderTechnique::ResetSceneData()
 {
     ZoneScopedN("RenderTechnique::ProcessScene");
-
-    glm::mat4 identity = glm::mat4(1);
     sceneMap->nLight.x = 0;
-    ScanNode(root, identity);
+}
+
+void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
+{
+    ZoneScopedN("RenderTechnique::ExecuteCommand");
 
     if(sceneMap->nLight.x == 0)
     {
         sceneMap->dirLight[0] = VulkanLight::GetDefaultLight()->dirLight;
         sceneMap->nLight++;
     }
-}
-
-void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
-{
-    ZoneScopedN("RenderTechnique::ExecuteCommand");
 
     if(cameraList.empty())
     {
@@ -326,137 +323,78 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     );
 }
 
-void RenderTechnique::ScanNode(VulkanNode* node, const glm::mat4& transform)
-{
-    ZoneScopedN("RenderTechnique::ScanNode");
+    //TODO:
+    // ///------------------------------------------------------------
+    //      if (node->camera->cameraType == CameraType::VR_DISPLAY)
+    //     {
+    //         std::shared_ptr<VulkanVrDisplay> vkCamera =
+    //             std::dynamic_pointer_cast<VulkanVrDisplay>(node->camera);
 
-    glm::mat4 globTransform = transform * node->GetTransform();
-    *node->transform = globTransform;
+    //         Input* input = Input::GetInstance();
 
-    if (node->mesh)
-    {
-        MeshPacket packet
-        {
-            std::dynamic_pointer_cast<VulkanMesh>(node->mesh),
-            node->descSet
-        };
+    //         if (vkCamera->cameras[0] && vkCamera->cameras[1])
+    //         {
+    //             {   // project matrices of the left eye
+    //                 glm::vec4 xrFoV = input->xr_left_eye_fov;
+    //                 glm::mat4 proj;
+    //                 XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
 
-        renderMesh.push_back(packet);
-    }
-    else if (node->light)
-    {
-        std::shared_ptr<VulkanLight> light = 
-            std::dynamic_pointer_cast<VulkanLight>(node->light);
-        light->SetTransform(globTransform);
+    //                 vkCamera->cameras[0]->vpMap->projection = proj;
+    //             }
 
-        if (sceneMap->nLight.x != 5)
-        {
-            uint32_t i = sceneMap->nLight.x++;
-            sceneMap->dirLight[i] = light->dirLight;
-        }
-    }
-    else if (node->camera)
-    {
-        if (node->camera->cameraType == CameraType::CAMERA)
-        {
-            std::shared_ptr<VulkanCamera> vkCamera =
-                std::dynamic_pointer_cast<VulkanCamera>(node->camera);
-            vkCamera->SetTransform(globTransform);
+    //             {   // project matrices of the right eye
+    //                 glm::vec4 xrFoV = input->xr_right_eye_fov;
+    //                 glm::mat4 proj;
+    //                 XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
 
-            cameraList.push_back(
-                std::dynamic_pointer_cast<VulkanCamera>(node->camera));
-        }
-        else if (node->camera->cameraType == CameraType::VR_DISPLAY)
-        {
-            std::shared_ptr<VulkanVrDisplay> vkCamera =
-                std::dynamic_pointer_cast<VulkanVrDisplay>(node->camera);
+    //                 vkCamera->cameras[1]->vpMap->projection = proj;
+    //             }
 
-            Input* input = Input::GetInstance();
+    //             {   // view matrix of the left eye
+    //                 glm::vec4 xrQuat = input->xr_left_eye_quat;
+    //                 glm::vec3 xrPos = input->xr_left_eye_pos;
+    //                 glm::quat quat{};
+    //                 quat.x = xrQuat[0];
+    //                 quat.y = xrQuat[1];
+    //                 quat.z = xrQuat[2];
+    //                 quat.w = xrQuat[3];
 
-            if (vkCamera->cameras[0] && vkCamera->cameras[1])
-            {
-                {   // project matrices of the left eye
-                    glm::vec4 xrFoV = input->xr_left_eye_fov;
-                    glm::mat4 proj;
-                    XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
+    //                 glm::mat4 rotation = glm::toMat4(quat);
+    //                 glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
 
-                    vkCamera->cameras[0]->vpMap->projection = proj;
-                }
+    //                 vkCamera->cameras[0]->SetTransform(
+    //                     globTransform * translation * rotation);
+    //             }
 
-                {   // project matrices of the right eye
-                    glm::vec4 xrFoV = input->xr_right_eye_fov;
-                    glm::mat4 proj;
-                    XrProjectionFov(proj, xrFoV, 0.01f, 100.0f);
+    //             {   // view matrix of the right eye
+    //                 glm::vec4 xrQuat = input->xr_right_eye_quat;
+    //                 glm::vec3 xrPos = input->xr_right_eye_pos;
+    //                 glm::quat quat{};
+    //                 quat.x = xrQuat[0];
+    //                 quat.y = xrQuat[1];
+    //                 quat.z = xrQuat[2];
+    //                 quat.w = xrQuat[3];
 
-                    vkCamera->cameras[1]->vpMap->projection = proj;
-                }
+    //                 glm::mat4 rotation = glm::toMat4(quat);
+    //                 glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
 
-                {   // view matrix of the left eye
-                    glm::vec4 xrQuat = input->xr_left_eye_quat;
-                    glm::vec3 xrPos = input->xr_left_eye_pos;
-                    glm::quat quat{};
-                    quat.x = xrQuat[0];
-                    quat.y = xrQuat[1];
-                    quat.z = xrQuat[2];
-                    quat.w = xrQuat[3];
+    //                 vkCamera->cameras[1]->SetTransform(
+    //                     globTransform * translation * rotation);
 
-                    glm::mat4 rotation = glm::toMat4(quat);
-                    glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
+    //                 // Correct the transform of HMD object
+    //                 globTransform = globTransform * translation * rotation;
+    //                 *node->transform = globTransform;
+    //             }
 
-                    vkCamera->cameras[0]->SetTransform(
-                        globTransform * translation * rotation);
-                }
+    //             cameraList.push_back(
+    //                 std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[0]));
+    //             cameraList.push_back(
+    //                 std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[1]));
 
-                {   // view matrix of the right eye
-                    glm::vec4 xrQuat = input->xr_right_eye_quat;
-                    glm::vec3 xrPos = input->xr_right_eye_pos;
-                    glm::quat quat{};
-                    quat.x = xrQuat[0];
-                    quat.y = xrQuat[1];
-                    quat.z = xrQuat[2];
-                    quat.w = xrQuat[3];
-
-                    glm::mat4 rotation = glm::toMat4(quat);
-                    glm::mat4 translation = glm::translate(glm::mat4(1.0f), xrPos);
-
-                    vkCamera->cameras[1]->SetTransform(
-                        globTransform * translation * rotation);
-
-                    // Correct the transform of HMD object
-                    globTransform = globTransform * translation * rotation;
-                    *node->transform = globTransform;
-                }
-
-                cameraList.push_back(
-                    std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[0]));
-                cameraList.push_back(
-                    std::dynamic_pointer_cast<VulkanCamera>(vkCamera->cameras[1]));
-
-                xrDisplay[0] = vkCamera->cameras[0]->colorTexDescSet;
-                xrDisplay[1] = vkCamera->cameras[1]->colorTexDescSet;
-            }
-        }
-    } 
-    else if (!node->wireList.empty())
-    {
-        for (WirePushConst& e: node->wireList)
-        {
-            this->wireList.push_back(e);
-        }
-    }
-    // Although ui is not directly rendered 
-    // it still has to be placed in a node to be scanned
-    // it can be stored in the same node that the quad is also stored.
-    if (node->ui)
-    {
-        uiList.push_back(std::dynamic_pointer_cast<VulkanUI>(node->ui));
-    }
-    
-    for (const auto& n: node->nodeLists)
-    {
-        ScanNode(static_cast<VulkanNode*>(n.get()), globTransform);
-    }
-}
+    //             xrDisplay[0] = vkCamera->cameras[0]->colorTexDescSet;
+    //             xrDisplay[1] = vkCamera->cameras[1]->colorTexDescSet;
+    //         }
+    // //-------------------------------------------------------------
 
 void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
 {
@@ -529,16 +467,56 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pImageInfo = VulkanTextureCube::GetDefaultTexture()->GetDescriptor();
+        descriptorWrite.pImageInfo =
+            VulkanTextureCube::GetDefaultTexture()->GetDescriptor();
 
         vkUpdateDescriptorSets(
             vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
     }
 }
 
-void RenderTechnique::DrawCamera(VkCommandBuffer vkCommandBuffer)
+void RenderTechnique::PushRendererData(const DirLight& dirLight)
 {
-    ZoneScopedN("RenderTechnique::DrawCamera");
+    if (sceneMap->nLight.x != 5)
+    {
+        
+        uint32_t i = sceneMap->nLight.x++;
+        sceneMap->dirLight[i] = dirLight;
+    }
+}
+
+void RenderTechnique::PushRendererData(const MeshPacket& meshPacket)
+{
+    renderMesh.push_back(meshPacket);
+}
+
+void RenderTechnique::PushRendererData(const std::shared_ptr<VulkanUI>& ui)
+{
+    uiList.push_back(ui);
+}
+
+void RenderTechnique::PushRendererData(
+    const std::vector<renderer::WirePushConst>& wireList)
+{
+    for (const WirePushConst& e: wireList)
+    {
+        this->wireList.push_back(e);
+    }
+}
+
+void RenderTechnique::PushRendererData(const std::shared_ptr<BaseCamera>& camera)
+{
+    if (camera->cameraType == CameraType::CAMERA)
+    {
+        std::shared_ptr<VulkanCamera> vulkanCamera =
+            std::dynamic_pointer_cast<VulkanCamera>(camera);
+
+        cameraList.push_back(vulkanCamera);
+    }
+    else if (camera->cameraType == CameraType::VR_DISPLAY)
+    {
+        throw;//TODO:
+    }
 }
 
 } // namespace renderer
