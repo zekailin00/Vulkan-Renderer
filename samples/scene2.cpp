@@ -71,7 +71,7 @@ void TestApp::OnCreated()
         view = glm::translate(view, glm::vec3(0.0f, -0.3f, 0.3f));
         nodePtr->SetTransform(view);
     }
-
+  
     {
         node = std::make_unique<VulkanNode>();
         BuildMeshInfo meshInfo{};

@@ -5,13 +5,16 @@
 #include "logger.h"
 #include "timestep.h"
 
-bool launchXR = true;
+bool launchXR = false;
 
-renderer::Node* Application::GetRootNode()
+Scene* Application::GetScene()
 {
     ZoneScopedN("Application::GetRootNode");
-
-    return renderer->GetScene()->GetRootNode();
+    if (scene)
+        return scene;
+    
+    scene = Scene::NewScene();
+    return scene;
 }
 
 Application::Application()
@@ -30,20 +33,23 @@ Application::Application()
 
     window.InitializeWindow();
     renderer.InitializeDevice(
-        MergeExtensions(window.GetVkInstanceExt(), openxr->GetVkInstanceExt()), 
-        MergeExtensions(window.GetVkDeviceExt(), openxr->GetVkDeviceExt()));
+        MergeExtensions(window.GetVkInstanceExt(), 
+        openxr? openxr->GetVkInstanceExt(): std::vector<const char*>()), 
+        MergeExtensions(window.GetVkDeviceExt(),
+        openxr? openxr->GetVkDeviceExt(): std::vector<const char *>()));
 
     window.InitializeSurface();
-    renderer.AllocateResources(window.GetSwapchain(), openxr->GetSwapchain());
+    renderer.AllocateResources(window.GetSwapchain(), nullptr);
 
     this->renderer = &renderer;
     this->window = &window;
-
 }
 
 Application::~Application()
 {
     ZoneScopedN("Application::~Application");
+
+    delete scene;
 
     if (launchXR)
     {
@@ -56,8 +62,11 @@ Application::~Application()
     renderer->Destroy();
     window->DestroyWindow();
 
-    openxr->Destroy();
-    delete openxr;
+    if (openxr)
+    {
+        openxr->Destroy();
+        delete openxr;
+    } 
 
     renderer = nullptr;
     window = nullptr;
@@ -68,10 +77,13 @@ void Application::PollEvents()
 {
     ZoneScopedN("Application::PollEvents");
 
-    openxr->PollEvents();
+    if (openxr)
+    {
+        openxr->PollEvents();
 
-    if(openxr->ShouldCloseSeesion())
-        renderer->DestroyXrSession();
+        if(openxr->ShouldCloseSeesion())
+            renderer->DestroyXrSession();
+    }
 }
 
 void Application::Run()
@@ -80,7 +92,7 @@ void Application::Run()
 
     OnCreated();
 
-    if (launchXR)
+    if (launchXR && openxr)
     {
         renderer->InitializeXrSession(openxr->NewSession());
         // TODO: intialization failed
@@ -94,16 +106,17 @@ void Application::Run()
 
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-        openxr->BeginFrame();
+        if (openxr) openxr->BeginFrame();
         
 
         {
             ZoneScopedN("Application::OnUpdated");
             OnUpdated(ts);
+            scene->Update(ts);
         }
 
         renderer->EndFrame();
-        openxr->EndFrame();
+        if (openxr) openxr->EndFrame();
 
         FrameMark;
     }
