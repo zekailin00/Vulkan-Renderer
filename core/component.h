@@ -16,6 +16,7 @@ struct Component
     enum class Type
     {
         Camera,
+        VrDisplay,
         Light,
         Mesh,
         UI,
