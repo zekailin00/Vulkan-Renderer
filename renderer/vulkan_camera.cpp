@@ -192,7 +192,7 @@ const glm::mat4& VulkanCamera::GetTransform()
     return this->vpMap->view;
 }
 
-void VulkanCamera::SetTransform(glm::mat4& transform)
+void VulkanCamera::SetTransform(const glm::mat4& transform)
 {
     ZoneScopedN("VulkanCamera::SetTransform");
 

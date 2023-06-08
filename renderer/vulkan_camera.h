@@ -39,7 +39,7 @@ public:
 
     const glm::mat4& GetTransform(); // Used by VulkanNode
 
-    void SetTransform(glm::mat4&); // Used by VulkanNode
+    void SetTransform(const glm::mat4&); // Used by VulkanNode
 
     void Destroy();
 

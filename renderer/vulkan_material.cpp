@@ -135,6 +135,7 @@ std::shared_ptr<Material> VulkanMaterial::BuildMaterial(MaterialProperties* prop
         descWrites.size(), descWrites.data(),
         0, nullptr);
 
+    material->resourcePath = prop->resourcePath;
     return material;
 }
 

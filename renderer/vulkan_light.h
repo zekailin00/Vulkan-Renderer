@@ -42,7 +42,7 @@ public:
     static std::shared_ptr<VulkanLight> BuildLight(LightProperties&);
     static std::shared_ptr<VulkanLight> GetDefaultLight();
 
-    void SetTransform(glm::mat4& transform); // Used by VulkanNode
+    void SetTransform(const glm::mat4& transform); // Used by VulkanNode
 
     const LightProperties& GetLightProperties() override;
     void SetLightProperties(LightProperties&) override;

@@ -44,7 +44,7 @@ std::shared_ptr<VulkanLight> VulkanLight::GetDefaultLight()
     return defaultLight;
 }
 
-void VulkanLight::SetTransform(glm::mat4& transform)
+void VulkanLight::SetTransform(const glm::mat4& transform)
 {
     ZoneScopedN("VulkanLight::SetTransform");
 

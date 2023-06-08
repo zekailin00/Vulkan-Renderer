@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <string>
 
 #include "texture.h"
 
@@ -12,6 +13,8 @@ namespace renderer
 // Material properties with default values defined.
 struct MaterialProperties
 {
+    std::string resourcePath = "@default";
+
     glm::vec3 albedo = {1, 1, 1}; //  // [0, 1] for RGB
     std::shared_ptr<Texture> albedoTexture = nullptr;
 

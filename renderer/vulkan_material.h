@@ -58,6 +58,8 @@ private:
     MaterialUniform* map = nullptr;
     VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 
+    std::string resourcePath;
+
     static std::shared_ptr<VulkanMaterial> defaultMaterial;
 };
 
