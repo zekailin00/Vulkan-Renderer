@@ -13,6 +13,13 @@
 #include "validation.h"
 #include "logger.h"
 
+#include "component.h"
+#include "light_component.h"
+#include "camera_component.h"
+#include "mesh_component.h"
+#include "ui_component.h"
+#include "wireframe_component.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 
@@ -51,6 +58,13 @@ namespace renderer
 {
 
 TracyVkCtx tracyVkCtx;
+
+VulkanRenderer& VulkanRenderer::GetInstance()
+{
+    ZoneScopedN("VulkanRenderer::GetInstance");
+    static VulkanRenderer vulkanRenderer;
+    return vulkanRenderer;
+}
 
 void VulkanRenderer::InitializeDevice(
     std::vector<const char *> instanceExt, std::vector<const char *> deviceExt)
@@ -158,6 +172,27 @@ void VulkanRenderer::AllocateResources(
     CreatePipelines();
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
+
+    ComponentLocator::SetInitializer(Component::Type::Light,
+        LightInitializer(&defaultTechnique));
+    ComponentLocator::SetDeserializer(Component::Type::Light,
+        LightDeserializer(&defaultTechnique));
+    ComponentLocator::SetInitializer(Component::Type::Camera,
+        CameraInitializer(&defaultTechnique));
+    ComponentLocator::SetDeserializer(Component::Type::Camera,
+        CameraDeserializer(&defaultTechnique));
+    ComponentLocator::SetInitializer(Component::Type::Light,
+        MeshInitializer(&defaultTechnique, this));
+    ComponentLocator::SetDeserializer(Component::Type::Mesh,
+        MeshDeserializer(&defaultTechnique, this));
+    ComponentLocator::SetInitializer(Component::Type::UI,
+       UIInitializer(&defaultTechnique));
+    ComponentLocator::SetDeserializer(Component::Type::UI,
+       UIDeserializer(&defaultTechnique));
+    ComponentLocator::SetInitializer(Component::Type::Wireframe,
+       WireframeInitializer(&defaultTechnique));
+    ComponentLocator::SetDeserializer(Component::Type::Wireframe,
+       WireframeDeserializer(&defaultTechnique));
 }
 
 void VulkanRenderer::RebuildSwapchain()
@@ -551,15 +586,12 @@ void VulkanRenderer::CreatePipelines()
 void VulkanRenderer::BeginFrame()
 {
     ZoneScopedN("VulkanRenderer::BeginFrame");
-    // Nothing
+    defaultTechnique.ResetSceneData();
 }
 
 void VulkanRenderer::EndFrame()
 {
     ZoneScopedN("VulkanRenderer::EndFrame");
-
-    if (scene)
-        defaultTechnique.ProcessScene(static_cast<VulkanNode*>(scene->GetRootNode()));
 
     VulkanCmdBuffer& vcb = vulkanCmdBuffer;
 
@@ -688,8 +720,6 @@ void VulkanRenderer::DeallocateResources()
 {
     ZoneScopedN("VulkanRenderer::DeallocateResources");
 
-    this->scene.reset();
-
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
     this->defaultTechnique.Destroy();
@@ -734,17 +764,22 @@ bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 {
     ZoneScopedN("VulkanRenderer::InitializeXrSession");
 
-    VulkanVrDisplay* display = nullptr;
-    for (const auto& n: dynamic_cast<VulkanNode*>(scene->GetRootNode())->nodeLists)
-    {
-        VulkanNode* vulkanNode = static_cast<VulkanNode*>(n.get());
-        if (vulkanNode->camera &&
-            vulkanNode->camera->cameraType == CameraType::VR_DISPLAY)
-            display = static_cast<VulkanVrDisplay*>(vulkanNode->camera.get());
-    }
+    //FIXME: put updates
+    // VulkanVrDisplay* display = nullptr;
+    // for (const auto& n: dynamic_cast<VulkanNode*>(scene->GetRootNode())->nodeLists)
+    // {
+    //     VulkanNode* vulkanNode = static_cast<VulkanNode*>(n.get());
+    //     if (vulkanNode->camera &&
+    //         vulkanNode->camera->cameraType == CameraType::VR_DISPLAY)
+    //         display = static_cast<VulkanVrDisplay*>(vulkanNode->camera.get());
+    // }
 
-    if (display == nullptr)
-        return false;
+    // if (display == nullptr)
+    //     return false;
+
+    // Validate vr display is in the scene
+    throw;
+    VulkanVrDisplay* display = nullptr;
 
     xrSwapchain->Initialize(&vulkanDevice);
     // Software antialising by a factor of 4
@@ -875,23 +910,6 @@ VulkanPipeline& VulkanRenderer::GetPipeline(std::string name)
     ZoneScopedN("VulkanRenderer::GetPipeline");
 
     return *(pipelines[name].get());
-}
-
-Scene* VulkanRenderer::CreateScene()
-{
-    ZoneScopedN("VulkanRenderer::CreateScene");
-
-    this->scene = std::make_unique<VulkanScene>();
-    return &(*this->scene);
-}
-
-Scene* VulkanRenderer::GetScene()
-{
-    ZoneScopedN("VulkanRenderer::GetScene");
-
-    if (!scene)
-        throw;
-    return &(*this->scene);
 }
 
 } // namespace renderer

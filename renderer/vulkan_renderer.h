@@ -7,9 +7,6 @@
 #include "vk_primitives/vulkan_pipeline.h"
 
 #include "vulkan_swapchain.h"
-#include "vulkan_texture.h"
-#include "vulkan_camera.h"
-#include "vulkan_light.h"
 #include "render_technique.h"
 #include "pipeline_imgui.h"
 
