@@ -41,6 +41,7 @@ target_include_directories(renderer PUBLIC
 
     components
     interface
+    loaders
     .
 )
 

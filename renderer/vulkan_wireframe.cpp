@@ -1,6 +1,5 @@
 #include "vulkan_wireframe.h"
 
-#include "vulkan_node.h"
 #include <glm/gtc/constants.hpp>
 #include <tracy/Tracy.hpp>
 

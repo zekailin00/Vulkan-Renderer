@@ -177,18 +177,22 @@ void VulkanRenderer::AllocateResources(
         LightInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::Light,
         LightDeserializer(&defaultTechnique));
+
     ComponentLocator::SetInitializer(Component::Type::Camera,
         CameraInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::Camera,
         CameraDeserializer(&defaultTechnique));
-    ComponentLocator::SetInitializer(Component::Type::Light,
+
+    ComponentLocator::SetInitializer(Component::Type::Mesh,
         MeshInitializer(&defaultTechnique, this));
     ComponentLocator::SetDeserializer(Component::Type::Mesh,
         MeshDeserializer(&defaultTechnique, this));
+
     ComponentLocator::SetInitializer(Component::Type::UI,
        UIInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::UI,
        UIDeserializer(&defaultTechnique));
+       
     ComponentLocator::SetInitializer(Component::Type::Wireframe,
        WireframeInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::Wireframe,

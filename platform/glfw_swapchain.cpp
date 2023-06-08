@@ -4,6 +4,8 @@
 #include "validation.h"
 #include "logger.h"
 
+#include <tracy/Tracy.hpp>
+
 
 #define IMAGE_FORMAT VK_FORMAT_R8G8B8A8_SRGB
 

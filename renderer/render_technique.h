@@ -1,6 +1,5 @@
 #pragma once
 
-#include "vulkan_node.h"
 #include "vk_primitives/vulkan_uniform.h"
 #include "vk_primitives/vulkan_vertexbuffer.h"
 

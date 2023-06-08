@@ -99,7 +99,7 @@ target_include_directories(engine PUBLIC
 target_link_libraries(engine
     renderer
     platform
-    core
+    engine_core
 )
 
 # Build settings
