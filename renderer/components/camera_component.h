@@ -16,11 +16,10 @@ class VulkanRenderer;
 class CameraInitializer
 {
     RenderTechnique* technique;
-    VulkanRenderer* renderer;
 
 public:
-    CameraInitializer(RenderTechnique* technique, VulkanRenderer* renderer)
-    :technique(technique), renderer(renderer){}
+    CameraInitializer(RenderTechnique* technique)
+    :technique(technique){}
 
     Component* operator()(Entity* entity);
 };
@@ -28,11 +27,10 @@ public:
 class CameraDeserializer
 {
     RenderTechnique* technique;
-    VulkanRenderer* renderer;
 
 public:
-    CameraDeserializer(RenderTechnique* technique, VulkanRenderer* renderer)
-    :technique(technique), renderer(renderer){}
+    CameraDeserializer(RenderTechnique* technique)
+    :technique(technique){}
 
     Component* operator()(Entity* entity, Json::Value& json);
 };
