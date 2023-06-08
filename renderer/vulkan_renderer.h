@@ -8,22 +8,15 @@
 
 #include "vulkan_swapchain.h"
 #include "vulkan_texture.h"
-#include "pipeline_inputs.h"
 #include "vulkan_camera.h"
 #include "vulkan_light.h"
 #include "render_technique.h"
 #include "pipeline_imgui.h"
 
-#include "loaders/objloader.h"
-#include "loaders/gltfloader.h"
-
 #include <vulkan/vulkan.h>
-#include <functional>
 #include <string>
-#include <vector>
 #include <map>
 #include <memory>
-#include <tracy/Tracy.hpp>
 
 namespace renderer
 {
@@ -31,12 +24,7 @@ namespace renderer
 class VulkanRenderer: public Renderer
 {
 public:
-    static VulkanRenderer& GetInstance()
-    {
-        ZoneScopedN("VulkanRenderer::GetInstance");
-        static VulkanRenderer vulkanRenderer;
-        return vulkanRenderer;
-    }
+    static VulkanRenderer& GetInstance();
 
     /* Update loop APIs */
     void InitializeDevice(
@@ -78,9 +66,6 @@ public:/* Services */
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
     VulkanPipeline& GetPipeline(std::string name);
     IVulkanSwapchain* GetSwapchain() {return swapchain;}
-
-    Scene* CreateScene() override;
-    Scene* GetScene() override;    
 
 private: /* Private Vulkan helpers */
     VulkanRenderer() = default;
