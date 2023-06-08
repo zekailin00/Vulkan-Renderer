@@ -11,7 +11,6 @@ Component* UIInitializer::operator()(Entity* entity)
     component->technique = technique;
 
     component->ui = nullptr;
-    component->uiTexture = nullptr;
 
     return component;
 }
@@ -24,6 +23,9 @@ Component* UIDeserializer::operator()(Entity* entity, Json::Value& json)
 
 void UIComponent::Update(Timestep ts)
 {
+    if (!ui)
+        return;
+    
     technique->PushRendererData(ui);
 }
 
@@ -34,9 +36,7 @@ void UIComponent::Serialize(Json::Value& json)
 
 UIComponent::~UIComponent()
 {
-
     ui = nullptr; // free the smart pointer.
-    uiTexture = nullptr;
 }
 
 } // namespace renderer

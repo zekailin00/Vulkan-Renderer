@@ -36,8 +36,6 @@ public:
 struct UIComponent: public Component
 {
     std::shared_ptr<VulkanUI> ui;
-    std::shared_ptr<VulkanTexture> uiTexture;
-
 
     void Update(Timestep ts) override;
     void Serialize(Json::Value& json) override;

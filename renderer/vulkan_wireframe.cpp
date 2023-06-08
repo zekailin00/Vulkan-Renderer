@@ -13,7 +13,7 @@ std::shared_ptr<VulkanWireframe> VulkanWireframeGenerator::GetLine(
     ZoneScopedN("VulkanWireframe::GetLine");
 
     std::shared_ptr<WireframeLine1> wireframe =
-        std::shared_ptr<WireframeLine1>();
+        std::make_shared<WireframeLine1>();
 
     WirePushConst data{};
     data.beginPoint = -glm::normalize(direction) * (length * 0.5f);
@@ -39,7 +39,7 @@ std::shared_ptr<VulkanWireframe> VulkanWireframeGenerator::GetLine(
     ZoneScopedN("VulkanWireframe::GetLine");
 
     std::shared_ptr<WireframeLine2> wireframe =
-        std::shared_ptr<WireframeLine2>();
+        std::make_shared<WireframeLine2>();
 
     WirePushConst data{};
     data.beginPoint = beginPoint;
@@ -64,7 +64,7 @@ std::shared_ptr<VulkanWireframe> VulkanWireframeGenerator::GetSphere(
     ZoneScopedN("VulkanWireframe::GetSphere");
 
     std::shared_ptr<WireframeSphere> wireframe =
-        std::shared_ptr<WireframeSphere>();
+        std::make_shared<WireframeSphere>();
 
     glm::vec3 v1 = glm::normalize(glm::vec3(1, 0, 0));
     glm::vec3 v2 = glm::normalize(glm::vec3(0.0, -v1.z, v1.y));
@@ -142,7 +142,7 @@ std::shared_ptr<VulkanWireframe> VulkanWireframeGenerator::GetCircle(
     ZoneScopedN("VulkanWireframe::GetCircle");
 
     std::shared_ptr<WireframeCircle> wireframe =
-        std::shared_ptr<WireframeCircle>();
+        std::make_shared<WireframeCircle>();
 
     glm::vec3 v1 = glm::normalize(normal);
     glm::vec3 v2 = glm::normalize(glm::vec3(0.0, -v1.z, v1.y));
@@ -192,7 +192,7 @@ std::shared_ptr<VulkanWireframe> VulkanWireframeGenerator::GetAABB(
     ZoneScopedN("VulkanWireframe::GetAABB");
 
     std::shared_ptr<WireframeAABB> wireframe =
-        std::shared_ptr<WireframeAABB>();
+        std::make_shared<WireframeAABB>();
 
     glm::vec3 a = minCoordinates;
     glm::vec3 b = maxCoordinates;
@@ -265,7 +265,7 @@ std::shared_ptr<VulkanWireframe> VulkanWireframeGenerator::GetOBB(
     ZoneScopedN("VulkanWireframe::GetOBB");
 
     std::shared_ptr<WireframeOBB> wireframe =
-        std::shared_ptr<WireframeOBB>();
+        std::make_shared<WireframeOBB>();
 
     glm::vec3 a = transform * glm::vec4(-0.5, -0.5, -0.5, 1);
     glm::vec3 b = transform * glm::vec4( 0.5,  0.5,  0.5, 1);
