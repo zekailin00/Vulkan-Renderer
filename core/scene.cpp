@@ -111,7 +111,7 @@ void Scene::Update(Timestep ts)
 
 Entity* Scene::GetEntityByName(std::string name)
 {
-    return _GetEntityByName(rootEntity, name);
+    return rootEntity->GetChildByName(name);
 }
 
 Entity* Scene::_NewEntity()
@@ -128,19 +128,4 @@ Entity* Scene::_NewEntity()
     entity->children.clear();
 
     return entity;
-}
-
-Entity* Scene::_GetEntityByName(Entity* currEntity, std::string name)
-{
-    if (currEntity->name == name)
-        return currEntity;
-    
-    for (Entity* e: currEntity->children)
-    {
-        Entity* result;
-        if (result = _GetEntityByName(e, name))
-            return result;
-    }
-
-    return nullptr;
 }

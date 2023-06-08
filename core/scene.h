@@ -40,7 +40,6 @@ private:
     const Scene& operator=(const Scene&) = delete;
 
     Entity* _NewEntity();
-    Entity* _GetEntityByName(Entity* currEntity, std::string name);
 
 private:
     State state = State::Editor;

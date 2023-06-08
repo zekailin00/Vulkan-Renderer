@@ -32,15 +32,23 @@ public:
     glm::mat4 GetGlobalTransform();
     glm::mat4 GetLocalTransform();
 
-    void SetLocalTransform(glm::mat4 transform);
-    void SetLocalTransform(glm::vec3 postion, glm::quat rotation, glm::vec3 scale);
+    void SetLocalTransform(const glm::mat4& transform);
+    /**
+     * @brief Set the Local Transform
+     * 
+     * @param postion <x, y, z>
+     * @param rotation <w, x, y, z> quaternion
+     * @param scale <x, y, z>
+     */
+    void SetLocalTransform(
+        const glm::vec3& postion, const glm::quat& rotation, const glm::vec3& scale);
 
     glm::vec3 GetLocalTranslation();
     glm::quat GetLocalRotation();
     glm::vec3 GetLocalScale();
 
     Entity* GetChildByName(std::string name);
-    std::list<Entity*>& GetChildren();
+    const std::list<Entity*>& GetChildren();
 
 public:
     std::string name;
