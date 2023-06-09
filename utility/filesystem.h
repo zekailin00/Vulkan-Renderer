@@ -48,6 +48,5 @@ public:
      */
     static bool CreateDirectory(std::string path);
 
-private:
     static bool IsAbsolute(std::filesystem::path absolutePath);
 };

@@ -48,7 +48,7 @@ bool Filesystem::IsAbsolute(std::filesystem::path absolutePath)
 
     Logger::Write(
         absolutePath.string() + " is not an absolute path",
-        Logger::Level::Warning, Logger::Platform
+        Logger::Level::Warning, Logger::MsgType::Platform
     );
     return false;
 }
