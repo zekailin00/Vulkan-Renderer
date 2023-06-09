@@ -15,7 +15,8 @@ enum class JsonType
     Entity,
     GltfModel,
     ObjModel,
-    Material
+    Material,
+    Texture
 };
 
 void SerializeMat4(const glm::mat4& mat4, Json::Value& json);

@@ -62,6 +62,12 @@ bool Filesystem::GetRelativePath(
     return true;
 }
 
+std::string Filesystem::ChangeExtensionTo(std::string path, std::string newExtension)
+{
+    std::filesystem::path fsPath = path;
+    return path.substr(0, path.size() - fsPath.extension().string().size()) + newExtension;
+}
+
 bool Filesystem::IsAbsolute(std::filesystem::path absolutePath)
 {
     if(absolutePath.is_absolute())

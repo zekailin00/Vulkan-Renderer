@@ -3,6 +3,8 @@
 #include <memory>
 #include <string>
 
+#include <Json/json.h>
+
 
 namespace renderer
 {
@@ -29,7 +31,7 @@ enum TextureFilter
 
 struct TextureBuildInfo
 {
-    std::string path = "resources/textures/defaultTexture.png";
+    std::string imagePath = "resources/textures/defaultTexture.png";
     TextureAddressMode addressMode = REPEAT;
     TextureFilter minFilter = FILTER_LINEAR;
     TextureFilter maxFilter = FILTER_LINEAR;
@@ -55,12 +57,12 @@ public:
     Texture() = default;
     virtual ~Texture() = default;
 
+    virtual const TextureBuildInfo& GetBuildInfo() = 0;
+    virtual const TextureType& GetTextureType() = 0;
+    virtual void Serialize(Json::Value& json) = 0;
+
     Texture(const Texture&) = delete;
     const Texture& operator=(const Texture&) = delete;
-
-public:
-    TextureBuildInfo info;
-    TextureType textureType;
 };
 
 class TextureCube

@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <filesystem>
 
 #include "vulkan_material.h"
 #include "vulkan_mesh.h"
@@ -10,8 +11,13 @@
 
 #include "scene.h"
 
-#define MATERIAL_EXTENSION ".slmat"
+#define TEXTURE_PATH    "resources/textures"
+#define MESH_PATH       "resources/meshes"
+#define MATERIAL_PATH   "resources/materials"
+#define MODEL_PATH      "resources/models"
 
+#define MATERIAL_EXTENSION ".slmat"
+#define TEXTURE_EXTENSION ".sltex"
 
 class AssetManager
 {
@@ -39,15 +45,13 @@ private:
     void LoadWorkspace();
     void CreateWorkspace();
 
-    std::shared_ptr<renderer::Material> LoadMaterial(Json::Value& json);
+    std::shared_ptr<renderer::Material> LoadMaterial(std::filesystem::path path);
     bool StoreMaterial(std::shared_ptr<renderer::Material> material);
+
+    std::shared_ptr<renderer::Texture> LoadTexture(std::filesystem::path path);
+    bool StoreTexture(std::shared_ptr<renderer::Texture> texture);
 
 private:
     std::string workspacePath;
     unsigned int materialCounter = 0;
 };
-
-#define TEXTURE_PATH    "resources/textures"
-#define MESH_PATH       "resources/meshes"
-#define MATERIAL_PATH   "resources/materials"
-#define MODEL_PATH      "resources/models"

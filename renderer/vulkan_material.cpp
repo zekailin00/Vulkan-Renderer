@@ -411,22 +411,22 @@ void VulkanMaterial::Serialize(Json::Value& json)
     
     json["albedoTexture"] = 
         properties.albedoTexture?
-            properties.albedoTexture->GetBuildInfo().path:
+            properties.albedoTexture->GetBuildInfo().imagePath:
             "none";
 
     json["metallicTexture"] = 
         properties.metallicTexture?
-            properties.metallicTexture->GetBuildInfo().path:
+            properties.metallicTexture->GetBuildInfo().imagePath:
             "none";
 
     json["roughnessTexture"] = 
         properties.roughnessTexture?
-            properties.roughnessTexture->GetBuildInfo().path:
+            properties.roughnessTexture->GetBuildInfo().imagePath:
             "none";
 
     json["normalTexture"] = 
         properties.normalTexture?
-            properties.normalTexture->GetBuildInfo().path:
+            properties.normalTexture->GetBuildInfo().imagePath:
             "none";
 }
 

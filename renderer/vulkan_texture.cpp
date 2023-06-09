@@ -4,8 +4,9 @@
 
 #include "validation.h"
 #include "logger.h"
-#include "stb/stb_image.h"
+#include "serialization.h"
 
+#include <stb/stb_image.h>
 #include <memory>
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyVulkan.hpp>
@@ -337,7 +338,7 @@ std::shared_ptr<Texture> VulkanTexture::BuildTexture(TextureBuildInfo* buildInfo
     texture->vulkanDevice = &(VulkanRenderer::GetInstance().vulkanDevice);
     texture->textureType = TextureType::TEX_DEFAULT;
 
-    texture->LoadImageFromFile(buildInfo->path);
+    texture->LoadImageFromFile(buildInfo->imagePath);
 
     {
         VkFilter minFilter = VK_FILTER_LINEAR;
@@ -420,6 +421,26 @@ VulkanTexture::~VulkanTexture()
         Logger::Level::Verbose,
         Logger::MsgType::Renderer
     );
+}
+
+void VulkanTexture::Serialize(Json::Value& json)
+{
+    json[JSON_TYPE] = (int)JsonType::Texture;
+
+    json["addressMode"] = info.addressMode;
+    json["minFilter"] = info.minFilter;
+    json["maxFilter"] = info.maxFilter;
+    json["imagePath"] = info.imagePath;
+}
+
+const TextureBuildInfo& VulkanTexture::GetBuildInfo()
+{
+    return info;
+}
+
+const TextureType& VulkanTexture::GetTextureType()
+{
+    return textureType;
 }
 
 

@@ -52,5 +52,7 @@ public:
         std::string fullPath, std::string parentPath,
         std::string& relativePath);
 
+    static std::string ChangeExtensionTo(std::string path, std::string newExtension);
+
     static bool IsAbsolute(std::filesystem::path absolutePath);
 };

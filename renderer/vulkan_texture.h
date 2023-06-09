@@ -34,6 +34,10 @@ public:
         VkImageLayout vkImageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     ~VulkanTexture() override;
 
+    const TextureBuildInfo& GetBuildInfo() override;
+    const TextureType& GetTextureType() override;
+    void Serialize(Json::Value& json) override;
+
     void CreateImage(
         VkExtent2D imageExtent, VkFormat colorFormat, 
         VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
@@ -62,6 +66,9 @@ private:
     VkSampler vkSampler = VK_NULL_HANDLE;
     VkExtent2D imageExtent{};
     VkDescriptorImageInfo vkDecriptorInfo{};
+
+    TextureBuildInfo info;
+    TextureType textureType;
 
     static std::shared_ptr<VulkanTexture> defaultTexture;
 
