@@ -18,6 +18,7 @@
 
 #define MATERIAL_EXTENSION ".slmat"
 #define TEXTURE_EXTENSION ".sltex"
+#define MESH_EXTENSION ".slmesh"
 
 class AssetManager
 {
@@ -26,8 +27,8 @@ class AssetManager
     std::shared_ptr<renderer::Material> NewMaterial();
     std::shared_ptr<renderer::Texture> ImportTexture(std::string path);
 
-    void ImportModelObj(std::string path);
-    void ImportModelGlft(std::string path);
+    bool ImportModelObj(std::string path);
+    bool ImportModelGlft(std::string path);
     
     Entity* AddModelObjToScene(std::string path, Scene* scene);
     Entity* AddModelGltfToScene(std::string path, Scene* scene);
@@ -54,4 +55,20 @@ private:
 private:
     std::string workspacePath;
     unsigned int materialCounter = 0;
+};
+
+struct MeshFile
+{
+    unsigned int indexSize;
+    unsigned int vertexSize;
+
+    static void Store(
+        std::string path,
+        const std::vector<unsigned int>& modelIndices,
+        const std::vector<renderer::Vertex>& modelVertices
+    );
+    static void Load(std::string path,
+        std::vector<unsigned int>& modelIndices,
+        std::vector<renderer::Vertex>& modelVertices
+    );
 };

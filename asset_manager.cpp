@@ -6,6 +6,8 @@
 #include "filesystem.h"
 #include "logger.h"
 
+#include "obj_loader.h"
+
 #include <string>
 #include <stb/stb_image.h>
 
@@ -117,6 +119,45 @@ std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
     std::string resourcePath = Filesystem::ChangeExtensionTo(info.imagePath, TEXTURE_EXTENSION);
     textureList[resourcePath] = texture; // relative path
     return texture;
+}
+
+
+bool AssetManager::ImportModelObj(std::string path)
+{
+    {
+        std::string path;
+        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
+        ASSERT(workspacePath == path);
+    }
+
+    // Path is valid
+    if (!Filesystem::IsRegularFile(path))
+        return false;
+
+    std::filesystem::path fullModelPath = path;
+
+    renderer::BuildMeshInfo info{};
+    bool result = ObjLoader2(path, info.vertices, info.indices);
+    if (!result)
+        return false;
+
+    std::string relativeModelPath = path.substr(workspacePath.size() + 1);
+    std::string relativeResourcePath =
+        Filesystem::ChangeExtensionTo(relativeModelPath, MESH_EXTENSION);
+
+    info.resourcePath = relativeResourcePath;
+
+    // if ()
+    //FIXME: check file with name collision
+
+    MeshFile::Store(
+        workspacePath + "/" + relativeResourcePath,
+        info.indices, info.vertices
+    );
+
+    std::shared_ptr<renderer::Mesh> mesh = renderer::VulkanMesh::BuildMesh(info);
+    meshList[relativeResourcePath] = mesh;
+    return true;
 }
 
 std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
@@ -248,4 +289,48 @@ bool AssetManager::StoreTexture(
     jsonOut.close();
 
     return true;
+}
+
+
+void MeshFile::Store(
+    std::string path,
+    const std::vector<unsigned int>& modelIndices,
+    const std::vector<renderer::Vertex>& modelVertices)
+{
+    MeshFile header;
+    header.indexSize = modelIndices.size() * sizeof(unsigned int);
+    header.vertexSize = modelVertices.size() * sizeof(renderer::Vertex);
+
+    std::ofstream out;
+    out.open(path, std::ifstream::binary);
+    out.write((char*)&header, sizeof(header));
+    out.write((char*)modelIndices.data(), header.indexSize);
+    out.write((char*)modelVertices.data(), header.vertexSize);
+
+    out.close();
+}
+
+void MeshFile::Load(std::string path,
+    std::vector<unsigned int>& modelIndices,
+    std::vector<renderer::Vertex>& modelVertices)
+{
+    std::ifstream in;
+    in.open(path);
+
+    MeshFile header;
+    in.read((char*)&header, sizeof(header));
+
+    Logger::Write(
+        "Loading model from workspace with mesh size " +
+        std::to_string(header.vertexSize) + " bytes and index size "  +
+        std::to_string(header.indexSize) + "bytes.",
+        Logger::Level::Info, Logger::MsgType::Platform
+    );
+
+    modelIndices.resize(header.indexSize);
+    modelVertices.resize(header.vertexSize);
+
+    in.read((char*)modelIndices.data(), header.indexSize);
+    in.read((char*)modelVertices.data(), header.vertexSize);
+    in.close();
 }
