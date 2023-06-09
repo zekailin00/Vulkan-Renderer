@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 
+#define CONFIG_WORKSPACE_PATH "workspacePath"
 
 class Configuration
 {

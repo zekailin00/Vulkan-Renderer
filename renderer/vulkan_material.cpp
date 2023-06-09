@@ -3,6 +3,8 @@
 #include "vulkan_renderer.h"
 #include "vk_primitives/vulkan_pipeline_layout.h"
 
+#include "serialization.h"
+
 #include <vector>
 #include <tracy/Tracy.hpp>
 
@@ -397,6 +399,35 @@ void VulkanMaterial::ResetNormalTexture()
     }
 
     this->map->useAlbedoTex = 0.0f;
+}
+
+void VulkanMaterial::Serialize(Json::Value& json)
+{
+    json[JSON_TYPE] = (int)JsonType::Material;
+
+    SerializeVec3(properties.albedo, json["albedo"]);
+    json["metallic"] = properties.metallic;
+    json["roughness"] = properties.roughness;
+    
+    json["albedoTexture"] = 
+        properties.albedoTexture?
+            properties.albedoTexture->GetBuildInfo().path:
+            "none";
+
+    json["metallicTexture"] = 
+        properties.metallicTexture?
+            properties.metallicTexture->GetBuildInfo().path:
+            "none";
+
+    json["roughnessTexture"] = 
+        properties.roughnessTexture?
+            properties.roughnessTexture->GetBuildInfo().path:
+            "none";
+
+    json["normalTexture"] = 
+        properties.normalTexture?
+            properties.normalTexture->GetBuildInfo().path:
+            "none";
 }
 
 void VulkanMaterial::Destory()

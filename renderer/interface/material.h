@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <json/json.h>
 #include <memory>
 #include <string>
 
@@ -44,14 +45,13 @@ public:
     virtual void ResetRoughnessTexture() = 0;
     virtual void ResetNormalTexture() = 0;
 
+    virtual void Serialize(Json::Value& json) = 0;
+
     Material() = default;
     virtual ~Material() = default;
 
     Material(const Material&) = delete;
     const Material& operator=(const Material&) = delete;
-
-protected:
-    MaterialProperties properties;
 };
 
 } // namespace renderer

@@ -46,6 +46,8 @@ public:
     void ResetRoughnessTexture() override;
     void ResetNormalTexture() override;
 
+    void Serialize(Json::Value& json) override;
+
     VkDescriptorSet* GetDescriptorSet() {return &descriptorSet;}
 
 private:
@@ -54,6 +56,7 @@ private:
 private:
     VulkanDevice* vulkanDevice = nullptr;
     
+    MaterialProperties properties;
     VulkanUniform uniform{};
     MaterialUniform* map = nullptr;
     VkDescriptorSet descriptorSet = VK_NULL_HANDLE;

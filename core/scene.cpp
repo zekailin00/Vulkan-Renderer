@@ -3,6 +3,7 @@
 #include "entity.h"
 #include "validation.h"
 #include "logger.h"
+#include "serialization.h"
 
 #include <glm/mat4x4.hpp>
 #include <json/json.h>
@@ -30,7 +31,7 @@ Scene* Scene::LoadFromFile(std::string path, State state)
     jsonIn.close();
 
     Scene* scene = Scene::NewScene();
-    ASSERT(json["FileType"] == "Scene");
+    ASSERT(json[JSON_TYPE] == (int)JsonType::Scene);
     scene->state = state;
     scene->rootEntity->Deserialize(json["rootEntity"]);
 
@@ -40,7 +41,7 @@ Scene* Scene::LoadFromFile(std::string path, State state)
 bool Scene::SaveToFile(std::string path)
 {
     Json::Value json;
-    json["FileType"] = "Scene";
+    json[JSON_TYPE] = (int)JsonType::Scene;
     rootEntity->Serialize(json["rootEntity"]);
 
     std::ofstream jsonOut;

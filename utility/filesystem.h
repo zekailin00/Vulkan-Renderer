@@ -48,5 +48,9 @@ public:
      */
     static bool CreateDirectory(std::string path);
 
+    static bool GetRelativePath(
+        std::string fullPath, std::string parentPath,
+        std::string& relativePath);
+
     static bool IsAbsolute(std::filesystem::path absolutePath);
 };

@@ -7,6 +7,17 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#define JSON_TYPE "FileType"
+
+enum class JsonType
+{
+    Scene,
+    Entity,
+    GltfModel,
+    ObjModel,
+    Material
+};
+
 void SerializeMat4(const glm::mat4& mat4, Json::Value& json);
 void DeserializeMat4(glm::mat4& mat4, Json::Value& json);
 
