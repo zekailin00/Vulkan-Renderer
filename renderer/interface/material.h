@@ -7,6 +7,7 @@
 
 #include "texture.h"
 
+#define DEFAULT_MATERIAL_PATH "@default"
 
 namespace renderer
 {
@@ -14,7 +15,7 @@ namespace renderer
 // Material properties with default values defined.
 struct MaterialProperties
 {
-    std::string resourcePath = "@default";
+    std::string resourcePath = DEFAULT_MATERIAL_PATH;
 
     glm::vec3 albedo = {1, 1, 1}; //  // [0, 1] for RGB
     std::shared_ptr<Texture> albedoTexture = nullptr;

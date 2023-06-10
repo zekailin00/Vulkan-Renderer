@@ -225,6 +225,11 @@ void AssetManager::SaveToFilesystem()
 
 std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)
 {
+    if (path == DEFAULT_MATERIAL_PATH)
+    {
+        return renderer::VulkanMaterial::GetDefaultMaterial();
+    }
+
     std::shared_ptr<renderer::Material> material = materialList[path];
     ASSERT(material != nullptr);
     return material;
@@ -239,6 +244,11 @@ std::shared_ptr<renderer::Mesh> AssetManager::GetMesh(std::string path)
 
 std::shared_ptr<renderer::Texture> AssetManager::GetTexture(std::string path)
 {
+    if (path == DEFAULT_TEXTURE_PATH)
+    {
+        return renderer::VulkanTexture::GetDefaultTexture();
+    }
+    
     std::shared_ptr<renderer::Texture> texture = textureList[path];
     ASSERT(texture != nullptr);
     return texture;

@@ -5,6 +5,8 @@
 
 #include <Json/json.h>
 
+#define DEFAULT_TEXTURE_PATH "@default"
+
 
 namespace renderer
 {
@@ -32,7 +34,7 @@ enum TextureFilter
 struct TextureBuildInfo
 {
     std::string imagePath = "resources/textures/defaultTexture.png";
-    std::string resourcePath = "@default";
+    std::string resourcePath = DEFAULT_TEXTURE_PATH;
     TextureAddressMode addressMode = REPEAT;
     TextureFilter minFilter = FILTER_LINEAR;
     TextureFilter maxFilter = FILTER_LINEAR;
