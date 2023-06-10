@@ -20,7 +20,8 @@
 
 #define MATERIAL_EXTENSION ".slmat"
 #define TEXTURE_EXTENSION ".sltex"
-#define MESH_EXTENSION ".slmesh"
+#define MESH_EXTENSION ".slmsh"
+#define MESH_DATA_EXTENSION ".slmshd"
 #define MODEL_EXTENSION ".slmod"
 
 class AssetManager: public renderer::AssetManager
@@ -32,12 +33,32 @@ class AssetManager: public renderer::AssetManager
 
     bool ImportModelObj(std::string path, Scene* scene);
     Entity* AddModelObjToScene(std::string path, Scene* scene);
-    
+
     bool ImportModelGlft(std::string path, Scene* scene);
     Entity* AddModelGltfToScene(std::string path, Scene* scene);
 
+    /**
+     * @brief Get the Material object
+     * 
+     * @param path Relative path.
+     * @return std::shared_ptr<renderer::Material> 
+     */
     std::shared_ptr<renderer::Material> GetMaterial(std::string path) override;
+
+    /**
+     * @brief Get the Mesh object
+     * 
+     * @param path Relative path.
+     * @return std::shared_ptr<renderer::Mesh> 
+     */
     std::shared_ptr<renderer::Mesh> GetMesh(std::string path) override;
+
+    /**
+     * @brief Get the Texture object
+     * 
+     * @param path Relative path.
+     * @return std::shared_ptr<renderer::Texture> 
+     */
     std::shared_ptr<renderer::Texture> GetTexture(std::string path) override;
 
 private:
@@ -56,7 +77,7 @@ private:
     bool StoreTexture(std::shared_ptr<renderer::Texture> texture);
 
     std::shared_ptr<renderer::Mesh> LoadMesh(std::filesystem::path path);
-    bool StoreMesh(std::shared_ptr<renderer::Texture> texture);
+    bool StoreMesh(std::shared_ptr<renderer::Mesh> mesh);
 
 private:
     std::string workspacePath;

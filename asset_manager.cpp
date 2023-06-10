@@ -44,13 +44,33 @@ void AssetManager::CreateWorkspace()
     Filesystem::CreateDirectory(workspacePath + "/" + MATERIAL_PATH);
     Filesystem::CreateDirectory(workspacePath + "/" + MODEL_PATH);
 
-    // copy default assets??
+    //TODO: copy default assets??
 }
 
 void AssetManager::LoadWorkspace()
 {
-    throw;
-    //TODO:
+    std::vector<std::filesystem::path> entries;
+
+    Filesystem::GetDirectoryEntries(workspacePath + "/" + TEXTURE_PATH, entries);
+    for (auto& path: entries)
+    {
+        if (path.extension().string() == TEXTURE_EXTENSION)
+            LoadTexture(path);
+    }
+
+    Filesystem::GetDirectoryEntries(workspacePath + "/" + MATERIAL_EXTENSION, entries);
+    for (auto& path: entries)
+    {
+        if (path.extension().string() == MATERIAL_EXTENSION)
+            LoadTexture(path);
+    }
+
+    Filesystem::GetDirectoryEntries(workspacePath + "/" + MESH_EXTENSION, entries);
+    for (auto& path: entries)
+    {
+        if (path.extension().string() == MESH_EXTENSION)
+            LoadTexture(path);
+    }
 }
 
 std::shared_ptr<renderer::Material> AssetManager::NewMaterial()
@@ -146,14 +166,14 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
     std::string fileName = fsPath.stem().string();
 
     std::string validWsFullPath = Filesystem::GetUnusedFilePath(
-        workspacePath + "/" + TEXTURE_PATH + "/" + fileName + TEXTURE_EXTENSION
+        workspacePath + "/" + MESH_PATH + "/" + fileName + MESH_DATA_EXTENSION
     );
     std::string validWsRelativePath = Filesystem::RemoveParentPath(
         validWsFullPath, workspacePath
     );
 
     // Store the imported mesh into workspace
-    info.resourcePath = validWsRelativePath;
+    info.resourcePath = Filesystem::ChangeExtensionTo(validWsRelativePath, MESH_EXTENSION);
     MeshFile::Store(
         validWsFullPath,
         info.indices, info.vertices
@@ -179,6 +199,21 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
     jsonOut.close();
 
     return true;
+}
+
+std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)
+{
+    return materialList[path];
+}
+
+std::shared_ptr<renderer::Mesh> AssetManager::GetMesh(std::string path)
+{
+    return meshList[path];
+}
+
+std::shared_ptr<renderer::Texture> AssetManager::GetTexture(std::string path)
+{
+    return textureList[path];
 }
 
 std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
@@ -302,8 +337,7 @@ bool AssetManager::StoreTexture(
     texture->Serialize(json);
     ASSERT(json[JSON_TYPE].asInt() == (int)JsonType::Texture);
 
-    std::string imagePath = texture->GetBuildInfo().imagePath;
-    std::string resourcePath = Filesystem::ChangeExtensionTo(imagePath, TEXTURE_EXTENSION);
+    std::string resourcePath = texture->GetBuildInfo().resourcePath;
     
     std::ofstream jsonOut;
     jsonOut.open(workspacePath + "/" + resourcePath);
@@ -311,6 +345,62 @@ bool AssetManager::StoreTexture(
     jsonOut.close();
 
     return true;
+}
+
+std::shared_ptr<renderer::Mesh> AssetManager::LoadMesh(
+    std::filesystem::path path)
+{
+    ASSERT(path.extension() == MESH_EXTENSION);
+    ASSERT(path.is_absolute());
+
+    Json::Value json;
+    std::ifstream jsonIn;
+    jsonIn.open(path);
+    jsonIn >> json;
+    jsonIn.close();
+
+    ASSERT(json[JSON_TYPE].asInt() == (int)JsonType::Mesh);
+    renderer::BuildMeshInfo info{};
+    info.resourcePath = json["resourcePath"].asString();
+
+    MeshFile::Load(workspacePath + "/" +
+        Filesystem::ChangeExtensionTo(info.resourcePath, MESH_DATA_EXTENSION),
+        info.indices, info.vertices
+    );
+
+    std::shared_ptr<renderer::Mesh> mesh =
+        renderer::VulkanMesh::BuildMesh(info);
+    
+    std::string materialPath = json["material"].asString();
+
+    if (materialPath == "none")
+        return mesh;
+    
+    std::shared_ptr<renderer::Material> material = GetMaterial(materialPath);
+    mesh->AddMaterial(material);
+    return mesh;
+}
+
+bool AssetManager::StoreMesh(std::shared_ptr<renderer::Mesh> mesh)
+{
+    {
+        std::string path;
+        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
+        ASSERT(workspacePath == path);
+    }
+
+    Json::Value json;
+    mesh->Serialize(json);
+    ASSERT(json[JSON_TYPE].asInt() == (int)JsonType::Mesh);
+
+    std::string resourcePath = json["resourcePath"].asString();
+    
+    std::ofstream jsonOut;
+    jsonOut.open(workspacePath + "/" + resourcePath);
+    jsonOut << json;
+    jsonOut.close();
+
+    return false;
 }
 
 
