@@ -431,6 +431,7 @@ void VulkanTexture::Serialize(Json::Value& json)
     json["minFilter"] = info.minFilter;
     json["maxFilter"] = info.maxFilter;
     json["imagePath"] = info.imagePath;
+    json["resourcePath"] = info.resourcePath;
 }
 
 const TextureBuildInfo& VulkanTexture::GetBuildInfo()

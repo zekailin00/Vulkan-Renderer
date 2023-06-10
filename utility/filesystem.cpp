@@ -68,6 +68,32 @@ std::string Filesystem::ChangeExtensionTo(std::string path, std::string newExten
     return path.substr(0, path.size() - fsPath.extension().string().size()) + newExtension;
 }
 
+std::string Filesystem::RemoveParentPath(std::string fullPath, std::string parentPath)
+{
+    return fullPath.substr(parentPath.size() + 1);
+}
+
+std::string Filesystem::GetUnusedFilePath(std::string path)
+{
+    std::filesystem::path fsPath = path;
+    
+    std::string extension = fsPath.extension().string();
+    std::string stem = fsPath.stem().string();
+    std::string parent = path.substr(0,
+        path.size() - extension.size() - stem.size());
+
+    std::string finalPath = parent + stem + extension;
+    if (IsRegularFile(finalPath))
+    {
+        int fileCount = 1;
+        do {
+            finalPath = parent + stem + std::to_string(fileCount) + extension;
+        } while (IsRegularFile(finalPath));
+    }
+
+    return finalPath;
+}
+
 bool Filesystem::IsAbsolute(std::filesystem::path absolutePath)
 {
     if(absolutePath.is_absolute())

@@ -8,6 +8,8 @@
 
 #include "obj_loader.h"
 
+#include "mesh_component.h"
+
 #include <string>
 #include <stb/stb_image.h>
 
@@ -110,6 +112,7 @@ std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
     info.maxFilter = renderer::FILTER_LINEAR;
     info.minFilter = renderer::FILTER_LINEAR;
     info.imagePath = wsImagePath; // relative path
+    info.resourcePath = Filesystem::ChangeExtensionTo(wsImagePath, TEXTURE_EXTENSION);
 
     std::shared_ptr<renderer::Texture> texture = 
         renderer::VulkanTexture::BuildTextureFromBuffer(
@@ -122,7 +125,7 @@ std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
 }
 
 
-bool AssetManager::ImportModelObj(std::string path)
+bool AssetManager::ImportModelObj(std::string path, Scene* scene)
 {
     {
         std::string path;
@@ -134,29 +137,47 @@ bool AssetManager::ImportModelObj(std::string path)
     if (!Filesystem::IsRegularFile(path))
         return false;
 
-    std::filesystem::path fullModelPath = path;
-
     renderer::BuildMeshInfo info{};
     bool result = ObjLoader2(path, info.vertices, info.indices);
     if (!result)
         return false;
 
-    std::string relativeModelPath = path.substr(workspacePath.size() + 1);
-    std::string relativeResourcePath =
-        Filesystem::ChangeExtensionTo(relativeModelPath, MESH_EXTENSION);
+    std::filesystem::path fsPath = path;
+    std::string fileName = fsPath.stem().string();
 
-    info.resourcePath = relativeResourcePath;
+    std::string validWsFullPath = Filesystem::GetUnusedFilePath(
+        workspacePath + "/" + TEXTURE_PATH + "/" + fileName + TEXTURE_EXTENSION
+    );
+    std::string validWsRelativePath = Filesystem::RemoveParentPath(
+        validWsFullPath, workspacePath
+    );
 
-    // if ()
-    //FIXME: check file with name collision
-
+    // Store the imported mesh into workspace
+    info.resourcePath = validWsRelativePath;
     MeshFile::Store(
-        workspacePath + "/" + relativeResourcePath,
+        validWsFullPath,
         info.indices, info.vertices
     );
 
     std::shared_ptr<renderer::Mesh> mesh = renderer::VulkanMesh::BuildMesh(info);
-    meshList[relativeResourcePath] = mesh;
+    meshList[validWsRelativePath] = mesh;
+
+    // Import the mesh into the scene as entity
+    Entity* entity = scene->NewEntity();
+    renderer::MeshComponent* meshComp = 
+        (renderer::MeshComponent*)entity->AddComponent(Component::Type::Mesh);
+    meshComp->mesh = std::dynamic_pointer_cast<renderer::VulkanMesh>(mesh);
+
+    // Store the model into the workspace
+    Json::Value json;
+    json[JSON_TYPE] = (int)JsonType::ObjModel;
+    entity->Serialize(json["entity"]);
+
+    std::ofstream jsonOut;
+    jsonOut.open(workspacePath + "/" + validWsRelativePath);
+    jsonOut << json;
+    jsonOut.close();
+
     return true;
 }
 
@@ -248,6 +269,7 @@ std::shared_ptr<renderer::Texture> AssetManager::LoadTexture(
     info.minFilter = (renderer::TextureFilter)json["minFilter"].asInt();
     info.maxFilter = (renderer::TextureFilter)json["maxFilter"].asInt();
     info.imagePath = json["imagePath"].asString();
+    info.resourcePath = json["resourcePath"].asString();
 
     int texWidth, texHeight, texChannels;
     std::string fullImagePath = workspacePath + "/" + info.imagePath;
@@ -293,7 +315,7 @@ bool AssetManager::StoreTexture(
 
 
 void MeshFile::Store(
-    std::string path,
+    std::string fullPath,
     const std::vector<unsigned int>& modelIndices,
     const std::vector<renderer::Vertex>& modelVertices)
 {
@@ -302,7 +324,7 @@ void MeshFile::Store(
     header.vertexSize = modelVertices.size() * sizeof(renderer::Vertex);
 
     std::ofstream out;
-    out.open(path, std::ifstream::binary);
+    out.open(fullPath, std::ifstream::binary);
     out.write((char*)&header, sizeof(header));
     out.write((char*)modelIndices.data(), header.indexSize);
     out.write((char*)modelVertices.data(), header.vertexSize);
@@ -310,12 +332,12 @@ void MeshFile::Store(
     out.close();
 }
 
-void MeshFile::Load(std::string path,
+void MeshFile::Load(std::string fullPath,
     std::vector<unsigned int>& modelIndices,
     std::vector<renderer::Vertex>& modelVertices)
 {
     std::ifstream in;
-    in.open(path);
+    in.open(fullPath);
 
     MeshFile header;
     in.read((char*)&header, sizeof(header));

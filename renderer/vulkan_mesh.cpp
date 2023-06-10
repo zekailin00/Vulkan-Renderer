@@ -6,6 +6,8 @@
 #include "vk_primitives/vulkan_device.h"
 #include "vk_primitives/vulkan_pipeline_layout.h"
 
+#include "serialization.h"
+
 #include <memory>
 #include <tracy/Tracy.hpp>
 
@@ -70,6 +72,15 @@ void VulkanMesh::RemoveMaterial()
     ZoneScopedN("VulkanMesh::RemoveMaterial");
 
     this->material = VulkanMaterial::GetDefaultMaterial();
+}
+
+void VulkanMesh::Serialize(Json::Value& json)
+{
+    json[JSON_TYPE] = (int)JsonType::Mesh;
+
+    json["resourcePath"] = resourcePath;
+    json["material"] = material?
+        material->GetProperties()->resourcePath: "none";
 }
 
 VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()

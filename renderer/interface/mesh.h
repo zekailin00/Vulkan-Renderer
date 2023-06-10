@@ -46,15 +46,14 @@ public:
     */
     virtual void RemoveMaterial() = 0;
 
+    virtual void Serialize(Json::Value& json) = 0;
+
     Mesh() = default;
     virtual ~Mesh() = default;
 
     // Prevent copy operation.
     Mesh(const Mesh&) = delete;
     Mesh& operator=(const Mesh&) = delete;
-
-protected:
-    std::shared_ptr<Material> material;
 };
 
 } // namespace renderer

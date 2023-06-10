@@ -32,6 +32,7 @@ enum TextureFilter
 struct TextureBuildInfo
 {
     std::string imagePath = "resources/textures/defaultTexture.png";
+    std::string resourcePath;
     TextureAddressMode addressMode = REPEAT;
     TextureFilter minFilter = FILTER_LINEAR;
     TextureFilter maxFilter = FILTER_LINEAR;

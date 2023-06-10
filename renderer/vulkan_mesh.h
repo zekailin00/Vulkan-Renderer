@@ -22,6 +22,8 @@ public:
 
     void RemoveMaterial() override;
 
+    void Serialize(Json::Value& json) override;
+
     ~VulkanMesh() override;
 
     VulkanVertexbuffer& GetVertexbuffer();
@@ -32,6 +34,8 @@ private:
     VulkanUniform uniform{};
     glm::mat4* map = nullptr;
     VkDescriptorSet descSet = VK_NULL_HANDLE;
+
+    std::shared_ptr<Material> material;
     
     std::string resourcePath;
 };
