@@ -30,6 +30,7 @@ Application::Application()
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
+    //TODO: resource manager, and give it to renderer.
 
     window.InitializeWindow();
     renderer.InitializeDevice(

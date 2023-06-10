@@ -26,16 +26,19 @@
 
 class AssetManager: public renderer::AssetManager
 {
-    void InitializeWorkspace(std::string path);
+public:
+    void InitializeWorkspace();
 
     std::shared_ptr<renderer::Material> NewMaterial();
     std::shared_ptr<renderer::Texture> ImportTexture(std::string path);
 
     bool ImportModelObj(std::string path, Scene* scene);
-    Entity* AddModelObjToScene(std::string path, Scene* scene);
+    // Entity* AddModelObjToScene(std::string path, Scene* scene);
 
-    bool ImportModelGlft(std::string path, Scene* scene);
-    Entity* AddModelGltfToScene(std::string path, Scene* scene);
+    // bool ImportModelGlft(std::string path, Scene* scene);
+    // Entity* AddModelGltfToScene(std::string path, Scene* scene);
+
+    void SaveToFilesystem();
 
     /**
      * @brief Get the Material object

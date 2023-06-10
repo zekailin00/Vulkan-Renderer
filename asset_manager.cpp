@@ -13,7 +13,7 @@
 #include <string>
 #include <stb/stb_image.h>
 
-void AssetManager::InitializeWorkspace(std::string path)
+void AssetManager::InitializeWorkspace()
 {
     if (!Configuration::Get(CONFIG_WORKSPACE_PATH, workspacePath))
     {
@@ -199,6 +199,18 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
     jsonOut.close();
 
     return true;
+}
+
+void AssetManager::SaveToFilesystem()
+{
+    for(auto& e: materialList)
+        StoreMaterial(e.second);
+    
+    for(auto& e: meshList)
+        StoreMesh(e.second);
+
+    for(auto& e: textureList)
+        StoreTexture(e.second);
 }
 
 std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)

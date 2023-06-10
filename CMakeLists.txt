@@ -112,3 +112,4 @@ target_link_libraries(engine
 set_property(TARGET engine PROPERTY CXX_STANDARD 17)
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
+add_subdirectory("${CMAKE_SOURCE_DIR}/test")
