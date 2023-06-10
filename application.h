@@ -8,6 +8,8 @@
 #include "renderer.h"
 
 #include "objloader.h"
+#include "asset_manager.h"
+#include "configuration.h"
 
 #include "component.h"
 #include "light_component.h"
@@ -33,6 +35,8 @@ protected:
     virtual void OnUpdated(float ts) = 0;
     virtual void OnDestroy() = 0;
 
+    AssetManager* GetAssetManager() {return assetManager;}
+
 protected:
     renderer::VulkanRenderer* renderer = nullptr;
 
@@ -46,4 +50,5 @@ private:
     OpenxrPlatform* openxr = nullptr;
     Input* input = nullptr;
     Scene* scene = nullptr;
+    AssetManager* assetManager = nullptr;
 };

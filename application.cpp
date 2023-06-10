@@ -30,6 +30,7 @@ Application::Application()
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
+    this->assetManager = new AssetManager();
     //TODO: resource manager, and give it to renderer.
 
     window.InitializeWindow();
@@ -40,7 +41,7 @@ Application::Application()
         openxr? openxr->GetVkDeviceExt(): std::vector<const char *>()));
 
     window.InitializeSurface();
-    renderer.AllocateResources(window.GetSwapchain(), nullptr);
+    renderer.AllocateResources(window.GetSwapchain(), assetManager);
 
     this->renderer = &renderer;
     this->window = &window;
@@ -56,6 +57,9 @@ Application::~Application()
     {
         renderer->DestroyXrSession();
     }
+
+    assetManager->SaveToFilesystem();
+    delete assetManager;
 
     renderer->DeallocateResources();
     window->DestroySurface();
@@ -92,6 +96,8 @@ void Application::Run()
     ZoneScopedN("Application::Run");
 
     OnCreated();
+
+    return;
 
     if (launchXR && openxr)
     {

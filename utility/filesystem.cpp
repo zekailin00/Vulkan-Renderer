@@ -87,7 +87,7 @@ std::string Filesystem::GetUnusedFilePath(std::string path)
     {
         int fileCount = 1;
         do {
-            finalPath = parent + stem + std::to_string(fileCount) + extension;
+            finalPath = parent + stem + "_" +std::to_string(fileCount++) + extension;
         } while (IsRegularFile(finalPath));
     }
 

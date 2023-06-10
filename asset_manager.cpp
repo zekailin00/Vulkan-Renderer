@@ -77,16 +77,23 @@ std::shared_ptr<renderer::Material> AssetManager::NewMaterial()
 {
     renderer::MaterialProperties properties{};
 
-    std::string path = TEXTURE_PATH;
-    path = path + "/" + "materaial_" +
-        std::to_string(materialCounter++) + MATERIAL_EXTENSION;
+    std::string wsRelativePath = MATERIAL_PATH;
+    wsRelativePath = wsRelativePath + "/material" + MATERIAL_EXTENSION;
 
-    properties.resourcePath = path;
+    std::string finalWsFullPath = Filesystem::GetUnusedFilePath(
+        workspacePath + "/" + wsRelativePath
+    );
+    std::string finalWsRelativePath = Filesystem::RemoveParentPath(
+        finalWsFullPath, workspacePath
+    );
+
+    properties.resourcePath = finalWsRelativePath;
 
     std::shared_ptr<renderer::Material> material =
         renderer::VulkanMaterial::BuildMaterial(&properties);
 
-    materialList[path] = material;
+    materialList[finalWsRelativePath] = material;
+    StoreMaterial(material);
     return material;
 }
 
@@ -110,37 +117,40 @@ std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
     if (!pixels)
         return nullptr;
 
-    std::filesystem::path imagePath = path; // full path
-    std::string extension = imagePath.extension().string();
-    std::string stem = imagePath.stem().string();
+    std::filesystem::path fullImagePath = path; // full path
+    std::string fileName = fullImagePath.stem().string();
+    std::string imageExtension = fullImagePath.extension().string();
 
-    std::string wsImagePath = TEXTURE_PATH; // relative path
-    wsImagePath = wsImagePath + "/" + stem + extension;
-    if (Filesystem::IsRegularFile(workspacePath + "/" + wsImagePath))
-    {
-        int fileCount = 1;
-        do {
-            wsImagePath = TEXTURE_PATH;
-            wsImagePath = wsImagePath + "/" +
-                stem + std::to_string(fileCount++) + extension;
-        } while (Filesystem::IsRegularFile(workspacePath + "/" + wsImagePath));
-    }
+    std::string wsRelativePath = TEXTURE_PATH + ("/" + fileName) + TEXTURE_EXTENSION;
+        
+    std::string finalWsFullPath = Filesystem::GetUnusedFilePath(
+        workspacePath + "/" + wsRelativePath
+    );
+    std::string finalWsRelativePath = Filesystem::RemoveParentPath(
+        finalWsFullPath, workspacePath
+    );
 
-    std::filesystem::copy(imagePath, workspacePath + "/" + wsImagePath);
+    std::string finalFullImagePath =
+        Filesystem::ChangeExtensionTo(finalWsFullPath, imageExtension);
+
+    std::filesystem::copy(path, finalFullImagePath);
     
     renderer::TextureBuildInfo info{};
     info.maxFilter = renderer::FILTER_LINEAR;
     info.minFilter = renderer::FILTER_LINEAR;
-    info.imagePath = wsImagePath; // relative path
-    info.resourcePath = Filesystem::ChangeExtensionTo(wsImagePath, TEXTURE_EXTENSION);
+    info.imagePath = Filesystem::RemoveParentPath(
+        finalFullImagePath,
+        workspacePath
+    );
+    info.resourcePath = finalWsRelativePath;
 
     std::shared_ptr<renderer::Texture> texture = 
         renderer::VulkanTexture::BuildTextureFromBuffer(
             pixels, texWidth, texHeight, &info);
 
     stbi_image_free(pixels);
-    std::string resourcePath = Filesystem::ChangeExtensionTo(info.imagePath, TEXTURE_EXTENSION);
-    textureList[resourcePath] = texture; // relative path
+    textureList[finalWsRelativePath] = texture;
+    StoreTexture(texture);
     return texture;
 }
 
@@ -197,7 +207,7 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
     jsonOut.open(workspacePath + "/" + validWsRelativePath);
     jsonOut << json;
     jsonOut.close();
-
+    //FIXME: always write back to disk when new stuff created.
     return true;
 }
 
@@ -215,17 +225,23 @@ void AssetManager::SaveToFilesystem()
 
 std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)
 {
-    return materialList[path];
+    std::shared_ptr<renderer::Material> material = materialList[path];
+    ASSERT(material != nullptr);
+    return material;
 }
 
 std::shared_ptr<renderer::Mesh> AssetManager::GetMesh(std::string path)
 {
-    return meshList[path];
+    std::shared_ptr<renderer::Mesh> mesh = meshList[path];
+    ASSERT(mesh != nullptr);
+    return mesh;
 }
 
 std::shared_ptr<renderer::Texture> AssetManager::GetTexture(std::string path)
 {
-    return textureList[path];
+    std::shared_ptr<renderer::Texture> texture = textureList[path];
+    ASSERT(texture != nullptr);
+    return texture;
 }
 
 std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
