@@ -41,15 +41,14 @@ Component* MeshDeserializer::operator()(Entity* entity, Json::Value& json)
 {
     ASSERT(json[JSON_TYPE].asInt() == (int)JsonType::Mesh);
 
-    std::string resourcePath = json["resourcePath"].asString();
-    std::string materialPath = json["material"].asString();
+    std::string meshPath = json["mesh"].asString();
 
     MeshComponent* component = new MeshComponent();
     component->entity = entity;
     component->type = Component::Type::Mesh;
     component->technique = technique;
     component->mesh = std::dynamic_pointer_cast<VulkanMesh>(
-        renderer->GetAssetManager()->GetMesh(resourcePath));
+        renderer->GetAssetManager()->GetMesh(meshPath));
 
     component->vulkanDevice = &renderer->vulkanDevice;
     component->uniform.Initialize(&renderer->vulkanDevice, sizeof(glm::mat4));
@@ -86,7 +85,7 @@ void MeshComponent::Update(Timestep ts)
 
 void MeshComponent::Serialize(Json::Value& json)
 {
-    mesh->Serialize(json);
+    json["mesh"] = mesh->GetResourcePath();
 }
 
 MeshComponent::~MeshComponent()

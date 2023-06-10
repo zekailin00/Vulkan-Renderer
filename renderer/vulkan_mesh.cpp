@@ -83,6 +83,11 @@ void VulkanMesh::Serialize(Json::Value& json)
         material->GetProperties()->resourcePath: "none";
 }
 
+std::string VulkanMesh::GetResourcePath()
+{
+    return resourcePath;
+}
+
 VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()
 {
     ZoneScopedN("VulkanMesh::GetVertexbuffer");

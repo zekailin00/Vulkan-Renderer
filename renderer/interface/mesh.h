@@ -48,6 +48,8 @@ public:
 
     virtual void Serialize(Json::Value& json) = 0;
 
+    virtual std::string GetResourcePath() = 0;
+
     Mesh() = default;
     virtual ~Mesh() = default;
 

@@ -24,6 +24,8 @@ public:
 
     void Serialize(Json::Value& json) override;
 
+    std::string GetResourcePath() override;
+
     ~VulkanMesh() override;
 
     VulkanVertexbuffer& GetVertexbuffer();
