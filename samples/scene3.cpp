@@ -110,10 +110,12 @@ void TestApp::OnCreated()
 
     {
         Entity* entity = m_scene->NewEntity();
+        entity->name = "camera";
 
         renderer::CameraProperties prop{};
         prop.UseFrameExtent = false;
         this->camera = renderer::VulkanCamera::BuildCamera(prop);
+        renderer->SetWindowContent(this->camera);
 
         renderer::CameraComponent* camComp =
             (renderer::CameraComponent*)entity->AddComponent(Component::Type::Camera);
@@ -180,7 +182,7 @@ void TestApp::OnDestroy()
 int main(int argv, char** argc)
 {
     {   
-        TestApp app("C:\\Users\\zekai\\Desktop\\ws-test\\test2");
+        TestApp app("C:\\Users\\zekai\\Desktop\\ws-test\\test1");
         app.Run();
     }
 }

@@ -8,6 +8,7 @@
 
 #include "renderer_assets.h"
 
+#include "vulkan_texture.h"
 #include "vulkan_swapchain.h"
 #include "render_technique.h"
 #include "pipeline_imgui.h"
@@ -67,6 +68,9 @@ public:/* Services */
     VulkanPipelineLayout& GetPipelineLayout(std::string name);
     VulkanPipeline& GetPipeline(std::string name);
     IVulkanSwapchain* GetSwapchain() {return swapchain;}
+    
+    void SetWindowContent(std::shared_ptr<Texture> texture);
+    void SetWindowContent(std::shared_ptr<Camera> camera);
 
 private: /* Private Vulkan helpers */
     VulkanRenderer() = default;
@@ -93,6 +97,10 @@ public:
 private:
     VkDescriptorPool vkDescriptorPool;
     VulkanCmdBuffer vulkanCmdBuffer;
+
+    // Display to glfw window
+    VkDescriptorSet textureWindowDescSet = VK_NULL_HANDLE;
+    VkDescriptorSet cameraWindowDescSet = VK_NULL_HANDLE;
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
     std::unique_ptr<PipelineImgui> pipelineImgui;

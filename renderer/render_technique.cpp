@@ -120,7 +120,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
     if(cameraList.empty())
     {
-        this->display = defaultDisplay;
         return;
     }
 
@@ -139,9 +138,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-    if (!cameraList.empty())
-        this->display = cameraList[0]->colorTexDescSet;
 
     std::vector<VkImageMemoryBarrier> uiBarriers;
     for (std::shared_ptr<VulkanUI> ui: uiList)
@@ -420,25 +416,6 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
         vkUpdateDescriptorSets(
             vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
     }
-
-    {
-        VulkanPipelineLayout& layout = vkr.GetPipelineLayout("display");
-        layout.AllocateDescriptorSet("texture", vkr.FRAME_IN_FLIGHT, &defaultDisplay);
-
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = this->defaultDisplay;
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
-
-        vkUpdateDescriptorSets(
-            vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
-    }
-
-    this->display = defaultDisplay;
 
     { //setup default skybox
         skyboxMesh = std::make_shared<VulkanMesh>();

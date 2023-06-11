@@ -38,7 +38,6 @@ public:
     void Initialize(VulkanDevice* vulkanDevice);
     void ResetSceneData();
     void ExecuteCommand(VkCommandBuffer commandBuffer);
-    VkDescriptorSet GetDisplayDescSet() {return display;}
     VkDescriptorSet* GetXrDisplayDescSet() {return xrDisplay;}
 
     void PushRendererData(const DirLight& dirLight);
@@ -70,8 +69,6 @@ private:
     SceneData *sceneMap = nullptr; // 5 directional light elements
 
     VkDescriptorSet xrDisplay[2];
-    VkDescriptorSet display; // The image that will be displayed in application
-    VkDescriptorSet defaultDisplay; // Image that will be displayed when no camera is created.
 
     bool defaultSkybox = true;
     VkDescriptorSet skyboxTex;

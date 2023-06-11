@@ -51,6 +51,7 @@ public:
 
     VkFramebuffer GetFrameBuffer(){return framebuffer;}
     VkDescriptorSet* GetDescriptorSet(){return &cameraDescSet;}
+    VkDescriptorSet* GetTextureDescriptorSet(){return &colorTexDescSet;}
 
     friend RenderTechnique; // Have access to colorTexDescSet
 

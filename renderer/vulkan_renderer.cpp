@@ -175,6 +175,23 @@ void VulkanRenderer::AllocateResources(
     CreateFramebuffers();
     defaultTechnique.Initialize(&vulkanDevice);
 
+    {
+        VulkanPipelineLayout& layout = GetPipelineLayout("display");
+        layout.AllocateDescriptorSet("texture", FRAME_IN_FLIGHT, &textureWindowDescSet);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = textureWindowDescSet;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pImageInfo = VulkanTexture::GetDefaultTexture()->GetDescriptor();
+
+        vkUpdateDescriptorSets(
+            vulkanDevice.vkDevice, 1, &descriptorWrite, 0, nullptr);
+    }
+
     ComponentLocator::SetInitializer(Component::Type::Light,
         LightInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::Light,
@@ -623,7 +640,11 @@ void VulkanRenderer::EndFrame()
         vkRenderPassinfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        VkDescriptorSet descSet = defaultTechnique.GetDisplayDescSet();
+        VkDescriptorSet activeWindowDescSet;
+        if(cameraWindowDescSet == VK_NULL_HANDLE) 
+            activeWindowDescSet = textureWindowDescSet;
+        else
+            activeWindowDescSet = cameraWindowDescSet;
 
         vkCmdBindPipeline(vkCommandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -648,7 +669,7 @@ void VulkanRenderer::EndFrame()
 
         vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
             pipelines["display"]->pipelineLayout->layout,
-            0, 1, &descSet, 0, nullptr);
+            0, 1, &activeWindowDescSet, 0, nullptr);
 
         vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
         vkCmdEndRenderPass(vkCommandBuffer);
@@ -727,6 +748,9 @@ void VulkanRenderer::DeallocateResources()
     ZoneScopedN("VulkanRenderer::DeallocateResources");
 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
+
+    cameraWindowDescSet = VK_NULL_HANDLE;
+    textureWindowDescSet = VK_NULL_HANDLE;
 
     this->defaultTechnique.Destroy();
 
@@ -916,6 +940,46 @@ VulkanPipeline& VulkanRenderer::GetPipeline(std::string name)
     ZoneScopedN("VulkanRenderer::GetPipeline");
 
     return *(pipelines[name].get());
+}
+
+void VulkanRenderer::SetWindowContent(std::shared_ptr<Texture> texture)
+{
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = textureWindowDescSet;
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite.descriptorCount = 1;
+
+    if (texture == nullptr)
+    {
+        descriptorWrite.pImageInfo =
+            VulkanTexture::GetDefaultTexture()->GetDescriptor();
+    }
+    else
+    {
+        descriptorWrite.pImageInfo =
+            std::dynamic_pointer_cast<VulkanTexture>(texture)
+            ->GetDescriptor();
+    }
+
+    vkUpdateDescriptorSets(
+            vulkanDevice.vkDevice, 1, &descriptorWrite, 0, nullptr);
+}
+
+void VulkanRenderer::SetWindowContent(std::shared_ptr<Camera> camera)
+{
+    if (camera == nullptr)
+    {
+        cameraWindowDescSet = VK_NULL_HANDLE; 
+    }
+    else
+    {
+        cameraWindowDescSet =
+            *std::dynamic_pointer_cast<VulkanCamera>(camera)
+            ->GetTextureDescriptorSet();
+    }
 }
 
 } // namespace renderer
