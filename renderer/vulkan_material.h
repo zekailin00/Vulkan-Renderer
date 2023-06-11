@@ -36,6 +36,10 @@ public:
     MaterialProperties* GetProperties() override;
     void ResetProperties() override;
 
+    void SetAlbedo(glm::vec3 albedo) override;
+    void SetMetallic(float metallic) override;
+    void SetRoughness(float roughness) override;
+
     void AddAlbedoTexture(std::shared_ptr<Texture> texture) override;
     void AddMetallicTexture(std::shared_ptr<Texture> texture) override;
     void AddRoughnessTexture(std::shared_ptr<Texture> texture) override;

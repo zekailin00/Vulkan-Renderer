@@ -179,6 +179,24 @@ void VulkanMaterial::ResetProperties()
     ResetNormalTexture();
 }
 
+void VulkanMaterial::SetAlbedo(glm::vec3 albedo)
+{
+    properties.albedo = albedo; // cpu
+    map->albedo = glm::vec4(albedo, 1.0f); // gpu
+}
+
+void VulkanMaterial::SetMetallic(float metallic)
+{
+    properties.metallic = metallic; // cpu
+    map->metallic = metallic; // gpu
+}
+
+void VulkanMaterial::SetRoughness(float roughness)
+{
+    properties.roughness = roughness; // cpu
+    map->roughness = roughness; // gpu
+}
+
 void VulkanMaterial::AddAlbedoTexture(std::shared_ptr<Texture> texture)
 {
     ZoneScopedN("VulkanMaterial::AddAlbedoTexture");

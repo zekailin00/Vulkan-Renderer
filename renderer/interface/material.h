@@ -36,6 +36,10 @@ public:
     virtual MaterialProperties* GetProperties() = 0;
     virtual void ResetProperties() = 0;
 
+    virtual void SetAlbedo(glm::vec3 albedo) = 0;
+    virtual void SetMetallic(float metallic) = 0;
+    virtual void SetRoughness(float roughness) = 0;
+
     virtual void AddAlbedoTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddMetallicTexture(std::shared_ptr<Texture> texture) = 0;
     virtual void AddRoughnessTexture(std::shared_ptr<Texture> texture) = 0;
