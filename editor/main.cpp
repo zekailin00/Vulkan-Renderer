@@ -28,7 +28,7 @@ void EditorApplication::OnCreated()
     info.imgui = Editor();
     comp->ui = renderer::VulkanUI::BuildUI(info);
     
-    renderer->SetWindowContent(comp->ui->GetTexture());
+    renderer->SetWindowContent(comp->ui);
 }
 
 void EditorApplication::OnUpdated(float ts) {}

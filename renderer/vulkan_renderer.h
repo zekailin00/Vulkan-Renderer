@@ -70,6 +70,7 @@ public:/* Services */
     IVulkanSwapchain* GetSwapchain() {return swapchain;}
     
     void SetWindowContent(std::shared_ptr<Texture> texture);
+    void SetWindowContent(std::shared_ptr<UI> ui);
     void SetWindowContent(std::shared_ptr<Camera> camera);
 
 private: /* Private Vulkan helpers */
@@ -99,6 +100,8 @@ private:
     VulkanCmdBuffer vulkanCmdBuffer;
 
     // Display to glfw window
+    std::shared_ptr<UI> uiWindow;
+    std::shared_ptr<Camera> cameraWindow;
     VkDescriptorSet textureWindowDescSet = VK_NULL_HANDLE;
     VkDescriptorSet cameraWindowDescSet = VK_NULL_HANDLE;
 

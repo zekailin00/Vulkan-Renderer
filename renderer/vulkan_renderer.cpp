@@ -227,6 +227,20 @@ void VulkanRenderer::RebuildSwapchain()
     DestroyFramebuffers();
     swapchain->RebuildSwapchain(&vulkanDevice);
     CreateFramebuffers();
+
+    if (uiWindow)
+    {
+        
+    }
+
+    if (cameraWindow)
+    {
+
+    }
+
+    //FIXME:
+    // also rebuilds the resources that presents to the window swapchain
+    // ui, camera....
 }
 
 void VulkanRenderer::CreateRenderPasses()
@@ -492,14 +506,20 @@ void VulkanRenderer::CreatePipelines()
                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
         });
 
-        displayLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+        VkPushConstantRange range = {};
+        range.offset = 0;
+        range.size = sizeof(int);
+        range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+        displayLayout = layoutBuilder.BuildPipelineLayout(
+            vkDescriptorPool, &range);
 
         VkPipelineVertexInputStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         info.vertexAttributeDescriptionCount = 0;
         info.vertexBindingDescriptionCount = 0;
 
-        displayPipeline->rasterState.cullMode = VK_CULL_MODE_BACK_BIT;
+        displayPipeline->rasterState.cullMode = VK_CULL_MODE_NONE;
         displayPipeline->rasterState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
         displayPipeline->BuildPipeline(
@@ -641,10 +661,17 @@ void VulkanRenderer::EndFrame()
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkDescriptorSet activeWindowDescSet;
+        int isTexture;
         if(cameraWindowDescSet == VK_NULL_HANDLE) 
+        {
             activeWindowDescSet = textureWindowDescSet;
+            isTexture = 1;
+        }
         else
+        {
             activeWindowDescSet = cameraWindowDescSet;
+            isTexture = 0;
+        }
 
         vkCmdBindPipeline(vkCommandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -670,6 +697,11 @@ void VulkanRenderer::EndFrame()
         vkCmdBindDescriptorSets(vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
             pipelines["display"]->pipelineLayout->layout,
             0, 1, &activeWindowDescSet, 0, nullptr);
+
+        vkCmdPushConstants(
+            vkCommandBuffer,
+            pipelines["display"]->pipelineLayout->layout, VK_SHADER_STAGE_VERTEX_BIT,
+            0, sizeof(int), &isTexture);
 
         vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
         vkCmdEndRenderPass(vkCommandBuffer);
@@ -736,6 +768,14 @@ void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
             xrContext->pipeline->pipelineLayout->layout,
             0, 1, &descSet, 0, nullptr);
 
+        // transfer image from camera instead of texture
+        int isTexture = 0;
+
+        vkCmdPushConstants(
+        vkCommandBuffer,
+        pipelines["display"]->pipelineLayout->layout, VK_SHADER_STAGE_VERTEX_BIT,
+        0, sizeof(int), &isTexture);
+
         vkCmdDraw(vkCommandBuffer, 3, 1, 0, 0);
 
         vkCmdEndRenderPass(vkCommandBuffer);
@@ -749,8 +789,11 @@ void VulkanRenderer::DeallocateResources()
 
     vkDeviceWaitIdle(vulkanDevice.vkDevice);
 
+    // free data used for displaying to glfw window
     cameraWindowDescSet = VK_NULL_HANDLE;
     textureWindowDescSet = VK_NULL_HANDLE;
+    uiWindow = nullptr; // free smart pointer
+    cameraWindow = nullptr; // free smart pointer
 
     this->defaultTechnique.Destroy();
 
@@ -873,7 +916,13 @@ bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT, 0)
         });
 
-        displayLayout = layoutBuilder.BuildPipelineLayout(vkDescriptorPool);
+        VkPushConstantRange range = {};
+        range.offset = 0;
+        range.size = sizeof(int);
+        range.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+        displayLayout = layoutBuilder.BuildPipelineLayout(
+            vkDescriptorPool, &range);
 
         VkPipelineVertexInputStateCreateInfo info{};
         info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -966,6 +1015,42 @@ void VulkanRenderer::SetWindowContent(std::shared_ptr<Texture> texture)
 
     vkUpdateDescriptorSets(
             vulkanDevice.vkDevice, 1, &descriptorWrite, 0, nullptr);
+
+    uiWindow = nullptr;
+    cameraWindowDescSet = VK_NULL_HANDLE;
+    cameraWindow = nullptr;
+}
+
+void VulkanRenderer::SetWindowContent(std::shared_ptr<UI> ui)
+{
+    VkWriteDescriptorSet descriptorWrite{};
+    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrite.dstSet = textureWindowDescSet;
+    descriptorWrite.dstBinding = 0;
+    descriptorWrite.dstArrayElement = 0;
+    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrite.descriptorCount = 1;
+
+    std::shared_ptr<Texture> texture = ui->GetTexture();
+
+    if (texture == nullptr)
+    {
+        descriptorWrite.pImageInfo =
+            VulkanTexture::GetDefaultTexture()->GetDescriptor();
+    }
+    else
+    {
+        descriptorWrite.pImageInfo =
+            std::dynamic_pointer_cast<VulkanTexture>(texture)
+            ->GetDescriptor();
+    }
+
+    vkUpdateDescriptorSets(
+            vulkanDevice.vkDevice, 1, &descriptorWrite, 0, nullptr);
+
+    uiWindow = ui;
+    cameraWindowDescSet = VK_NULL_HANDLE;
+    cameraWindow = nullptr;
 }
 
 void VulkanRenderer::SetWindowContent(std::shared_ptr<Camera> camera)
@@ -973,12 +1058,16 @@ void VulkanRenderer::SetWindowContent(std::shared_ptr<Camera> camera)
     if (camera == nullptr)
     {
         cameraWindowDescSet = VK_NULL_HANDLE; 
+        uiWindow = nullptr;
+        cameraWindow = nullptr;
     }
     else
     {
         cameraWindowDescSet =
             *std::dynamic_pointer_cast<VulkanCamera>(camera)
             ->GetTextureDescriptorSet();
+        uiWindow = nullptr;
+        cameraWindow = camera;
     }
 }
 
