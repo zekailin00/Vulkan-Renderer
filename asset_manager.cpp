@@ -289,6 +289,9 @@ std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
 
     ASSERT(json[JSON_TYPE].asInt() == (int)JsonType::Material);
     renderer::MaterialProperties properties{};
+    properties.resourcePath = Filesystem::RemoveParentPath(
+        path.string(), workspacePath
+    );
 
     DeserializeVec3(properties.albedo, json["albedo"]);
     properties.metallic = json["metallic"].asFloat();
