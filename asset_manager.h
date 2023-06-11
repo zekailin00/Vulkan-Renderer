@@ -17,12 +17,14 @@
 #define MESH_PATH       "resources/meshes"
 #define MATERIAL_PATH   "resources/materials"
 #define MODEL_PATH      "resources/models"
+#define SCENE_PATH      "resources/scenes"
 
 #define MATERIAL_EXTENSION ".slmat"
 #define TEXTURE_EXTENSION ".sltex"
 #define MESH_EXTENSION ".slmsh"
 #define MESH_DATA_EXTENSION ".slmshd"
 #define MODEL_EXTENSION ".slmod"
+#define SCENE_EXTENSION ".slscn"
 
 class AssetManager: public renderer::AssetManager
 {
@@ -32,12 +34,9 @@ public:
     std::shared_ptr<renderer::Material> NewMaterial();
     std::shared_ptr<renderer::Texture> ImportTexture(std::string path);
 
-    bool ImportModelObj(std::string path, Scene* scene);
-    // Entity* AddModelObjToScene(std::string path, Scene* scene);
-
-    // bool ImportModelGlft(std::string path, Scene* scene);
-    // Entity* AddModelGltfToScene(std::string path, Scene* scene);
-
+    Entity* ImportModelObj(std::string path, Scene* scene);
+    // Entity* ImportModelGlft(std::string path, Scene* scene);
+    
     void SaveToFilesystem();
 
     /**

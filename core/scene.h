@@ -14,7 +14,8 @@ class Scene
 public:
     enum class State
     {
-        Editor,
+        Inactive, // Not actively being rendered
+        Editor, // active rendered in editor mode(No physics, scripts... running)
         Running,
         Paused
     };

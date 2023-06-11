@@ -58,5 +58,7 @@ public:
 
     static std::string GetUnusedFilePath(std::string path);
 
+    static void ToUnixPath(std::string& path);
+
     static bool IsAbsolute(std::filesystem::path absolutePath);
 };

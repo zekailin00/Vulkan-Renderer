@@ -35,7 +35,6 @@ Application::Application(std::string workspacePath)
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
     this->assetManager = new AssetManager();
-    this->assetManager->InitializeWorkspace();
 
     window.InitializeWindow();
     renderer.InitializeDevice(
@@ -46,6 +45,7 @@ Application::Application(std::string workspacePath)
 
     window.InitializeSurface();
     renderer.AllocateResources(window.GetSwapchain(), assetManager);
+    assetManager->InitializeWorkspace();
 
     this->renderer = &renderer;
     this->window = &window;
@@ -98,8 +98,6 @@ void Application::Run()
     ZoneScopedN("Application::Run");
 
     OnCreated();
-
-    return;
 
     if (launchXR && openxr)
     {

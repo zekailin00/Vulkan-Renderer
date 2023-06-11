@@ -1,5 +1,6 @@
 #include "filesystem.h"
 
+#include <algorithm>
 
 bool Filesystem::IsDirectory(std::string path)
 {
@@ -92,6 +93,11 @@ std::string Filesystem::GetUnusedFilePath(std::string path)
     }
 
     return finalPath;
+}
+
+void Filesystem::ToUnixPath(std::string& path)
+{
+    std::replace(path.begin(), path.end(), '\\', '/');
 }
 
 bool Filesystem::IsAbsolute(std::filesystem::path absolutePath)

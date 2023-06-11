@@ -39,8 +39,6 @@ Component* MeshInitializer::operator()(Entity* entity)
 
 Component* MeshDeserializer::operator()(Entity* entity, Json::Value& json)
 {
-    ASSERT(json[JSON_TYPE].asInt() == (int)JsonType::Mesh);
-
     std::string meshPath = json["mesh"].asString();
 
     MeshComponent* component = new MeshComponent();

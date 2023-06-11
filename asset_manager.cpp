@@ -43,6 +43,7 @@ void AssetManager::CreateWorkspace()
     Filesystem::CreateDirectory(workspacePath + "/" + MESH_PATH);
     Filesystem::CreateDirectory(workspacePath + "/" + MATERIAL_PATH);
     Filesystem::CreateDirectory(workspacePath + "/" + MODEL_PATH);
+    Filesystem::CreateDirectory(workspacePath + "/" + SCENE_PATH);
 
     //TODO: copy default assets??
 }
@@ -55,21 +56,45 @@ void AssetManager::LoadWorkspace()
     for (auto& path: entries)
     {
         if (path.extension().string() == TEXTURE_EXTENSION)
-            LoadTexture(path);
+        {
+            std::shared_ptr<renderer::Texture> texture = LoadTexture(path);
+            std::string relativePath = Filesystem::RemoveParentPath(
+                path.string(), workspacePath
+            );
+
+            Filesystem::ToUnixPath(relativePath);
+            textureList[relativePath] = texture;
+        }
     }
 
-    Filesystem::GetDirectoryEntries(workspacePath + "/" + MATERIAL_EXTENSION, entries);
+    Filesystem::GetDirectoryEntries(workspacePath + "/" + MATERIAL_PATH, entries);
     for (auto& path: entries)
     {
         if (path.extension().string() == MATERIAL_EXTENSION)
-            LoadTexture(path);
+        {
+            std::shared_ptr<renderer::Material> material = LoadMaterial(path);
+            std::string relativePath = Filesystem::RemoveParentPath(
+                path.string(), workspacePath
+            );
+
+            Filesystem::ToUnixPath(relativePath);
+            materialList[relativePath] = material;
+        }
     }
 
-    Filesystem::GetDirectoryEntries(workspacePath + "/" + MESH_EXTENSION, entries);
+    Filesystem::GetDirectoryEntries(workspacePath + "/" + MESH_PATH, entries);
     for (auto& path: entries)
     {
         if (path.extension().string() == MESH_EXTENSION)
-            LoadTexture(path);
+        {
+            std::shared_ptr<renderer::Mesh> mesh = LoadMesh(path);
+            std::string relativePath = Filesystem::RemoveParentPath(
+                path.string(), workspacePath
+            );
+
+            Filesystem::ToUnixPath(relativePath);
+            meshList[relativePath] = mesh;
+        }
     }
 }
 
@@ -92,6 +117,7 @@ std::shared_ptr<renderer::Material> AssetManager::NewMaterial()
     std::shared_ptr<renderer::Material> material =
         renderer::VulkanMaterial::BuildMaterial(&properties);
 
+    Filesystem::ToUnixPath(finalWsRelativePath);
     materialList[finalWsRelativePath] = material;
     StoreMaterial(material);
     return material;
@@ -149,13 +175,13 @@ std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
             pixels, texWidth, texHeight, &info);
 
     stbi_image_free(pixels);
+    Filesystem::ToUnixPath(finalWsRelativePath);
     textureList[finalWsRelativePath] = texture;
     StoreTexture(texture);
     return texture;
 }
 
-
-bool AssetManager::ImportModelObj(std::string path, Scene* scene)
+Entity* AssetManager::ImportModelObj(std::string path, Scene* scene)
 {
     {
         std::string path;
@@ -165,12 +191,12 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
 
     // Path is valid
     if (!Filesystem::IsRegularFile(path))
-        return false;
+        return nullptr;
 
     renderer::BuildMeshInfo info{};
     bool result = ObjLoader2(path, info.vertices, info.indices);
     if (!result)
-        return false;
+        return nullptr;
 
     std::filesystem::path fsPath = path;
     std::string fileName = fsPath.stem().string();
@@ -190,6 +216,7 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
     );
 
     std::shared_ptr<renderer::Mesh> mesh = renderer::VulkanMesh::BuildMesh(info);
+    Filesystem::ToUnixPath(validWsRelativePath);
     meshList[validWsRelativePath] = mesh;
 
     // Import the mesh into the scene as entity
@@ -198,17 +225,8 @@ bool AssetManager::ImportModelObj(std::string path, Scene* scene)
         (renderer::MeshComponent*)entity->AddComponent(Component::Type::Mesh);
     meshComp->mesh = std::dynamic_pointer_cast<renderer::VulkanMesh>(mesh);
 
-    // Store the model into the workspace
-    Json::Value json;
-    json[JSON_TYPE] = (int)JsonType::ObjModel;
-    entity->Serialize(json["entity"]);
-
-    std::ofstream jsonOut;
-    jsonOut.open(workspacePath + "/" + validWsRelativePath);
-    jsonOut << json;
-    jsonOut.close();
-    //FIXME: always write back to disk when new stuff created.
-    return true;
+    StoreMesh(mesh);
+    return entity;
 }
 
 void AssetManager::SaveToFilesystem()
@@ -230,6 +248,7 @@ std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)
         return renderer::VulkanMaterial::GetDefaultMaterial();
     }
 
+    Filesystem::ToUnixPath(path);
     std::shared_ptr<renderer::Material> material = materialList[path];
     ASSERT(material != nullptr);
     return material;
@@ -237,6 +256,7 @@ std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)
 
 std::shared_ptr<renderer::Mesh> AssetManager::GetMesh(std::string path)
 {
+    Filesystem::ToUnixPath(path);
     std::shared_ptr<renderer::Mesh> mesh = meshList[path];
     ASSERT(mesh != nullptr);
     return mesh;
@@ -248,7 +268,8 @@ std::shared_ptr<renderer::Texture> AssetManager::GetTexture(std::string path)
     {
         return renderer::VulkanTexture::GetDefaultTexture();
     }
-    
+
+    Filesystem::ToUnixPath(path);
     std::shared_ptr<renderer::Texture> texture = textureList[path];
     ASSERT(texture != nullptr);
     return texture;
@@ -276,22 +297,22 @@ std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
     std::string texturePath; 
     if((texturePath = json["albedoTexture"].asString()) != "none")
     {
-        properties.albedoTexture = textureList[texturePath];
+        properties.albedoTexture = GetTexture(texturePath);
     }
 
     if((texturePath = json["metallicTexture"].asString()) != "none")
     {
-        properties.metallicTexture = textureList[texturePath];
+        properties.metallicTexture = GetTexture(texturePath);
     }
 
     if((texturePath = json["roughnessTexture"].asString()) != "none")
     {
-        properties.roughnessTexture = textureList[texturePath];
+        properties.roughnessTexture = GetTexture(texturePath);
     }
 
     if((texturePath = json["normalTexture"].asString()) != "none")
     {
-        properties.normalTexture = textureList[texturePath];
+        properties.normalTexture = GetTexture(texturePath);
     }
 
     return renderer::VulkanMaterial::BuildMaterial(&properties);
@@ -358,6 +379,7 @@ std::shared_ptr<renderer::Texture> AssetManager::LoadTexture(
 
     stbi_image_free(pixels);
     std::string resourcePath = Filesystem::ChangeExtensionTo(info.imagePath, TEXTURE_EXTENSION);
+    Filesystem::ToUnixPath(resourcePath);
     textureList[resourcePath] = texture;
     return texture;
 }
@@ -448,14 +470,17 @@ void MeshFile::Store(
     const std::vector<renderer::Vertex>& modelVertices)
 {
     MeshFile header;
-    header.indexSize = modelIndices.size() * sizeof(unsigned int);
-    header.vertexSize = modelVertices.size() * sizeof(renderer::Vertex);
+    header.indexSize = modelIndices.size();
+    header.vertexSize = modelVertices.size();
+
+    unsigned int indexBytes = modelIndices.size() * sizeof(unsigned int);
+    unsigned int vertexBytes = modelVertices.size() * sizeof(renderer::Vertex);
 
     std::ofstream out;
-    out.open(fullPath, std::ifstream::binary);
+    out.open(fullPath, std::ifstream::out | std::ifstream::binary);
     out.write((char*)&header, sizeof(header));
-    out.write((char*)modelIndices.data(), header.indexSize);
-    out.write((char*)modelVertices.data(), header.vertexSize);
+    out.write((char*)modelIndices.data(), indexBytes);
+    out.write((char*)modelVertices.data(), vertexBytes);
 
     out.close();
 }
@@ -465,7 +490,7 @@ void MeshFile::Load(std::string fullPath,
     std::vector<renderer::Vertex>& modelVertices)
 {
     std::ifstream in;
-    in.open(fullPath);
+    in.open(fullPath, std::ifstream::in | std::ifstream::binary);
 
     MeshFile header;
     in.read((char*)&header, sizeof(header));
@@ -480,7 +505,10 @@ void MeshFile::Load(std::string fullPath,
     modelIndices.resize(header.indexSize);
     modelVertices.resize(header.vertexSize);
 
-    in.read((char*)modelIndices.data(), header.indexSize);
-    in.read((char*)modelVertices.data(), header.vertexSize);
+    unsigned int indexBytes = modelIndices.size() * sizeof(unsigned int);
+    unsigned int vertexBytes = modelVertices.size() * sizeof(renderer::Vertex);
+
+    in.read((char*)modelIndices.data(), indexBytes);
+    in.read((char*)modelVertices.data(), vertexBytes);
     in.close();
 }
