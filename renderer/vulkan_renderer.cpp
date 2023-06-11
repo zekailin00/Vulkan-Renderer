@@ -230,12 +230,13 @@ void VulkanRenderer::RebuildSwapchain()
 
     if (uiWindow)
     {
-        
+        uiWindow->SetExtent({swapchain->GetWidth(), swapchain->GetHeight()});
+        SetWindowContent(uiWindow);
     }
 
     if (cameraWindow)
     {
-
+        //TODO:
     }
 
     //FIXME:
@@ -1031,6 +1032,7 @@ void VulkanRenderer::SetWindowContent(std::shared_ptr<UI> ui)
     descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorWrite.descriptorCount = 1;
 
+    ui->SetExtent({swapchain->GetWidth(), swapchain->GetHeight()});
     std::shared_ptr<Texture> texture = ui->GetTexture();
 
     if (texture == nullptr)

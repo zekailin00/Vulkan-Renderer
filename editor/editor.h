@@ -1,5 +1,7 @@
 #pragma once
 
+#include "application.h"
+
 class Editor
 {
 public:
