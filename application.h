@@ -24,11 +24,12 @@
 class Application
 {
 public:
-    Application();
+    Application(std::string workspacePath);
     ~Application();
 
     void Run();
-    Scene* GetScene();
+    Scene* GetActiveScene();
+    void SetActiveScene(Scene* scene);
     
 protected:
     virtual void OnCreated() = 0;
@@ -49,6 +50,6 @@ private:
     GlfwWindow* window = nullptr;
     OpenxrPlatform* openxr = nullptr;
     Input* input = nullptr;
-    Scene* scene = nullptr;
+    Scene* activeScene = nullptr;
     AssetManager* assetManager = nullptr;
 };

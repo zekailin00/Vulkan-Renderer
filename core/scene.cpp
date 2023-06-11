@@ -7,13 +7,15 @@
 
 #include <glm/mat4x4.hpp>
 #include <json/json.h>
+#include <filesystem>
 #include <fstream>
 
 
-Scene* Scene::NewScene()
+Scene* Scene::NewScene(std::string name)
 {
     Scene* scene = new Scene();
 
+    scene->sceneName = name;
     scene->state = State::Editor;
     scene->entityCounter = 0;
     scene->rootEntity = scene->_NewEntity();
@@ -30,7 +32,10 @@ Scene* Scene::LoadFromFile(std::string path, State state)
     jsonIn >> json;
     jsonIn.close();
 
-    Scene* scene = Scene::NewScene();
+    std::filesystem::path fsPath = path;
+    std::string sceneName = fsPath.stem().string();
+
+    Scene* scene = Scene::NewScene(sceneName);
     ASSERT(json[JSON_TYPE] == (int)JsonType::Scene);
     scene->state = state;
     scene->rootEntity->Deserialize(json["rootEntity"]);

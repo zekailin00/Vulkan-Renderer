@@ -7,19 +7,23 @@
 
 bool launchXR = false;
 
-Scene* Application::GetScene()
+Scene* Application::GetActiveScene()
 {
-    ZoneScopedN("Application::GetRootNode");
-    if (scene)
-        return scene;
-    
-    scene = Scene::NewScene();
-    return scene;
+    ZoneScopedN("Application::GetActiveScene");
+    return activeScene;
 }
 
-Application::Application()
+void Application::SetActiveScene(Scene* scene)
+{
+    ZoneScopedN("Application::SetActiveScene");
+    activeScene = scene;
+}
+
+Application::Application(std::string workspacePath)
 {
     ZoneScopedN("Application::Application");
+
+    Configuration::Set(CONFIG_WORKSPACE_PATH, workspacePath);
 
     Logger::Write(
         "Current path: " + std::filesystem::current_path().string(),
@@ -31,7 +35,7 @@ Application::Application()
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
     this->assetManager = new AssetManager();
-    //TODO: resource manager, and give it to renderer.
+    this->assetManager->InitializeWorkspace();
 
     window.InitializeWindow();
     renderer.InitializeDevice(
@@ -50,8 +54,6 @@ Application::Application()
 Application::~Application()
 {
     ZoneScopedN("Application::~Application");
-
-    delete scene;
 
     if (launchXR)
     {
@@ -119,7 +121,7 @@ void Application::Run()
         {
             ZoneScopedN("Application::OnUpdated");
             OnUpdated(ts);
-            scene->Update(ts);
+            if(activeScene) activeScene->Update(ts);
         }
 
         renderer->EndFrame();

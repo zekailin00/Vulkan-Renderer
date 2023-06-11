@@ -20,10 +20,12 @@ public:
     };
 
 public:
-    static Scene* NewScene();
+    static Scene* NewScene(std::string name);
     static Scene* LoadFromFile(std::string path, State state);
     bool SaveToFile(std::string path);
     Scene* Replicate(State state);
+
+    const std::string& GetSceneName() {return sceneName;}
 
     Entity* NewEntity();
     bool RemoveEntity(Entity* entity);
@@ -43,6 +45,7 @@ private:
 
 private:
     State state = State::Editor;
+    std::string sceneName;
     Entity* rootEntity = nullptr;
     unsigned int entityCounter = 0;
 };
