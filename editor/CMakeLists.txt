@@ -1,5 +1,6 @@
 add_executable(editor
     main.cpp
+    editor.h
 )
 
 target_link_libraries(editor engine)

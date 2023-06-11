@@ -104,7 +104,11 @@ void RenderTechnique::Destroy()
 
 void RenderTechnique::ResetSceneData()
 {
-    ZoneScopedN("RenderTechnique::ProcessScene");
+    ZoneScopedN("RenderTechnique::ResetSceneData");
+    renderMesh.clear();
+    cameraList.clear();
+    wireList.clear();
+    uiList.clear();
     sceneMap->nLight.x = 0;
 }
 
@@ -116,11 +120,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
     {
         sceneMap->dirLight[0] = VulkanLight::GetDefaultLight()->dirLight;
         sceneMap->nLight++;
-    }
-
-    if(cameraList.empty())
-    {
-        return;
     }
 
     VulkanRenderer& vkr = VulkanRenderer::GetInstance();
@@ -173,6 +172,12 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         0, 0, nullptr, 0, nullptr,
         uiBarriers.size(), uiBarriers.data() 
     );
+
+    if(cameraList.empty())
+    {
+        ResetSceneData();
+        return;
+    }
 
     std::vector<VkImageMemoryBarrier> camBarriers;
     for (std::shared_ptr<VulkanCamera> camera: cameraList)
@@ -306,10 +311,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
         vkCmdEndRenderPass(commandBuffer);
     }
 
-    renderMesh.clear();
-    cameraList.clear();
-    wireList.clear();
-    uiList.clear();
+    ResetSceneData();
 
     vkCmdPipelineBarrier(commandBuffer,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
