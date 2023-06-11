@@ -77,7 +77,7 @@ void VulkanUI::RenderUI()
 
 void VulkanUI::SetExtent(glm::vec2 extent)
 {
-    void (*renderUI)(void) = this->renderUI;
+    std::function<void()> renderUI = this->renderUI;
     Destroy();
     Initialize(extent, renderUI);
 }
@@ -87,7 +87,7 @@ std::shared_ptr<Texture> VulkanUI::GetTexture()
     return colorImage;
 }
 
-void VulkanUI::Initialize(glm::vec2& extent, void (*renderUI)(void))
+void VulkanUI::Initialize(glm::vec2& extent, std::function<void()> renderUI)
 {
     this->extent = extent;
     this->renderUI = renderUI;

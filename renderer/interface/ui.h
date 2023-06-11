@@ -3,6 +3,7 @@
 #include "texture.h"
 
 #include <glm/vec2.hpp>
+#include <functional>
 #include <memory>
 
 namespace renderer
@@ -11,7 +12,7 @@ namespace renderer
 struct UIBuildInfo
 {
     glm::vec2 extent = {720, 720};
-    void (*imgui)(void);
+    std::function<void()> imgui;
 };
 
 class UI

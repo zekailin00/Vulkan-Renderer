@@ -38,7 +38,7 @@ public:
 
 private:
     glm::vec2 extent;
-    void (*renderUI)(void);
+    std::function<void()> renderUI;
 
     ImDrawData* drawData;
 
@@ -55,7 +55,7 @@ private:
     VkFramebuffer framebuffer;
 
 private:
-    void Initialize(glm::vec2& extent, void (*renderUI)(void));
+    void Initialize(glm::vec2& extent, std::function<void()> renderUI);
     
     void MapData();
 
