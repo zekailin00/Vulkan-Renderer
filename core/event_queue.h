@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <list>
 #include <functional>
 
@@ -50,10 +51,12 @@ public:
     }
 
     void Publish(Category category, Event* event);
-    void Subscribe(Category category, std::function<void(Event*)> callback);
+    int Subscribe(Category category, std::function<void(Event*)> callback);
+    void Unsubscribe(int handle);
     void ProcessEvents();
 
 private:
     std::list<Event*> queues[CategorySize];
-    std::list<std::function<void(Event*)>> handlers[CategorySize];
+    std::map<int, std::function<void(Event*)>> subscribers[CategorySize];
+    unsigned int handleCount = 0;
 };

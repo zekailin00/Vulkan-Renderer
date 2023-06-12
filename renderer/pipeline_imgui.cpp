@@ -36,7 +36,7 @@ PipelineImgui::PipelineImgui(
     io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
 
     // Create font
-    io.Fonts->AddFontFromFileTTF("resources/KGPrimaryPenmanship.ttf", 32.0f);
+    io.Fonts->AddFontFromFileTTF("resources/KGPrimaryPenmanship.ttf", 20.0f);
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();

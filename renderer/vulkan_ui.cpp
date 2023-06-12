@@ -2,6 +2,7 @@
 
 #include "vulkan_renderer.h"
 #include "validation.h"
+#include "events.h"
 
 #include <memory>
 
@@ -12,6 +13,17 @@ std::shared_ptr<VulkanUI> VulkanUI::BuildUI(UIBuildInfo& info)
 {
     std::shared_ptr<VulkanUI> ui = std::make_shared<VulkanUI>();
     ui->Initialize(info.extent, info.imgui);
+    ui->editorUI = info.editorUI;
+
+    if (ui->editorUI)
+    {
+        // subscribe to events if UI is for editor
+        ui->windowEventHandler = new WindowEventHandler();
+        ui->subscriberHandle = EventQueue::GetInstance()->Subscribe(
+            EventQueue::InputGFLW,
+            ui->windowEventHandler->GetSubscriber()    
+        );
+    }
 
     return ui;
 }
@@ -19,6 +31,11 @@ std::shared_ptr<VulkanUI> VulkanUI::BuildUI(UIBuildInfo& info)
 VulkanUI::~VulkanUI()
 {
     Destroy();
+    if (editorUI)
+    {
+        EventQueue::GetInstance()->Unsubscribe(subscriberHandle);
+        delete windowEventHandler;
+    }
 }
 
 void VulkanUI::Destroy()
@@ -58,18 +75,30 @@ void VulkanUI::Destroy()
 
 void VulkanUI::RenderUI()
 {
-    ImGui::NewFrame();
-    ImGui::SetNextWindowPos({0.0f, 0.0f});
-    ImGui::SetNextWindowSize({extent.x, extent.y});
-    ImGui::Begin("window", nullptr,
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove | 
-        ImGuiWindowFlags_NoCollapse
-    );
-    this->renderUI();
-    ImGui::End();
-    ImGui::EndFrame();
+    if (editorUI)
+    {
+        windowEventHandler->ProcessInputs();
+        ImGui::NewFrame();
+        this->renderUI();
+        ImGui::EndFrame();
+    }
+    else
+    {
+        ImGui::NewFrame();
+        ImGui::SetNextWindowPos({0.0f, 0.0f});
+        ImGui::SetNextWindowSize({extent.x, extent.y});
+        ImGui::Begin("window", nullptr,
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoMove | 
+            ImGuiWindowFlags_NoCollapse
+        );
+
+        this->renderUI();
+        ImGui::End();
+        ImGui::EndFrame();
+    }
+
     ImGui::Render();
     this->drawData = ImGui::GetDrawData();
     MapData();
@@ -201,6 +230,98 @@ void VulkanUI::CreateOrResizeBuffer(
     err = vkBindBufferMemory(vulkanDevice->vkDevice, buffer, buffer_memory, 0);
     CHECK_VKCMD(err);
     p_buffer_size = req.size;
+}
+
+void WindowEventHandler::Subscriber::operator()(Event* event)
+{
+    if (event->type == Event::Type::MouseButton)
+    {
+        EventMouseButton* copy = new EventMouseButton();
+        *copy = *dynamic_cast<EventMouseButton*>(event);
+        this->hanlder->queue.push_back(copy);
+    }
+    else if (event->type == Event::Type::MousePosition)
+    {
+        EventMousePosition* copy = new EventMousePosition();
+        *copy = *dynamic_cast<EventMousePosition*>(event);
+        this->hanlder->queue.push_back(copy);
+    }
+    else if (event->type == Event::Type::MouseWheel)
+    {
+        EventMouseWheel* copy = new EventMouseWheel();
+        *copy = *dynamic_cast<EventMouseWheel*>(event);
+        this->hanlder->queue.push_back(copy);
+    }
+    else if (event->type == Event::Type::CursorEnter)
+    {
+        EventCursorEnter* copy = new EventCursorEnter();
+        *copy = *dynamic_cast<EventCursorEnter*>(event);
+        this->hanlder->queue.push_back(copy);
+    }
+    else if (event->type == Event::Type::KeyboardImgui)
+    {
+        EventKeyboardImgui* copy = new EventKeyboardImgui();
+        *copy = *dynamic_cast<EventKeyboardImgui*>(event);
+        this->hanlder->queue.push_back(copy);
+    }
+    else if (event->type == Event::Type::CharacterUTF32)
+    {
+        EventCharacterUTF32* copy = new EventCharacterUTF32();
+        *copy = *dynamic_cast<EventCharacterUTF32*>(event);
+        this->hanlder->queue.push_back(copy);
+    }
+}
+
+void WindowEventHandler::ProcessInputs()
+{
+    while (!queue.empty())
+    {
+        Event* event = queue.front();
+        queue.pop_front();
+
+        if (event->type == Event::Type::MouseButton)
+        {
+            EventMouseButton* e = dynamic_cast<EventMouseButton*>(event);
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddMouseButtonEvent(e->button, e->action);
+        }
+        else if (event->type == Event::Type::MousePosition)
+        {
+            EventMousePosition* e = dynamic_cast<EventMousePosition*>(event);
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddMousePosEvent(e->pos.x, e->pos.y);
+        }
+        else if (event->type == Event::Type::MouseWheel)
+        {
+            EventMouseWheel* e = dynamic_cast<EventMouseWheel*>(event);
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddMouseWheelEvent(e->offset.x, e->offset.y);
+        }
+        else if (event->type == Event::Type::CursorEnter)
+        {
+            EventCursorEnter* e = dynamic_cast<EventCursorEnter*>(event);
+            ImGuiIO& io = ImGui::GetIO();
+            
+            if (!e->entered)
+            {
+                io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+            }
+        }
+        else if (event->type == Event::Type::KeyboardImgui)
+        {
+            EventKeyboardImgui* e = dynamic_cast<EventKeyboardImgui*>(event);
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddKeyEvent((ImGuiKey)e->keyCode, e->pressed);
+        }
+        else if (event->type == Event::Type::CharacterUTF32)
+        {
+            EventCharacterUTF32* e = dynamic_cast<EventCharacterUTF32*>(event);
+            ImGuiIO& io = ImGui::GetIO();
+            io.AddInputCharacter(e->c);
+        }
+
+        delete event;
+    }
 }
 
 } // namespace renderer

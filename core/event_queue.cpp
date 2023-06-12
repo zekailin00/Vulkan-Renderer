@@ -1,15 +1,34 @@
 #include "event_queue.h"
 
+#include "validation.h"
+
 void EventQueue::Publish(
     EventQueue::Category category, Event* event)
 {
     queues[category].push_back(event);
 }
 
-void EventQueue::Subscribe(
+int EventQueue::Subscribe(
     EventQueue::Category category, std::function<void(Event*)> callback)
 {
-    handlers[category].push_back(callback);
+    int handle = handleCount++;
+    subscribers[category][handle] = callback;
+    return handle;
+}
+
+void EventQueue::Unsubscribe(int handle)
+{
+    for (int i = 0; i < CategorySize; i++)
+    {
+        auto& it = subscribers[i].find(handle);
+        if (it != subscribers[i].cend())
+        {
+            subscribers[i].erase(it);
+            return;
+        }
+    }
+
+    throw;
 }
 
 void EventQueue::ProcessEvents()
@@ -20,9 +39,9 @@ void EventQueue::ProcessEvents()
         {
             Event* event = queues[i].front();
             queues[i].pop_front();
-            for (std::function<void(Event*)> handler: handlers[i])
+            for (auto& subscriber: subscribers[i])
             {
-                handler(event);
+                subscriber.second(event);
             }
 
             delete event;

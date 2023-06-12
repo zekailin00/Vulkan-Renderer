@@ -5,6 +5,8 @@
 #include "vk_primitives/vulkan_device.h"
 #include "vulkan_texture.h"
 
+#include "event_queue.h"
+
 #include <glm/vec2.hpp>
 #include <imgui.h>
 #include <memory>
@@ -13,6 +15,7 @@ namespace renderer
 {
 
 class RenderTechnique;
+class WindowEventHandler;
 
 class VulkanUI: public UI
 {
@@ -40,6 +43,10 @@ private:
     glm::vec2 extent;
     std::function<void()> renderUI;
 
+    bool editorUI;
+    WindowEventHandler* windowEventHandler;
+    int subscriberHandle;
+
     ImDrawData* drawData;
 
     VkDeviceMemory      vertexBufferMemory = VK_NULL_HANDLE;
@@ -62,6 +69,34 @@ private:
     void CreateOrResizeBuffer(
         VkBuffer& buffer, VkDeviceMemory& buffer_memory,
         VkDeviceSize& p_buffer_size, size_t new_size, VkBufferUsageFlagBits usage);
+};
+
+class WindowEventHandler
+{
+public:
+    class Subscriber
+    {
+    public:
+        Subscriber(WindowEventHandler* handler)
+        {
+            this->hanlder = handler;
+        }
+
+        void operator()(Event* event);
+
+    private:
+        WindowEventHandler* hanlder;
+    };
+
+    Subscriber GetSubscriber()
+    {
+        return Subscriber(this);
+    };
+
+    void ProcessInputs();
+
+private:
+    std::list<Event*> queue;
 };
 
 } // namespace renderer

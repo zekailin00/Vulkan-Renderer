@@ -26,6 +26,7 @@ void EditorApplication::OnCreated()
     renderer::UIBuildInfo info{};
     info.extent = {3840, 2160};
     info.imgui = Editor();
+    info.editorUI = true;
     comp->ui = renderer::VulkanUI::BuildUI(info);
     
     renderer->SetWindowContent(comp->ui);

@@ -11,8 +11,19 @@ namespace renderer
 
 struct UIBuildInfo
 {
+    // When ui is rendered to glfw window,
+    // extent is reset to window extent.
     glm::vec2 extent = {720, 720};
+
+    // FIXME: not serializable for now 
     std::function<void()> imgui;
+
+    /**
+     * @brief When editorUI is set to true,
+     * the ui takes glfw inputs, and renderUI commands
+     * are not wrapped into a signle window.
+     */
+    bool editorUI = false;
 };
 
 class UI

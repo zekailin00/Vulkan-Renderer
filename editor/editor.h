@@ -11,5 +11,6 @@ public:
         ImGui::Text("test test test test");
         ImGui::Text("test test test test");
         ImGui::Text("test test test test");
+        ImGui::ShowDemoWindow();
     }
 };

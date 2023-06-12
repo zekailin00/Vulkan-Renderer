@@ -91,6 +91,8 @@ void Application::PollEvents()
         if(openxr->ShouldCloseSeesion())
             renderer->DestroyXrSession();
     }
+
+    EventQueue::GetInstance()->ProcessEvents();
 }
 
 void Application::Run()
