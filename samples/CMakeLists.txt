@@ -1,26 +1,26 @@
+add_executable(scene1 scene1.cpp)
+target_link_libraries(scene1 engine)
+set_property(TARGET scene1 PROPERTY CXX_STANDARD 17)
 
-add_executable(test
-    test.cpp
+add_custom_command(TARGET scene1 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:scene1>/resources
 )
 
-target_link_libraries(test renderer)
+add_executable(scene2 scene2.cpp)
+target_link_libraries(scene2 engine)
+set_property(TARGET scene2 PROPERTY CXX_STANDARD 17)
 
-# Build settings
-set_property(TARGET test PROPERTY CXX_STANDARD 17)
+add_custom_command(TARGET scene2 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:scene2>/resources
+)
 
-add_custom_command(TARGET test POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:test>/resources)
+add_executable(scene3 scene3.cpp)
+target_link_libraries(scene3 engine)
+set_property(TARGET scene3 PROPERTY CXX_STANDARD 17)
 
-
-add_executable(test_scene scene.cpp)
-target_link_libraries(test_scene renderer)
-set_property(TARGET test_scene PROPERTY CXX_STANDARD 17)
-
-add_custom_command(TARGET test_scene POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:test_scene>/resources)
-
-
-
-                   
+add_custom_command(TARGET scene3 POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/resources $<TARGET_FILE_DIR:scene3>/resources
+)

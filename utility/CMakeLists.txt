@@ -11,6 +11,7 @@ add_library(utility
 target_link_libraries(utility PUBLIC
     glm::glm
     Tracy::TracyClient
+    jsoncpp_static
 )
 
 # Target settings

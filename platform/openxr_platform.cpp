@@ -111,6 +111,7 @@ OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
             std::string(resultBuffer),
             Logger::Level::Info, Logger::MsgType::Platform
         );
+        xrDestroyInstance(xrInstance);
         return nullptr;
     }
 

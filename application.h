@@ -7,22 +7,36 @@
 #include "vulkan_renderer.h"
 #include "renderer.h"
 
+#include "objloader.h"
+#include "asset_manager.h"
+#include "configuration.h"
+
+#include "component.h"
+#include "light_component.h"
+#include "camera_component.h"
+#include "mesh_component.h"
+#include "ui_component.h"
+#include "wireframe_component.h"
+
 #include <Tracy/Tracy.hpp>
 
 
 class Application
 {
 public:
-    Application();
+    Application(std::string workspacePath);
     ~Application();
 
     void Run();
-    renderer::Node* GetRootNode();
+    Scene* GetActiveScene();
+    void SetActiveScene(Scene* scene);
     
 protected:
     virtual void OnCreated() = 0;
     virtual void OnUpdated(float ts) = 0;
     virtual void OnDestroy() = 0;
+
+    AssetManager* GetAssetManager() {return assetManager;}
 
 protected:
     renderer::VulkanRenderer* renderer = nullptr;
@@ -36,4 +50,6 @@ private:
     GlfwWindow* window = nullptr;
     OpenxrPlatform* openxr = nullptr;
     Input* input = nullptr;
+    Scene* activeScene = nullptr;
+    AssetManager* assetManager = nullptr;
 };

@@ -5,18 +5,25 @@
 #include "logger.h"
 #include "timestep.h"
 
-bool launchXR = true;
+bool launchXR = false;
 
-renderer::Node* Application::GetRootNode()
+Scene* Application::GetActiveScene()
 {
-    ZoneScopedN("Application::GetRootNode");
-
-    return renderer->GetScene()->GetRootNode();
+    ZoneScopedN("Application::GetActiveScene");
+    return activeScene;
 }
 
-Application::Application()
+void Application::SetActiveScene(Scene* scene)
+{
+    ZoneScopedN("Application::SetActiveScene");
+    activeScene = scene;
+}
+
+Application::Application(std::string workspacePath)
 {
     ZoneScopedN("Application::Application");
+
+    Configuration::Set(CONFIG_WORKSPACE_PATH, workspacePath);
 
     Logger::Write(
         "Current path: " + std::filesystem::current_path().string(),
@@ -27,18 +34,21 @@ Application::Application()
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
+    this->assetManager = new AssetManager();
 
     window.InitializeWindow();
     renderer.InitializeDevice(
-        MergeExtensions(window.GetVkInstanceExt(), openxr->GetVkInstanceExt()), 
-        MergeExtensions(window.GetVkDeviceExt(), openxr->GetVkDeviceExt()));
+        MergeExtensions(window.GetVkInstanceExt(), 
+        openxr? openxr->GetVkInstanceExt(): std::vector<const char*>()), 
+        MergeExtensions(window.GetVkDeviceExt(),
+        openxr? openxr->GetVkDeviceExt(): std::vector<const char *>()));
 
     window.InitializeSurface();
-    renderer.AllocateResources(window.GetSwapchain(), openxr->GetSwapchain());
+    renderer.AllocateResources(window.GetSwapchain(), assetManager);
+    assetManager->InitializeWorkspace();
 
     this->renderer = &renderer;
     this->window = &window;
-
 }
 
 Application::~Application()
@@ -50,14 +60,20 @@ Application::~Application()
         renderer->DestroyXrSession();
     }
 
+    assetManager->SaveToFilesystem();
+    delete assetManager;
+
     renderer->DeallocateResources();
     window->DestroySurface();
 
     renderer->Destroy();
     window->DestroyWindow();
 
-    openxr->Destroy();
-    delete openxr;
+    if (openxr)
+    {
+        openxr->Destroy();
+        delete openxr;
+    } 
 
     renderer = nullptr;
     window = nullptr;
@@ -68,10 +84,15 @@ void Application::PollEvents()
 {
     ZoneScopedN("Application::PollEvents");
 
-    openxr->PollEvents();
+    if (openxr)
+    {
+        openxr->PollEvents();
 
-    if(openxr->ShouldCloseSeesion())
-        renderer->DestroyXrSession();
+        if(openxr->ShouldCloseSeesion())
+            renderer->DestroyXrSession();
+    }
+
+    EventQueue::GetInstance()->ProcessEvents();
 }
 
 void Application::Run()
@@ -80,7 +101,7 @@ void Application::Run()
 
     OnCreated();
 
-    if (launchXR)
+    if (launchXR && openxr)
     {
         renderer->InitializeXrSession(openxr->NewSession());
         // TODO: intialization failed
@@ -94,16 +115,17 @@ void Application::Run()
 
         window->BeginFrame(); // Must before renderer.BeginFrame();
         renderer->BeginFrame();
-        openxr->BeginFrame();
+        if (openxr) openxr->BeginFrame();
         
 
         {
             ZoneScopedN("Application::OnUpdated");
             OnUpdated(ts);
+            if(activeScene) activeScene->Update(ts);
         }
 
         renderer->EndFrame();
-        openxr->EndFrame();
+        if (openxr) openxr->EndFrame();
 
         FrameMark;
     }

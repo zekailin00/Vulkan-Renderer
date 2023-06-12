@@ -1,12 +1,17 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.23.0)
 
-project(vulkan_renderer)
+project(SemaLink_Engine)
+
+include(CTest)
 
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
 file(GLOB PLT_HEADERS "platform/*.h")
 file(GLOB PLT_SOURCE "platform/*.cpp")
+
+file(GLOB MODEL_LOADERS_HEADERS "model_loaders/*.h")
+file(GLOB MODEL_LOADERS_SOURCE "model_loaders/*.cpp")
 
 # Vulkan
 if (APPLE)
@@ -33,7 +38,6 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/external/OpenXR-SDK")
 option(TRACY_ENABLE "" ON)
 add_subdirectory ("${CMAKE_SOURCE_DIR}/external/tracy")
 
-
 # GLFW
 set(GLFW_DIR "${CMAKE_SOURCE_DIR}/external/glfw") # Set this to point to an up-to-date GLFW repo
 option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)
@@ -53,44 +57,60 @@ set(IMGUI_DIR "${CMAKE_SOURCE_DIR}/external/imgui")
 set(TINY_OBJ_DIR "${CMAKE_SOURCE_DIR}/external/tiny_obj_loader/tiny-obj-loader-submodule/include")
 
 # json cpp
+option(JSONCPP_WITH_TESTS "Compile and (for jsoncpp_check) run JsonCpp test executables" OFF)
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/jsoncpp")
 
 # utility
 add_subdirectory("${CMAKE_SOURCE_DIR}/utility")
 
-# Vulkan Renderer
-add_subdirectory("${CMAKE_SOURCE_DIR}/vulkan_renderer")
+# core
+add_subdirectory("${CMAKE_SOURCE_DIR}/core")
 
-# Target settings
-add_library(renderer
-    ${LOCAL_HEADERS}
-    ${LOCAL_SOURCE}
+# Renderer
+add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
+
+
+# platform library
+add_library(platform
     ${PLT_HEADERS}
     ${PLT_SOURCE}
 )
 
-# Target settings
-target_include_directories(renderer PUBLIC
-    ${Vulkan_INCLUDE_DIRS}
-    ${IMGUI_DIR}
-    ${IMGUI_DIR}/backends
+target_include_directories(platform PUBLIC
     platform
+)
+
+target_link_libraries(platform
+    renderer
+    openxr_loader
+    glfw
+)
+
+
+# Target settings
+add_library(engine
+    ${LOCAL_HEADERS}
+    ${LOCAL_SOURCE}
+    ${MODEL_LOADERS_HEADERS}
+    ${MODEL_LOADERS_SOURCE}
+)
+
+# Target settings
+target_include_directories(engine PUBLIC
+    model_loaders
     .
 )
 
-# platforms 
-target_link_libraries(renderer 
-    glfw
-    openxr_loader
-)
-
 # libraries
-target_link_libraries(renderer
-    VulkanRenderer
-    utility
+target_link_libraries(engine
+    renderer
+    platform
+    engine_core
 )
 
 # Build settings
-set_property(TARGET renderer PROPERTY CXX_STANDARD 17)
+set_property(TARGET engine PROPERTY CXX_STANDARD 17)
 
+add_subdirectory("${CMAKE_SOURCE_DIR}/editor")
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")
+add_subdirectory("${CMAKE_SOURCE_DIR}/test")
