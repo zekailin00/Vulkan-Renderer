@@ -4,6 +4,8 @@
 
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
+
 
 #define EVENT_TYPE(eType) Event##eType##() \
     {type = Event::Type::##eType;}
@@ -45,17 +47,74 @@ struct EventInputFloats: public Event
     float r_thumbstick_y;
 };
 
-struct EventInputKeyboard: public Event
+struct EventKeyboard: public Event
 {
-    EVENT_TYPE(InputKeyboard);
+    EVENT_TYPE(Keyboard);
 
     enum Action
     {
-        KeyPressed,
-        KeyRepeated,
-        KeyReleased
+        KeyReleased = 0,
+        KeyPressed = 1,
+        KeyRepeated = 2
     };
 
-    int key;
+    int keyCode;
     Action action;
+};
+
+struct EventKeyboardImgui: public Event
+{
+    EVENT_TYPE(KeyboardImgui);
+
+    int keyCode;
+    bool pressed;
+};
+
+struct EventCharacterUTF32: public Event
+{
+    EVENT_TYPE(CharacterUTF32);
+
+    unsigned int c;
+};
+
+struct EventMouseButton: public Event
+{
+    EVENT_TYPE(MouseButton);
+
+    enum Button
+    {
+        ButtonLeft = 1,
+        ButtonRight = 2,
+        ButtonMiddle = 3
+    };
+
+    enum Action
+    {
+        ButtonRelease = 0,
+        ButtonPress = 1
+    };
+
+    Button button;
+    Action action;
+};
+
+struct EventMousePosition: public Event
+{
+    EVENT_TYPE(MousePosition);
+
+    glm::vec2 pos;
+};
+
+struct EventMouseWheel: public Event
+{
+    EVENT_TYPE(MouseWheel);
+
+    glm::vec2 offset;
+};
+
+struct EventCursorEnter: public Event
+{
+    EVENT_TYPE(CursorEnter);
+
+    int entered;
 };

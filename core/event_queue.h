@@ -11,7 +11,14 @@ struct Event
         InputViews,
         InputPoses,
         InputFloats,
-        InputKeyboard
+
+        Keyboard,
+        KeyboardImgui,
+        CharacterUTF32,
+        MouseButton,
+        MousePosition,
+        MouseWheel,
+        CursorEnter
     };
 
     Type type;

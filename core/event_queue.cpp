@@ -24,6 +24,8 @@ void EventQueue::ProcessEvents()
             {
                 handler(event);
             }
+
+            delete event;
         }
     }
 }
