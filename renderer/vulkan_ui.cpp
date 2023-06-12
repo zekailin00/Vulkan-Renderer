@@ -75,6 +75,9 @@ void VulkanUI::Destroy()
 
 void VulkanUI::RenderUI()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(extent.x, extent.y);
+
     if (editorUI)
     {
         windowEventHandler->ProcessInputs();
