@@ -23,14 +23,14 @@ class TestApp: public Application
 {
 public:
     std::shared_ptr<renderer::Camera> camera;
-    std::shared_ptr<renderer::Mesh> mesh_test;
-    std::shared_ptr<renderer::Mesh> mesh_monster;
+    // std::shared_ptr<renderer::Mesh> mesh_test;
+    // std::shared_ptr<renderer::Mesh> mesh_monster;
 
-    std::shared_ptr<renderer::Material> material_uv_test;
-    std::shared_ptr<renderer::Material> material_color;
+    // std::shared_ptr<renderer::Material> material_uv_test;
+    // std::shared_ptr<renderer::Material> material_color;
 
-    std::shared_ptr<renderer::Texture> rough;
-    std::shared_ptr<renderer::Texture> metal;
+    // std::shared_ptr<renderer::Texture> rough;
+    // std::shared_ptr<renderer::Texture> metal;
 
     Entity* arrowEntity;
     TestApp(std::string workspacePath)
@@ -38,6 +38,7 @@ public:
 
     Scene* m_scene;
     AssetManager* m_manager;
+    int sceneHandle;
 
     void OnCreated() override;
     void OnUpdated(float ts) override;
@@ -62,8 +63,8 @@ void TestApp::OnCreated()
 
     {
 
-        SetActiveScene(Scene::NewScene("newScene"));
-        m_scene = GetActiveScene();
+        sceneHandle = SetActiveScene(Scene::NewScene("newScene"));
+        m_scene = GetActiveScene(sceneHandle);
 
         Entity* entity = m_manager->ImportModelObj(
             "C:/Users/zekai/Desktop/quad.obj", m_scene);
@@ -162,13 +163,13 @@ void TestApp::OnUpdated(float ts)
 
     view = glm::rotate(glm::mat4(1.0f), totalTime/1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 
-    Entity* arrow = GetActiveScene()->GetEntityByName("arrow");
+    Entity* arrow = GetActiveScene(sceneHandle)->GetEntityByName("arrow");
     arrow->SetLocalTransform(view);
 }
 
 void TestApp::OnDestroy()
 {
-    Scene* scene = GetActiveScene();
+    Scene* scene = EraseActiveScene(sceneHandle);
     std::string workspace;
     Configuration::Get(CONFIG_WORKSPACE_PATH, workspace);
 
@@ -182,7 +183,7 @@ void TestApp::OnDestroy()
 int main(int argv, char** argc)
 {
     {   
-        TestApp app("C:\\Users\\zekai\\Desktop\\ws-test\\test1");
+        TestApp app("C:\\Users\\zekai\\Desktop\\ws-test\\scene-c++");
         app.Run();
     }
 }

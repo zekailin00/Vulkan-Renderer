@@ -32,10 +32,28 @@ public:
             renderer::CameraComponent* comp = (renderer::CameraComponent*)
                 e->GetComponent(Component::Type::Camera);
 
+            ImVec2 contentExtent = ImGui::GetContentRegionAvail();
+            glm::vec2 imageExtent = comp->camera->GetCamProperties().Extent;
+
+            float heightRatio = imageExtent.y / contentExtent.y;
+            float widthRatio = imageExtent.x / contentExtent.x;
+
+            if (heightRatio > widthRatio)
+            {
+                imageExtent.x /= heightRatio;
+                imageExtent.y /= heightRatio;
+            }
+            else
+            {
+                imageExtent.x /= widthRatio;
+                imageExtent.y /= widthRatio;
+            }
+            
+            ImGui::SetCursorPos(ImVec2((contentExtent.x - imageExtent.x) * 0.5f + ImGui::GetCursorPos().x, 
+                                       (contentExtent.y - imageExtent.y) * 0.5f + ImGui::GetCursorPos().y));
             ImGui::Image(
-                (ImTextureID)(*(comp->camera->GetTextureDescriptorSet())),
-                {(float)comp->camera->GetCamProperties().Extent.x,
-                 (float)comp->camera->GetCamProperties().Extent.y}
+                *(comp->camera->GetTextureDescriptorSet()),
+                {imageExtent.x, imageExtent.y}, {0, 1}, {1, 0}
             );
         }
 

@@ -19,6 +19,7 @@
 #include "wireframe_component.h"
 
 #include <Tracy/Tracy.hpp>
+#include <map>
 
 
 class Application
@@ -28,8 +29,9 @@ public:
     ~Application();
 
     void Run();
-    Scene* GetActiveScene();
-    void SetActiveScene(Scene* scene);
+    Scene* GetActiveScene(int handle);
+    int SetActiveScene(Scene* scene);
+    Scene* EraseActiveScene(int handle);
     
 protected:
     virtual void OnCreated() = 0;
@@ -50,6 +52,8 @@ private:
     GlfwWindow* window = nullptr;
     OpenxrPlatform* openxr = nullptr;
     Input* input = nullptr;
-    Scene* activeScene = nullptr;
     AssetManager* assetManager = nullptr;
+
+    std::map<int, Scene*> activeScenes;
+    int activeSceneHandleCount = 0;
 };

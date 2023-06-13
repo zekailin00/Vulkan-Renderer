@@ -4,19 +4,40 @@
 #include "application.h"
 #include "logger.h"
 #include "timestep.h"
+#include "validation.h"
 
 bool launchXR = false;
 
-Scene* Application::GetActiveScene()
+Scene* Application::GetActiveScene(int handle)
 {
     ZoneScopedN("Application::GetActiveScene");
-    return activeScene;
+
+    Scene* scene = activeScenes[handle];
+    ASSERT(scene != nullptr);
+    return scene;
 }
 
-void Application::SetActiveScene(Scene* scene)
+int Application::SetActiveScene(Scene* scene)
 {
     ZoneScopedN("Application::SetActiveScene");
-    activeScene = scene;
+
+    int handle = activeSceneHandleCount++;
+    ASSERT(scene != nullptr);
+    ASSERT(activeScenes.find(handle) == activeScenes.end());
+    activeScenes[handle] = scene;
+    return handle;
+}
+
+Scene* Application::EraseActiveScene(int handle)
+{
+    ZoneScopedN("Application::EraseActiveScene");
+
+    auto& iterator = activeScenes.find(handle);
+    ASSERT(iterator != activeScenes.end());
+
+    Scene* scene = iterator->second;
+    activeScenes.erase(handle);
+    return scene;
 }
 
 Application::Application(std::string workspacePath)
@@ -111,21 +132,19 @@ void Application::Run()
     while (!window->ShouldClose()) 
     {
         Timestep ts = timer.GetTimestep();
+
         PollEvents();
+        window->BeginFrame(); // poll window events
 
-        window->BeginFrame(); // Must before renderer.BeginFrame();
-        renderer->BeginFrame();
-        if (openxr) openxr->BeginFrame();
-        
+        OnUpdated(ts); // outside of scene update loop 
 
-        {
-            ZoneScopedN("Application::OnUpdated");
-            OnUpdated(ts);
-            if(activeScene) activeScene->Update(ts);
+        for (auto& scene: activeScenes)
+        {   // update loop of a scene
+            // if (openxr) openxr->BeginFrame();
+            scene.second->Update(ts);
+            renderer->EndFrame();
+            // if (openxr) openxr->EndFrame();
         }
-
-        renderer->EndFrame();
-        if (openxr) openxr->EndFrame();
 
         FrameMark;
     }
