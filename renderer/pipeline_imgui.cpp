@@ -26,9 +26,9 @@ PipelineImgui::PipelineImgui(
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 
-    // Ensure all texture sizes are less than this
-    io.DisplaySize = {4096,4096};
-
+    // Enablde docking
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    
     // Setup backend capabilities flags
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.BackendRendererUserData = static_cast<void*>(this);

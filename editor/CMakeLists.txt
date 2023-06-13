@@ -1,6 +1,10 @@
+file(GLOB LOCAL_HEADERS "*.h")
+file(GLOB LOCAL_SOURCE "*.cpp")
+
+
 add_executable(editor
-    main.cpp
-    editor.h
+    ${LOCAL_HEADERS}
+    ${LOCAL_SOURCE}
 )
 
 target_link_libraries(editor engine)
