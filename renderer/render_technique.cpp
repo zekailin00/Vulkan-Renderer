@@ -175,7 +175,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
     if(cameraList.empty())
     {
-        ResetSceneData();
         return;
     }
 
@@ -310,8 +309,6 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
         vkCmdEndRenderPass(commandBuffer);
     }
-
-    ResetSceneData();
 
     vkCmdPipelineBarrier(commandBuffer,
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
@@ -452,6 +449,8 @@ void RenderTechnique::Initialize(VulkanDevice* vulkanDevice)
         vkUpdateDescriptorSets(
             vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
     }
+    
+    ResetSceneData();
 }
 
 void RenderTechnique::PushRendererData(const DirLight& dirLight)

@@ -715,6 +715,8 @@ void VulkanRenderer::EndFrame()
 
     // Present image
     swapchain->PresentImage(&vulkanDevice, renderFinishedSemaphore, imageIndex);
+
+    defaultTechnique.ResetSceneData();
 }
 
 void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
