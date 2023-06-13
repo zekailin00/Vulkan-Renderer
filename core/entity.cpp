@@ -201,6 +201,16 @@ Entity* Entity::GetChildByName(std::string name)
     return nullptr;
 }
 
+void Entity::ScanEntities(std::function<void(Entity*)> fn)
+{
+    fn(this);
+    
+    for (Entity* e: children)
+    {
+        e->ScanEntities(fn);
+    }
+}
+
 const std::list<Entity*>& Entity::GetChildren()
 {
     return children;

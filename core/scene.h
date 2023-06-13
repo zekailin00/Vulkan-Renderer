@@ -31,6 +31,8 @@ public:
     Entity* NewEntity();
     bool RemoveEntity(Entity* entity);
     Entity* GetEntityByName(std::string name);
+    void GetEntitiesWithComponent(
+        Component::Type type, std::vector<Entity*>& list);
 
     Entity* GetRootEntity();
     void Update(Timestep ts);

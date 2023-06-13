@@ -7,6 +7,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <list>
+#include <functional>
 
 class Scene;
 
@@ -48,6 +49,7 @@ public:
     glm::vec3 GetLocalScale();
 
     Entity* GetChildByName(std::string name);
+    void ScanEntities(std::function<void(Entity*)> fn);
     const std::list<Entity*>& GetChildren();
 
 public:

@@ -9,6 +9,7 @@
 #include <json/json.h>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 
 Scene* Scene::NewScene(std::string name)
@@ -118,6 +119,15 @@ void Scene::Update(Timestep ts)
 Entity* Scene::GetEntityByName(std::string name)
 {
     return rootEntity->GetChildByName(name);
+}
+
+void Scene::GetEntitiesWithComponent(
+    Component::Type type, std::vector<Entity*>& list)
+{
+    rootEntity->ScanEntities([&list, type](Entity* e){
+        if (e->HasComponent(type))
+            list.push_back(e);
+    });
 }
 
 Entity* Scene::_NewEntity()
