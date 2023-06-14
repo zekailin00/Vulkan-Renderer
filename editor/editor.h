@@ -5,7 +5,7 @@
 #include "viewport.h"
 #include "scene_graph.h"
 #include "workspace.h"
-#include "component_list.h"
+#include "entity_properties.h"
 
 class Editor
 {
@@ -13,7 +13,7 @@ class Editor
 private:
     Viewport viewport;
     SceneGraph sceneGraph;
-    ComponentList componentList;
+    EntityProperties entityProperties;
     Workspace workspace;
 
     Scene* project;
@@ -46,7 +46,7 @@ public:
         Draw();
         viewport.Draw(dockID);
         sceneGraph.Draw();
-        componentList.Draw();
+        entityProperties.Draw();
         workspace.Draw();
         ImGui::ShowDemoWindow();
     }

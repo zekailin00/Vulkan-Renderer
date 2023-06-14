@@ -41,7 +41,8 @@ void SceneGraph::Draw()
 
 void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children)
 {
-    const static ImGuiTreeNodeFlags treeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+    const static ImGuiTreeNodeFlags treeFlags =
+        ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
     for (Entity* entity: children)
     {
         ImGuiTreeNodeFlags nodeFlags = treeFlags;
@@ -50,7 +51,7 @@ void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children)
 
         if(!entity->GetChildren().empty())
         {
-            bool isTreeOpen = ImGui::TreeNodeEx(entity->name.c_str(), nodeFlags);
+            bool isTreeOpen = ImGui::TreeNodeEx(entity->GetName().c_str(), nodeFlags);
             bool isPopupOpen = ImGui::BeginPopupContextItem();
 
             if (isPopupOpen)
@@ -72,8 +73,9 @@ void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children)
         }
         else
         {
-            nodeFlags |= ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-            ImGui::TreeNodeEx(entity->name.c_str(), nodeFlags);
+            nodeFlags |= ImGuiTreeNodeFlags_Leaf |
+                         ImGuiTreeNodeFlags_NoTreePushOnOpen;
+            ImGui::TreeNodeEx(entity->GetName().c_str(), nodeFlags);
             bool isPopupOpen = ImGui::BeginPopupContextItem();
 
             if (isPopupOpen)
