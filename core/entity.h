@@ -52,8 +52,8 @@ public:
     void ScanEntities(std::function<void(Entity*)> fn);
     const std::list<Entity*>& GetChildren();
 
-public:
-    std::string name;
+    const std::string& GetName() {return name;}
+    void SetName(const std::string& name) {this->name = name;}
 
 private:
     friend Scene;
@@ -67,6 +67,7 @@ private:
 private:
     Component* componentList[(int)Component::Type::Size];
     Scene* scene = nullptr;
+    std::string name;
 
     glm::mat4 localTransform;
     glm::mat4 globalTransform;

@@ -34,7 +34,7 @@ void EditorApplication::OnCreated()
     }
 
     Entity* entity = GetActiveScene(editorHandle)->NewEntity();
-    entity->name = "editor";
+    entity->SetName("editor");
 
     renderer::UIComponent* comp = (renderer::UIComponent*)
         entity->AddComponent(Component::Type::UI);
@@ -52,7 +52,17 @@ void EditorApplication::OnCreated()
     // renderer->SetWindowContent(camComp->camera);
 }
 
-void EditorApplication::OnUpdated(float ts) {}
+void EditorApplication::OnUpdated(float ts)
+{
+    glm::mat4 view;
+    static float totalTime = 0;
+    totalTime += ts;
+
+    view = glm::rotate(glm::mat4(1.0f), totalTime/1.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+    Entity* arrow = GetActiveScene(projectHandle)->GetEntityByName("arrow");
+    arrow->SetLocalTransform(view);
+}
 
 void EditorApplication::OnDestroy()
 {

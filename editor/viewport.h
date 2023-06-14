@@ -26,7 +26,7 @@ public:
         for (Entity* e: entityList)
         {
             ImGui::SetNextWindowDockID(nextWindowDockID); 
-            ImGui::Begin(e->name.c_str(), nullptr, ImGuiWindowFlags_NoMove);
+            ImGui::Begin(e->GetName().c_str(), nullptr, ImGuiWindowFlags_NoMove);
 
             renderer::CameraComponent* comp = (renderer::CameraComponent*)
                 e->GetComponent(Component::Type::Camera);
