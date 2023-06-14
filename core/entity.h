@@ -30,8 +30,8 @@ public:
     bool operator==(const Entity& e);
 
 public:
-    glm::mat4 GetGlobalTransform();
-    glm::mat4 GetLocalTransform();
+    const glm::mat4& GetGlobalTransform();
+    const glm::mat4& GetLocalTransform();
 
     void SetLocalTransform(const glm::mat4& transform);
     /**

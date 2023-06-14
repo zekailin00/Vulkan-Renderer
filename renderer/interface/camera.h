@@ -10,7 +10,7 @@ struct CameraProperties
 {
     bool       UseFrameExtent = true;
     glm::uvec2 Extent         = {3840, 2160};
-    float      Fov            = 45.0f;
+    float      Fov            = 45.0f; // Y-axis
     float      ZNear          = 0.1f;
     float      ZFar           = 100.0f;
 };

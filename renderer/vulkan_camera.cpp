@@ -185,6 +185,16 @@ void VulkanCamera::SetCamProperties(CameraProperties& properties)
         this->properties.ZNear, this->properties.ZFar);
 }
 
+void VulkanCamera::SetProjection(float aspectRatioXy, float fovy,
+    float zNear, float zFar)
+{
+    properties.Fov = fovy;
+    properties.ZFar = zFar;
+    properties.ZNear = zNear;
+    this->vpMap->projection = glm::perspective(
+        glm::radians(fovy), aspectRatioXy, zNear, zFar);
+}
+
 const glm::mat4& VulkanCamera::GetTransform()
 {
     ZoneScopedN("VulkanCamera::GetTransform");

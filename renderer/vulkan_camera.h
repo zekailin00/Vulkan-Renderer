@@ -35,7 +35,19 @@ public:
 
     const CameraProperties& GetCamProperties() override;
 
+    /* FIXME: has a bug */
     void SetCamProperties(CameraProperties&) override;
+
+    /**
+     * @brief Set the Field Of View object
+     * 
+     * @param aspectRatioXy aspect ratio: x over y
+     * @param fovy field of view of y axis in degree
+     * @param zNear near plane in meter
+     * @param zFar far plane in mater
+     */
+    void SetProjection(float aspectRatioXy, float fovy = 45.0f,
+        float zNear = 0.1f, float zFar = 100.0f);
 
     const glm::mat4& GetTransform(); // Used by VulkanNode
 

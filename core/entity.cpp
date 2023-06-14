@@ -121,19 +121,20 @@ void Entity::ReparentTo(Entity* entity)
     parent = entity;
 }
 
-glm::mat4 Entity::GetGlobalTransform()
+const glm::mat4& Entity::GetGlobalTransform()
 {
+    static const glm::mat4 IDENTITY(1.0f);
     if (parent == nullptr)
     {
         ASSERT(this == scene->GetRootEntity());
-        return glm::mat4(1.0f);
+        return IDENTITY;
     }
 
     globalTransform = parent->GetGlobalTransform() * localTransform;
     return globalTransform;
 }
 
-glm::mat4 Entity::GetLocalTransform()
+const glm::mat4& Entity::GetLocalTransform()
 {
     return localTransform;
 }
