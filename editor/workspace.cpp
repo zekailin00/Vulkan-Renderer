@@ -36,13 +36,15 @@ void Workspace::DrawButtons()
 
 void Workspace::DrawTable()
 {
-        const float TEXT_BASE_WIDTH = ImGui::CalcTextSize("A").x;
+    const float TEXT_BASE_WIDTH = ImGui::CalcTextSize("A").x;
 
-        ImGuiTableFlags flags =
-            ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | 
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
-            ImGuiTableFlags_NoBordersInBody;
-        ImGui::BeginTable("4ways", 4, flags);
+    ImGuiTableFlags flags =
+        ImGuiTableFlags_BordersV | ImGuiTableFlags_BordersOuterH | 
+        ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg |
+        ImGuiTableFlags_NoBordersInBody;
+
+    if (ImGui::BeginTable("4ways", 4, flags))
+    {
         ImGui::TableSetupColumn(
             "Name",ImGuiTableColumnFlags_NoHide);
         ImGui::TableSetupColumn
@@ -69,6 +71,7 @@ void Workspace::DrawTable()
 
         RenderNodes(root);
         ImGui::EndTable();
+    }
 }
 
 void Workspace::BuildNodes(std::unique_ptr<FileSystemNode>& node)
