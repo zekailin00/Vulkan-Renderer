@@ -27,9 +27,9 @@ public:
 
     void operator()()
     {
-        ImGui::DockSpaceOverViewport();
+        ImGuiID dockID = ImGui::DockSpaceOverViewport();
         Draw();
-        viewport.Draw();
+        viewport.Draw(dockID);
         sceneGraph.Draw();
         componentList.Draw();
         workspace.Draw();

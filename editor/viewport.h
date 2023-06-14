@@ -10,16 +10,10 @@ public:
         this->scene = scene;
     }
 
-    void Draw()
+    void Draw(ImGuiID dockID)
     {
         if (scene == nullptr)
             return;
-        // if (ImGui::BeginTabBar("CameraList", ImGuiTabBarFlags_None))
-        // {
-        //     ImGui::EndTabBar();
-        // }
-
-        ImGui::Begin("Viewport", nullptr);
 
         std::vector<Entity*> entityList;
         scene->GetEntitiesWithComponent(
@@ -27,8 +21,13 @@ public:
             entityList
         );
 
+        ImGuiID nextWindowDockID = dockID;
+
         for (Entity* e: entityList)
         {
+            ImGui::SetNextWindowDockID(nextWindowDockID); 
+            ImGui::Begin(e->name.c_str(), nullptr, ImGuiWindowFlags_NoMove);
+
             renderer::CameraComponent* comp = (renderer::CameraComponent*)
                 e->GetComponent(Component::Type::Camera);
 
@@ -55,12 +54,12 @@ public:
                 *(comp->camera->GetTextureDescriptorSet()),
                 {imageExtent.x, imageExtent.y}, {0, 1}, {1, 0}
             );
+
+            nextWindowDockID = ImGui::GetWindowDockID();
+
+            ImGui::End();
         }
-
-
-
-        ImGui::End();
     }
 private:
-    Scene* scene;
+    Scene* scene = nullptr;
 };

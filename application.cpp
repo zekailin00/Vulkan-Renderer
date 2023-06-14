@@ -138,13 +138,14 @@ void Application::Run()
 
         OnUpdated(ts); // outside of scene update loop 
 
+        // Render loop needs to support multiple scenes
         for (auto& scene: activeScenes)
         {   // update loop of a scene
             // if (openxr) openxr->BeginFrame();
             scene.second->Update(ts);
-            renderer->EndFrame();
             // if (openxr) openxr->EndFrame();
         }
+        renderer->EndFrame();
 
         FrameMark;
     }
