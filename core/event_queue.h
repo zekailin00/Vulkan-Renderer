@@ -9,17 +9,24 @@ struct Event
 {
     enum class Type
     {
+        /* OpenXR events */
         InputViews,
         InputPoses,
         InputFloats,
 
+        /* GLFW events */
         Keyboard,
         KeyboardImgui,
         CharacterUTF32,
         MouseButton,
         MousePosition,
         MouseWheel,
-        CursorEnter
+        CursorEnter,
+
+        /* Editor events */
+        EntitySelected,
+        NewEntity,
+        DeleteEntity
     };
 
     Type type;
@@ -41,6 +48,7 @@ public:
         InputXR,
         InputGFLW,
         Subsystem,
+        Editor,
         CategorySize
     };
 

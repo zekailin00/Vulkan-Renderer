@@ -23,6 +23,7 @@ public:
     {
         project = scene;
         viewport.SetScene(scene);
+        sceneGraph.SetScene(scene);
     }
 
     void operator()()

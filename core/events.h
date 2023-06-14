@@ -118,3 +118,27 @@ struct EventCursorEnter: public Event
 
     int entered;
 };
+
+
+class Entity;
+
+struct EventEntitySelected: public Event
+{
+    EVENT_TYPE(EntitySelected);
+
+    Entity* entity;
+};
+
+struct EventNewEntity: public Event
+{
+    EVENT_TYPE(NewEntity);
+
+    Entity* parent;
+};
+
+struct EventDeleteEntity: public Event
+{
+    EVENT_TYPE(DeleteEntity);
+
+    Entity* entity;
+};
