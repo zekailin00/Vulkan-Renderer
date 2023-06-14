@@ -13,6 +13,12 @@
 #include <string>
 #include <stb/stb_image.h>
 
+AssetManager* AssetManager::GetInstance()
+{
+    static AssetManager assetManager{};
+    return &assetManager;
+}
+
 void AssetManager::InitializeWorkspace()
 {
     if (!Configuration::Get(CONFIG_WORKSPACE_PATH, workspacePath))
@@ -209,7 +215,8 @@ Entity* AssetManager::ImportModelObj(std::string path, Scene* scene)
     );
 
     // Store the imported mesh into workspace
-    info.resourcePath = Filesystem::ChangeExtensionTo(validWsRelativePath, MESH_EXTENSION);
+    info.resourcePath =
+        Filesystem::ChangeExtensionTo(validWsRelativePath, MESH_EXTENSION);
     MeshFile::Store(
         validWsFullPath,
         info.indices, info.vertices
@@ -239,6 +246,13 @@ void AssetManager::SaveToFilesystem()
 
     for(auto& e: textureList)
         StoreTexture(e.second);
+}
+
+void AssetManager::DestroyResources()
+{
+    materialList.clear();
+    meshList.clear();
+    textureList.clear();
 }
 
 std::shared_ptr<renderer::Material> AssetManager::GetMaterial(std::string path)
@@ -381,7 +395,8 @@ std::shared_ptr<renderer::Texture> AssetManager::LoadTexture(
             pixels, texWidth, texHeight, &info);
 
     stbi_image_free(pixels);
-    std::string resourcePath = Filesystem::ChangeExtensionTo(info.imagePath, TEXTURE_EXTENSION);
+    std::string resourcePath =
+        Filesystem::ChangeExtensionTo(info.imagePath, TEXTURE_EXTENSION);
     Filesystem::ToUnixPath(resourcePath);
     textureList[resourcePath] = texture;
     return texture;
@@ -408,6 +423,27 @@ bool AssetManager::StoreTexture(
     jsonOut.close();
 
     return true;
+}
+
+void AssetManager::GetAvailableMeshes(std::vector<const char*>& meshPaths)
+{
+    meshPaths.clear();
+    for (auto& p: meshList)
+    {
+        meshPaths.push_back(p.first.c_str());
+    }
+    return;
+}
+
+void AssetManager::GetAvailableMaterials(
+    std::vector<const char*>& materialPaths)
+{
+    materialPaths.clear();
+    for (auto& p: materialList)
+    {
+        materialPaths.push_back(p.first.c_str());
+    }
+    return;
 }
 
 std::shared_ptr<renderer::Mesh> AssetManager::LoadMesh(

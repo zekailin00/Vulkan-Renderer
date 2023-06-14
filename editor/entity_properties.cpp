@@ -3,6 +3,9 @@
 #include "light_component.h"
 #include "camera_component.h"
 
+#include "asset_manager.h"
+#include "validation.h"
+
 
 EntityProperties::EntityProperties()
 {
@@ -15,11 +18,15 @@ EntityProperties::EntityProperties()
             }
             if (event->type == Event::Type::DeleteEntity)
             {
-                EventEntitySelected* e = dynamic_cast<EventEntitySelected*>(event);
+                EventDeleteEntity* e = dynamic_cast<EventDeleteEntity*>(event);
                 if (e->entity == this->selectedEntity)
                 {
                     this->selectedEntity = nullptr;
                 }
+            }
+            if (event->type == Event::Type::mesh_dirty_d)
+            {
+
             }
         });
 }
@@ -149,6 +156,9 @@ void EntityProperties::ShowEntityProperties()
                 dynamic_cast<renderer::CameraComponent*>(
                     selectedEntity->GetComponent(Component::Type::Camera));
 
+            // FIXME: component has a copy of cam prop, cam also has one
+            // it better to just keep one copy.
+            // writes to component or writes to camera resource??
             const renderer::CameraProperties& prop =
                 component->camera->GetCamProperties();
 
@@ -156,7 +166,7 @@ void EntityProperties::ShowEntityProperties()
 
             ImGui::SeparatorText("Resolution");
             {
-                int extent[2] = {prop.Extent.x, prop.Extent.y};
+                int extent[2] = {(int)prop.Extent.x, (int)prop.Extent.y};
                 ImGui::DragInt2("Resolution (constant)", extent,
                     0, 360, 4096, "%d", ImGuiSliderFlags_NoInput);
             }
@@ -171,12 +181,14 @@ void EntityProperties::ShowEntityProperties()
                 ImGui::DragFloat("Aspect Ratio (x/y)", &aspectRatio,
                     0.0f, 0.001f, 1000, "%.3f", ImGuiSliderFlags_NoInput);
                 ImGui::DragFloat("Field of View (y axis in degree)", &fovy,
-                    0.01f, 10.0f, 300.0f, "%.2f");
+                    0.1f, 10.0f, 170.0f, "%.1f");
                 ImGui::DragFloat("Near Plane (meter)", &zNear,
                     0.01f, 0.01f, FLT_MAX, "%.2f");
                 ImGui::DragFloat("Far Plane (meter)", &zFar,
                     0.01f, 0.01f, FLT_MAX, "%.2f");
 
+                // FIXME: component has a copy of cam prop, cam also has one
+                // it better to just keep one copy. 
                 component->camera->SetProjection(
                     prop.Extent.x / (float)prop.Extent.y, fovy, zNear, zFar);
             }
@@ -184,11 +196,120 @@ void EntityProperties::ShowEntityProperties()
             ImGui::PopItemWidth();
 
             static bool rebuildCamera = false;
-            if (ImGui::Button("Rebuilt Camera"))
+            if (ImGui::Button("Rebuilt Camera (TODO:)"))
             {
                 rebuildCamera = true;
             }
 
+            ImGui::Separator();
+        }
+    }
+
+    if (selectedEntity->HasComponent(Component::Type::Mesh))
+    {
+        if (ImGui::CollapsingHeader("Mesh Component"))
+        {
+            renderer::MeshComponent* component =
+                dynamic_cast<renderer::MeshComponent*>(
+                    selectedEntity->GetComponent(Component::Type::Mesh));
+
+            ImGui::SeparatorText("Mesh");
+            {
+
+                if (!availableMeshCached)
+                {
+                    AssetManager* manager = AssetManager::GetInstance();
+                    manager->GetAvailableMeshes(availableMeshes);
+                    availableMeshCached = true;
+                }
+
+                std::string currentMeshStr = component->mesh->GetResourcePath();
+                const char* currentMeshPath = currentMeshStr.c_str();
+                if (ImGui::BeginCombo("Mesh Path", currentMeshPath))
+                {
+                    for (int n = 0; n < availableMeshes.size(); n++)
+                    {
+                        const bool isSelected =
+                            strcmp(availableMeshes[n], currentMeshPath) == 0;
+                        if (ImGui::Selectable(availableMeshes[n], isSelected))
+                        {
+                            //TODO: event to change mesh
+                        }
+
+                        // Set the initial focus to the selected mesh
+                        // when opening the combo
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            
+            ImGui::SeparatorText("Material");
+            {
+
+                if (!availableMaterialCached)
+                {
+                    AssetManager* manager = AssetManager::GetInstance();
+                    manager->GetAvailableMaterials(availableMaterials);
+                    availableMaterialCached = true;
+                }
+
+                std::shared_ptr<renderer::VulkanMaterial> material =
+                    component->mesh->GetVulkanMaterial();
+
+                //FIXME: path "/" "\\" mismatch,
+                // all paths when recorded to resources
+                // need to be converted to unix path format.
+                std::string currentMaterialStr =
+                    material->GetProperties()->resourcePath;
+                const char* currentMaterialPath = currentMaterialStr.c_str();
+                if (ImGui::BeginCombo("Material Path", currentMaterialPath))
+                {
+                    for (int n = 0; n < availableMaterials.size(); n++)
+                    {
+                        const bool isSelected =
+                            strcmp(availableMaterials[n], currentMaterialPath) == 0;
+                        if (ImGui::Selectable(availableMaterials[n], isSelected))
+                        {
+                            //TODO: event to change mesh
+                        }
+
+                        // Set the initial focus to the selected mesh
+                        // when opening the combo
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                ImGui::Dummy(ImVec2(0.0f, 5.0f));
+                bool openMatEditor = ImGui::SmallButton("Open in Editor"); ImGui::SameLine(); 
+                bool importMat = ImGui::SmallButton("New Material");
+                if (openMatEditor)
+                {
+                    // TODO: event open mat viewer
+                }
+                else if (importMat)
+                {
+                    //TODO: import mat event
+                }
+                
+            }
+            ImGui::Separator();
+        }
+    }
+
+    if (selectedEntity->HasComponent(Component::Type::Wireframe))
+    {
+        if (ImGui::CollapsingHeader("Wireframe Component"))
+        {
+            renderer::WireframeComponent* component =
+                dynamic_cast<renderer::WireframeComponent*>(
+                    selectedEntity->GetComponent(Component::Type::Wireframe));
+
+            ImGui::SeparatorText("Wireframe");
+            ImGui::Text("TODO:");
             ImGui::Separator();
         }
     }

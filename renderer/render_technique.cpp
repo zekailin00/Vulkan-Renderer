@@ -265,7 +265,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
             TracyVkZone(tracyVkCtx, commandBuffer, "ExecuteCommand#renderMesh");
 
             VulkanVertexbuffer& vvb = m.mesh->GetVertexbuffer();
-            VulkanMaterial& vm = m.mesh->GetVulkanMaterial();
+            std::shared_ptr<VulkanMaterial> vm = m.mesh->GetVulkanMaterial();
 
             vkCmdBindDescriptorSets(
                 commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
@@ -274,7 +274,7 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
             vkCmdBindDescriptorSets(
                 commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                layout, 0, 1, vm.GetDescriptorSet(), 0, nullptr
+                layout, 0, 1, vm->GetDescriptorSet(), 0, nullptr
             );
 
             VkDeviceSize offset = 0;

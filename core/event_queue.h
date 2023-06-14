@@ -26,7 +26,10 @@ struct Event
         /* Editor events */
         EntitySelected,
         NewEntity,
-        DeleteEntity
+        DeleteEntity,
+        FS_dirty_debug,
+        mesh_dirty_d,
+        
     };
 
     Type type;

@@ -29,7 +29,7 @@ public:
     ~VulkanMesh() override;
 
     VulkanVertexbuffer& GetVertexbuffer();
-    VulkanMaterial& GetVulkanMaterial();
+    std::shared_ptr<VulkanMaterial> GetVulkanMaterial();
 
 private:
     VulkanVertexbuffer vertexbuffer{};

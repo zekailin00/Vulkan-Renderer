@@ -95,11 +95,11 @@ VulkanVertexbuffer& VulkanMesh::GetVertexbuffer()
     return this->vertexbuffer;
 }
 
-VulkanMaterial& VulkanMesh::GetVulkanMaterial()
+std::shared_ptr<VulkanMaterial> VulkanMesh::GetVulkanMaterial()
 {
     ZoneScopedN("VulkanMesh::GetVulkanMaterial");
 
-    return *std::static_pointer_cast<VulkanMaterial>(this->material);;
+    return std::static_pointer_cast<VulkanMaterial>(this->material);;
 }
 
 VulkanMesh::~VulkanMesh()

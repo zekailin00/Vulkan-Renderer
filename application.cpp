@@ -55,7 +55,7 @@ Application::Application(std::string workspacePath)
     renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
-    this->assetManager = new AssetManager();
+    this->assetManager = AssetManager::GetInstance();
 
     window.InitializeWindow();
     renderer.InitializeDevice(
@@ -82,7 +82,7 @@ Application::~Application()
     }
 
     assetManager->SaveToFilesystem();
-    delete assetManager;
+    assetManager->DestroyResources();
 
     renderer->DeallocateResources();
     window->DestroySurface();

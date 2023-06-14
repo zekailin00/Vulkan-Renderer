@@ -29,6 +29,9 @@
 class AssetManager: public renderer::AssetManager
 {
 public:
+
+    static AssetManager* GetInstance();
+
     void InitializeWorkspace();
 
     std::shared_ptr<renderer::Material> NewMaterial();
@@ -38,6 +41,7 @@ public:
     // Entity* ImportModelGlft(std::string path, Scene* scene);
     
     void SaveToFilesystem();
+    void DestroyResources();
 
     /**
      * @brief Get the Material object
@@ -63,12 +67,17 @@ public:
      */
     std::shared_ptr<renderer::Texture> GetTexture(std::string path) override;
 
-private:
-    std::map<std::string, std::shared_ptr<renderer::Material>> materialList;
-    std::map<std::string, std::shared_ptr<renderer::Mesh>> meshList;
-    std::map<std::string, std::shared_ptr<renderer::Texture>> textureList;
+    void GetAvailableMeshes(std::vector<const char*>& meshPaths);
+    void GetAvailableMaterials(std::vector<const char*>& materialPaths);
+
+    ~AssetManager() = default;
 
 private:
+    AssetManager() = default;
+
+    AssetManager(const AssetManager&) = delete;
+    const AssetManager& operator=(const AssetManager&) = delete;
+
     void LoadWorkspace();
     void CreateWorkspace();
 
@@ -82,6 +91,10 @@ private:
     bool StoreMesh(std::shared_ptr<renderer::Mesh> mesh);
 
 private:
+    std::map<std::string, std::shared_ptr<renderer::Material>> materialList;
+    std::map<std::string, std::shared_ptr<renderer::Mesh>> meshList;
+    std::map<std::string, std::shared_ptr<renderer::Texture>> textureList;
+
     std::string workspacePath;
     unsigned int materialCounter = 0;
 };
