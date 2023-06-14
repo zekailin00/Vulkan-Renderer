@@ -48,8 +48,9 @@ public:
                 imageExtent.y /= widthRatio;
             }
             
-            ImGui::SetCursorPos(ImVec2((contentExtent.x - imageExtent.x) * 0.5f + ImGui::GetCursorPos().x, 
-                                       (contentExtent.y - imageExtent.y) * 0.5f + ImGui::GetCursorPos().y));
+            ImGui::SetCursorPos(ImVec2(
+                (contentExtent.x - imageExtent.x) * 0.5f + ImGui::GetCursorPos().x, 
+                (contentExtent.y - imageExtent.y) * 0.5f + ImGui::GetCursorPos().y));
             ImGui::Image(
                 *(comp->camera->GetTextureDescriptorSet()),
                 {imageExtent.x, imageExtent.y}, {0, 1}, {1, 0}
