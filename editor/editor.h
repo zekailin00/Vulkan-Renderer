@@ -19,6 +19,20 @@ private:
     Scene* project;
 public:
 
+    Editor(const Editor& editor)
+    {
+        project = editor.project;
+        viewport.SetScene(editor.project);
+        sceneGraph.SetScene(editor.project);
+    }
+
+    const Editor& operator=(const Editor& editor)
+    {
+        project = editor.project;
+        viewport.SetScene(editor.project);
+        sceneGraph.SetScene(editor.project);
+    }
+
     Editor(Scene* scene)
     {
         project = scene;

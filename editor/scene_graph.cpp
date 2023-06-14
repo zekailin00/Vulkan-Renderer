@@ -2,6 +2,23 @@
 
 #include "events.h"
 
+SceneGraph::SceneGraph()
+{
+    subscriberHandle = EventQueue::GetInstance()->Subscribe(EventQueue::Editor,
+        [this](Event* event){
+            if (event->type == Event::Type::EntitySelected)
+            {
+                EventEntitySelected* e = dynamic_cast<EventEntitySelected*>(event);
+                this->selectedEntity = e->entity;
+            }
+        });
+}
+
+SceneGraph::~SceneGraph()
+{
+    EventQueue::GetInstance()->Unsubscribe(subscriberHandle);
+}
+
 void SceneGraph::SetScene(Scene* scene)
 {
     this->scene = scene;
@@ -16,19 +33,19 @@ void SceneGraph::Draw()
 
     if (scene)
     {
-        ShowEntityChildren(scene->GetRootEntity()->GetChildren(), &selectedEntity);
+        ShowEntityChildren(scene->GetRootEntity()->GetChildren());
     }
 
     ImGui::End();
 }
 
-void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children, Entity** selected)
+void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children)
 {
     const static ImGuiTreeNodeFlags treeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
     for (Entity* entity: children)
     {
         ImGuiTreeNodeFlags nodeFlags = treeFlags;
-        if (entity == *selected)
+        if (entity == selectedEntity)
             nodeFlags |= ImGuiTreeNodeFlags_Selected;
 
         if(!entity->GetChildren().empty())
@@ -38,18 +55,18 @@ void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children, Entity**
 
             if (isPopupOpen)
             {
-                *selected = entity;
+                PublishEntitySelectedEvent(entity);
                 ShowEntityPopupContext(entity);
             }
 
             if (ImGui::IsItemClicked())
             {
-                *selected = entity;
+                PublishEntitySelectedEvent(entity);
             }
 
             if (isTreeOpen)
             {
-                ShowEntityChildren(entity->GetChildren(), selected);
+                ShowEntityChildren(entity->GetChildren());
                 ImGui::TreePop();
             }
         }
@@ -61,13 +78,13 @@ void SceneGraph::ShowEntityChildren(const std::list<Entity*>& children, Entity**
 
             if (isPopupOpen)
             {
-                *selected = entity;
+                PublishEntitySelectedEvent(entity);
                 ShowEntityPopupContext(entity);
             }
 
             if (ImGui::IsItemClicked())
             {
-                *selected = entity;
+                PublishEntitySelectedEvent(entity);
             }
         }
     }

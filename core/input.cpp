@@ -10,6 +10,7 @@ Input* Input::GetInstance()
     {
         EventQueue* queue = EventQueue::GetInstance();
 
+        //FIXME: unsubscribe
         queue->Subscribe(EventQueue::InputXR, AddXRViews);
         queue->Subscribe(EventQueue::InputXR, AddXRPoses);
         queue->Subscribe(EventQueue::InputXR, AddXRFloats);
