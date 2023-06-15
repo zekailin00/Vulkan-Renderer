@@ -142,3 +142,17 @@ struct EventDeleteEntity: public Event
 
     Entity* entity;
 };
+
+struct EventMaterialSelected: public Event
+{
+    EVENT_TYPE(MaterialSelected);
+
+    void* materialPtr;
+};
+
+struct EventTextureSelected: public Event
+{
+    EVENT_TYPE(TextureSelected);
+
+    void* texturePtr;
+};

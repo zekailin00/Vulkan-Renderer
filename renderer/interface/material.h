@@ -33,7 +33,7 @@ class Material
 {
 
 public:
-    virtual MaterialProperties* GetProperties() = 0;
+    virtual const MaterialProperties* GetProperties() = 0;
     virtual void ResetProperties() = 0;
 
     virtual void SetAlbedo(glm::vec3 albedo) = 0;

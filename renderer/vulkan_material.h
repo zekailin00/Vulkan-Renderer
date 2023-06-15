@@ -10,7 +10,7 @@ namespace renderer
 
 struct MaterialUniform
 {
-    glm::vec4 albedo = {255, 255, 255, 0};
+    glm::vec4 albedo = {1, 1, 1, 0};
 
     float metallic = 0.1f;
     float roughness = 0.9f;
@@ -33,7 +33,7 @@ public:
 
     ~VulkanMaterial();
 
-    MaterialProperties* GetProperties() override;
+    const MaterialProperties* GetProperties() override;
     void ResetProperties() override;
 
     void SetAlbedo(glm::vec3 albedo) override;

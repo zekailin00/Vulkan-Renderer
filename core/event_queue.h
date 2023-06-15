@@ -27,9 +27,11 @@ struct Event
         EntitySelected,
         NewEntity,
         DeleteEntity,
+        MaterialSelected,
+        TextureSelected,
         FS_dirty_debug,
         mesh_dirty_d,
-        
+
     };
 
     Type type;

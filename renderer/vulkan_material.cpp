@@ -162,7 +162,7 @@ void VulkanMaterial::DestroyDefaultMaterial()
     defaultMaterial = nullptr;
 }
 
-MaterialProperties* VulkanMaterial::GetProperties()
+const MaterialProperties* VulkanMaterial::GetProperties()
 {
     ZoneScopedN("VulkanMaterial::GetProperties");
 

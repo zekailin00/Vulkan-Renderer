@@ -6,6 +6,7 @@
 #include "scene_graph.h"
 #include "workspace.h"
 #include "entity_properties.h"
+#include "material_editor.h"
 
 class Editor
 {
@@ -15,6 +16,7 @@ private:
     SceneGraph sceneGraph;
     EntityProperties entityProperties;
     Workspace workspace;
+    MaterialEditor materialEditor;
 
     Scene* project;
 public:
@@ -48,6 +50,7 @@ public:
         sceneGraph.Draw();
         entityProperties.Draw();
         workspace.Draw();
+        materialEditor.Draw();
         ImGui::ShowDemoWindow();
     }
 

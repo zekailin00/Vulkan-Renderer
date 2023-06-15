@@ -446,6 +446,17 @@ void AssetManager::GetAvailableMaterials(
     return;
 }
 
+void AssetManager::GetAvailableTextures(
+    std::vector<const char*>& texturePaths)
+{
+    texturePaths.clear();
+    for (auto& p: textureList)
+    {
+        texturePaths.push_back(p.first.c_str());
+    }
+    return;
+}
+
 std::shared_ptr<renderer::Mesh> AssetManager::LoadMesh(
     std::filesystem::path path)
 {

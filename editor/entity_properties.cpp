@@ -139,7 +139,7 @@ void EntityProperties::ShowEntityProperties()
             ImGui::SeparatorText("Color");
             {
                 float* color = &component->properties.color[0];
-                ImGui::ColorEdit3("MyColor##1", color,
+                ImGui::ColorEdit3("Color##1", color,
                 ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_DisplayRGB |
                 ImGuiColorEditFlags_Float | ImGuiColorEditFlags_InputRGB);
             }
@@ -288,7 +288,7 @@ void EntityProperties::ShowEntityProperties()
                 bool importMat = ImGui::SmallButton("New Material");
                 if (openMatEditor)
                 {
-                    // TODO: event open mat viewer
+                    PublishMaterialSelectedEvent(material.get());
                 }
                 else if (importMat)
                 {
@@ -356,4 +356,15 @@ void EntityProperties::AddComponent()
     //     JavascriptComponent& script = 
     //         context->ShowProperties.AddComponent<JavascriptComponent>();
     // }
+}
+
+void EntityProperties::PublishMaterialSelectedEvent(
+    renderer::VulkanMaterial* mat)
+{
+    ASSERT(mat != nullptr);
+
+    EventMaterialSelected* event = new EventMaterialSelected();
+    event->materialPtr = mat;
+
+    EventQueue::GetInstance()->Publish(EventQueue::Editor,event);
 }

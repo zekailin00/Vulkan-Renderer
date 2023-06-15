@@ -15,6 +15,9 @@ private:
     void ShowEntityProperties();
     void AddComponent();
 
+    void PublishMaterialSelectedEvent(renderer::VulkanMaterial* mat);
+
+private:
     Entity* selectedEntity = nullptr;
     int subscriberHandle = -1;
 

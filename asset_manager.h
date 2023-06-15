@@ -69,6 +69,7 @@ public:
 
     void GetAvailableMeshes(std::vector<const char*>& meshPaths);
     void GetAvailableMaterials(std::vector<const char*>& materialPaths);
+    void GetAvailableTextures(std::vector<const char*>& texturePaths);
 
     ~AssetManager() = default;
 
