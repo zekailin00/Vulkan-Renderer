@@ -4,6 +4,7 @@
 #include <string>
 
 #include <Json/json.h>
+#include <glm/vec2.hpp>
 
 #define DEFAULT_TEXTURE_PATH "@default"
 
@@ -62,6 +63,7 @@ public:
 
     virtual const TextureBuildInfo& GetBuildInfo() = 0;
     virtual const TextureType& GetTextureType() = 0;
+    virtual glm::vec2 GetExtent() = 0;
     virtual void Serialize(Json::Value& json) = 0;
 
     Texture(const Texture&) = delete;

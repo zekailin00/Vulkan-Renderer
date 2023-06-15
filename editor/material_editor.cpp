@@ -162,7 +162,7 @@ void MaterialEditor::ShowAlbedoSection(
         }
         else if (openInEditor)
         {
-            // TODO: texture select event
+            PublishTextureSelectedEvent(properties->albedoTexture.get());
         }
     }
     if (!properties->albedoTexture) ImGui::EndDisabled();
@@ -241,7 +241,7 @@ void MaterialEditor::ShowMetallicSection(
         }
         else if (openInEditor)
         {
-            // TODO: texture select event
+            PublishTextureSelectedEvent(properties->metallicTexture.get());
         }
     }
     if (!properties->metallicTexture) ImGui::EndDisabled();
@@ -318,7 +318,7 @@ void MaterialEditor::ShowRoughnessSection(
         }
         else if (openInEditor)
         {
-            // TODO: texture select event
+            PublishTextureSelectedEvent(properties->roughnessTexture.get());
         }
     }
     if (!properties->roughnessTexture) ImGui::EndDisabled();
@@ -341,5 +341,16 @@ void MaterialEditor::PublishMaterialSelectedEvent(
     EventMaterialSelected* event = new EventMaterialSelected();
     event->materialPtr = mat;
 
-    EventQueue::GetInstance()->Publish(EventQueue::Editor,event);
+    EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+}
+
+void MaterialEditor::PublishTextureSelectedEvent(
+    renderer::Texture* tex)
+{
+    ASSERT(tex != nullptr);
+
+    EventTextureSelected* event = new EventTextureSelected();
+    event->texturePtr = tex;
+
+    EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
 }

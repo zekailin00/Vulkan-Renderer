@@ -22,6 +22,7 @@ private:
     void ShowRoughnessSection(const renderer::MaterialProperties* properties);
 
     void PublishMaterialSelectedEvent(renderer::Material* mat);
+    void PublishTextureSelectedEvent(renderer::Texture* tex);
 
 private:
     renderer::VulkanMaterial* selectedMat = nullptr;

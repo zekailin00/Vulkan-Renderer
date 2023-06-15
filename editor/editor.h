@@ -7,6 +7,8 @@
 #include "workspace.h"
 #include "entity_properties.h"
 #include "material_editor.h"
+#include "texture_editor.h"
+
 
 class Editor
 {
@@ -17,6 +19,7 @@ private:
     EntityProperties entityProperties;
     Workspace workspace;
     MaterialEditor materialEditor;
+    TextureEditor textureEditor;
 
     Scene* project;
 public:
@@ -51,6 +54,7 @@ public:
         entityProperties.Draw();
         workspace.Draw();
         materialEditor.Draw();
+        textureEditor.Draw();
         ImGui::ShowDemoWindow();
     }
 

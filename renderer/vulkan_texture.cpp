@@ -434,6 +434,11 @@ void VulkanTexture::Serialize(Json::Value& json)
     json["resourcePath"] = info.resourcePath;
 }
 
+glm::vec2 VulkanTexture::GetExtent()
+{
+    return {(float)imageExtent.width, (float)imageExtent.height};
+}
+
 const TextureBuildInfo& VulkanTexture::GetBuildInfo()
 {
     return info;

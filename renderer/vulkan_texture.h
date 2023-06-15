@@ -36,6 +36,7 @@ public:
 
     const TextureBuildInfo& GetBuildInfo() override;
     const TextureType& GetTextureType() override;
+    glm::vec2 GetExtent() override;
     void Serialize(Json::Value& json) override;
 
     void CreateImage(
