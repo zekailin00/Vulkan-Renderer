@@ -3,6 +3,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include <functional>
 
 #include "events.h"
 
@@ -182,6 +183,35 @@ public:
 
     float l_thumbstick_x, r_thumbstick_x;
     float l_thumbstick_y, r_thumbstick_y;
+
+    std::function<void(const char**)> glfwGetClipboard = nullptr;
+    std::function<void(const char*)> glfwSetClipboard = nullptr;
+
+    void SetGlfwGetClipboard(std::function<void(const char**)> fn)
+    {
+        glfwGetClipboard = fn;
+    }
+
+    void SetGlfwSetClipboard(std::function<void(const char*)> fn)
+    {
+        glfwSetClipboard = fn;
+    }
+
+    void SetClipboardText(const char* text)
+    {
+        if (glfwSetClipboard == nullptr)
+            return;
+        
+        glfwSetClipboard(text);
+    }
+
+    void GetClipboardText(const char** text)
+    {
+        if (glfwGetClipboard == nullptr)
+            return;
+        
+        glfwGetClipboard(text);
+    }
 
 private:
     static void AddXRViews(Event* event);

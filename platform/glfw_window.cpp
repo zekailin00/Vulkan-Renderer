@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "event_queue.h"
 #include "events.h"
+#include "input.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -135,6 +136,18 @@ void GlfwWindow::InitializeWindow()
     glfwSetCursorEnterCallback(window, CursorEnterCallback);
     glfwSetKeyCallback(window, KeyCallback);
     glfwSetCharCallback(window, CharCallback);
+
+    Input* input = Input::GetInstance();
+    input->SetGlfwGetClipboard(
+        [this](const char** text){
+            *text = glfwGetClipboardString(this->window);
+        }
+    );
+    input->SetGlfwSetClipboard(
+        [this](const char* text){
+            glfwSetClipboardString(this->window, text);
+        }
+    );
 }
 
 void GlfwWindow::InitializeSurface()
@@ -176,7 +189,8 @@ bool GlfwWindow::ShouldClose()
 void GlfwWindow::BeginFrame()
 {
     ZoneScopedN("GlfwWindow::BeginFrame");
-    
+
+    PollImguiKeyMod();
     glfwPollEvents();
 
     // Rebuild swapchain when window size changes
@@ -218,8 +232,51 @@ void GlfwWindow::DestroyWindow()
     glfwSetKeyCallback(window, nullptr);
     glfwSetCharCallback(window, nullptr);
 
+    Input* input = Input::GetInstance();
+    input->SetGlfwGetClipboard(nullptr);
+    input->SetGlfwSetClipboard(nullptr);
+
     glfwDestroyWindow(window);
     glfwTerminate();
+}
+
+void GlfwWindow::PollImguiKeyMod()
+{
+    if ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)  == GLFW_PRESS) ||
+        (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS))
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Ctrl;
+        event->pressed = true;
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }
+
+    if((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)  == GLFW_PRESS) ||
+       (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS))
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Shift;
+        event->pressed = true;
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }
+
+    if((glfwGetKey(window, GLFW_KEY_LEFT_ALT)  == GLFW_PRESS) ||
+       (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS))
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Alt;
+        event->pressed = true;
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }
+
+    if((glfwGetKey(window, GLFW_KEY_LEFT_SUPER)  == GLFW_PRESS) ||
+       (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS))
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Super;
+        event->pressed = true;
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }
 }
 
 static int ImGui_ImplGlfw_TranslateUntranslatedKey(int key, int scancode)

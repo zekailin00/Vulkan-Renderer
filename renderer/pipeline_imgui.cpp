@@ -4,6 +4,7 @@
 #include "vk_primitives/vulkan_pipeline_layout.h"
 #include "vk_primitives/vulkan_device.h"
 #include "validation.h"
+#include "input.h"
 
 #include <imgui.h>
 #include <memory>
@@ -13,6 +14,18 @@
 
 namespace renderer
 {
+
+static const char* ImguiGetClipboardText(void* _)
+{
+    const char* text = nullptr;
+    Input::GetInstance()->GetClipboardText(&text);
+    return text;
+}
+
+static void ImguiSetClipboardText(void* _, const char* text)
+{
+    Input::GetInstance()->SetClipboardText(text);
+}
 
 PipelineImgui::PipelineImgui(
     VulkanDevice& vulkanDevice, VkDescriptorPool vkDescriptorPool, VkRenderPass renderpass)
@@ -25,6 +38,10 @@ PipelineImgui::PipelineImgui(
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+
+    // Clipboard
+    io.SetClipboardTextFn = &ImguiSetClipboardText;
+    io.GetClipboardTextFn = &ImguiGetClipboardText;
 
     // Enablde docking
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
