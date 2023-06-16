@@ -12,7 +12,7 @@
 #include <vector>
 
 
-Scene* Scene::NewScene(std::string name)
+Scene* Scene::NewScene(std::string name, ICoreAssetManager* manager)
 {
     Scene* scene = new Scene();
 
@@ -20,11 +20,12 @@ Scene* Scene::NewScene(std::string name)
     scene->state = State::Editor;
     scene->entityCounter = 0;
     scene->rootEntity = scene->_NewEntity();
+    scene->assetManager = manager;
     
     return scene;
 }
 
-Scene* Scene::LoadFromFile(std::string path, State state)
+Scene* Scene::LoadFromFile(std::string path, ICoreAssetManager* manager, State state)
 {
     Json::Value json;
     std::ifstream jsonIn;
@@ -36,7 +37,7 @@ Scene* Scene::LoadFromFile(std::string path, State state)
     std::filesystem::path fsPath = path;
     std::string sceneName = fsPath.stem().string();
 
-    Scene* scene = Scene::NewScene(sceneName);
+    Scene* scene = Scene::NewScene(sceneName, manager);
     ASSERT(json[JSON_TYPE] == (int)JsonType::Scene);
     scene->state = state;
     scene->rootEntity->Deserialize(json["rootEntity"]);
@@ -61,7 +62,7 @@ bool Scene::SaveToFile(std::string path)
 Scene* Scene::Replicate(Scene::State state)
 {
     SaveToFile("tmp.json");
-    Scene* scene = LoadFromFile("tmp.json", state);
+    Scene* scene = LoadFromFile("tmp.json", assetManager, state);
 
     return scene;
 }

@@ -6,8 +6,6 @@
 #include "vk_primitives/vulkan_cmdbuffer.h"
 #include "vk_primitives/vulkan_pipeline.h"
 
-#include "renderer_assets.h"
-
 #include "vulkan_texture.h"
 #include "vulkan_swapchain.h"
 #include "render_technique.h"
@@ -30,7 +28,7 @@ public:
     void InitializeDevice(
         std::vector<const char *> instanceExt, std::vector<const char *> deviceExt);
     void AllocateResources(
-        IVulkanSwapchain* glfwSwapchain, AssetManager* assetManager);
+        IVulkanSwapchain* glfwSwapchain);
     void BeginFrame();
     void EndFrame();
     void DeallocateResources();
@@ -39,8 +37,6 @@ public:
 
     bool InitializeXrSession(IVulkanSwapchain* xrSwapchain);
     void DestroyXrSession();
-
-    AssetManager* GetAssetManager() {return assetManager;}
 
 public:
     VkInstance vkInstance;
@@ -110,8 +106,6 @@ private:
 
     // Owned by glfw
     IVulkanSwapchain* swapchain = nullptr;
-
-    AssetManager* assetManager = nullptr;
 
     struct OpenxrContext
     {

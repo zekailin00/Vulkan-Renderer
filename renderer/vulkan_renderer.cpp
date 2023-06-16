@@ -136,14 +136,12 @@ void VulkanRenderer::InitializeDevice(
 }
 
 void VulkanRenderer::AllocateResources(
-    IVulkanSwapchain* glfwSwapchain, AssetManager* assetManager)
+    IVulkanSwapchain* glfwSwapchain)
 {
     ZoneScopedN("VulkanRenderer::AllocateResources");
 
     this->swapchain = glfwSwapchain;
     swapchain->Initialize(&vulkanDevice);
-
-    this->assetManager = assetManager;
     
     std::vector<VkDescriptorPoolSize> poolSizes =
     {

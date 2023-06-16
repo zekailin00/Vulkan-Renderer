@@ -9,9 +9,12 @@
 #include "vulkan_mesh.h"
 #include "vulkan_texture.h"
 
-#include "renderer_assets.h"
+#include "renderer_asset_manager.h"
+#include "core_asset_manager.h"
 
 #include "scene.h"
+
+#define PROJECT_FILE    "workspace.slproj"
 
 #define TEXTURE_PATH    "resources/textures"
 #define MESH_PATH       "resources/meshes"
@@ -19,20 +22,22 @@
 #define MODEL_PATH      "resources/models"
 #define SCENE_PATH      "resources/scenes"
 
-#define MATERIAL_EXTENSION ".slmat"
-#define TEXTURE_EXTENSION ".sltex"
-#define MESH_EXTENSION ".slmsh"
-#define MESH_DATA_EXTENSION ".slmshd"
-#define MODEL_EXTENSION ".slmod"
-#define SCENE_EXTENSION ".slscn"
+#define MATERIAL_EXTENSION   ".slmat"
+#define TEXTURE_EXTENSION    ".sltex"
+#define MESH_EXTENSION       ".slmsh"
+#define MESH_DATA_EXTENSION  ".slmshd"
+#define MODEL_EXTENSION      ".slmod"
+#define SCENE_EXTENSION      ".slscn"
 
-class AssetManager: public renderer::AssetManager
+class AssetManager:
+    public renderer::IRendererAssetManager,
+    public ICoreAssetManager
 {
 public:
-
-    static AssetManager* GetInstance();
-
-    void InitializeWorkspace();
+    static AssetManager* OpenProject(std::string workspacePath);
+    static AssetManager* NewProject(std::string workspacePath);
+    void SaveToFilesystem();
+    void DestroyResources();
 
     std::shared_ptr<renderer::Material> NewMaterial();
     std::shared_ptr<renderer::Texture> ImportTexture(std::string path);
@@ -40,8 +45,6 @@ public:
     Entity* ImportModelObj(std::string path, Scene* scene);
     // Entity* ImportModelGlft(std::string path, Scene* scene);
     
-    void SaveToFilesystem();
-    void DestroyResources();
 
     /**
      * @brief Get the Material object
@@ -67,11 +70,19 @@ public:
      */
     std::shared_ptr<renderer::Texture> GetTexture(std::string path) override;
 
+    bool IsWorkspaceInitialized() override {return initialized;}
+    std::string GetWorkspacePath() {return workspacePath;}
+    
     void GetAvailableMeshes(std::vector<const char*>& meshPaths);
     void GetAvailableMaterials(std::vector<const char*>& materialPaths);
     void GetAvailableTextures(std::vector<const char*>& texturePaths);
+    void GetAvailableScenes(std::vector<std::string>& scenePaths);
 
-    ~AssetManager() = default;
+    ~AssetManager()
+    {
+        SaveToFilesystem();
+        DestroyResources();
+    }
 
 private:
     AssetManager() = default;
@@ -79,6 +90,7 @@ private:
     AssetManager(const AssetManager&) = delete;
     const AssetManager& operator=(const AssetManager&) = delete;
 
+    bool InitializeWorkspace(std::string workspacePath, bool isNew);
     void LoadWorkspace();
     void CreateWorkspace();
 
@@ -97,6 +109,7 @@ private:
     std::map<std::string, std::shared_ptr<renderer::Texture>> textureList;
 
     std::string workspacePath;
+    bool initialized = false;
     unsigned int materialCounter = 0;
 };
 

@@ -25,7 +25,7 @@
 class Application
 {
 public:
-    Application(std::string workspacePath);
+    Application();
     ~Application();
 
     void Run();
@@ -38,8 +38,6 @@ protected:
     virtual void OnUpdated(float ts) = 0;
     virtual void OnDestroy() = 0;
 
-    AssetManager* GetAssetManager() {return assetManager;}
-
 protected:
     renderer::VulkanRenderer* renderer = nullptr;
 
@@ -49,10 +47,10 @@ private:
         std::vector<const char*> a, std::vector<const char*> b);
 
 private:
+    EventQueue* eventQueue = nullptr;
     GlfwWindow* window = nullptr;
     OpenxrPlatform* openxr = nullptr;
     Input* input = nullptr;
-    AssetManager* assetManager = nullptr;
 
     std::map<int, Scene*> activeScenes;
     int activeSceneHandleCount = 0;

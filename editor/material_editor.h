@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vulkan_material.h"
+#include "asset_manager.h"
 
 #include <memory>
 
@@ -25,12 +26,15 @@ private:
     void PublishTextureSelectedEvent(renderer::Texture* tex);
 
 private:
-    renderer::VulkanMaterial* selectedMat = nullptr;
     int subscriberHandle = -1;
+
+    renderer::VulkanMaterial* selectedMat = nullptr;
 
     std::vector<const char*> availableMaterials;
     bool availableMaterialCached = false;
 
     std::vector<const char*> availableTextures;
     bool availableTexureCached = false;
+
+    AssetManager* assetManager = nullptr;
 };

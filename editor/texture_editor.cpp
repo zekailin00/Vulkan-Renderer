@@ -36,6 +36,18 @@ TextureEditor::TextureEditor()
                 vkUpdateDescriptorSets(
                     vkr.vulkanDevice.vkDevice, 1, &descriptorWrite, 0, nullptr);   
             }
+            else if (event->type == Event::Type::ProjectOpen)
+            {
+                EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
+                this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
+            }
+            else if (event->type == Event::Type::CloseProject)
+            {
+                this->selectedTexture = nullptr;
+                this->availableTexureCached = false;
+                this->availableTextures.clear();
+                this->assetManager = nullptr;
+            }
         });
 
     {
@@ -53,6 +65,8 @@ TextureEditor::~TextureEditor()
 
 void TextureEditor::Draw()
 {
+
+    ASSERT(assetManager != nullptr);
     ImGui::Begin("Texture Editor", nullptr);
     ImGui::Text("Properties of the selected editor");
     ImGui::Separator();
@@ -75,11 +89,10 @@ void TextureEditor::ShowContent()
 
 void TextureEditor::ShowTextureSelection()
 {
-    AssetManager* manager = AssetManager::GetInstance();
 
     if (!availableTexureCached)
     {
-        manager->GetAvailableTextures(availableTextures);
+        assetManager->GetAvailableTextures(availableTextures);
         availableTexureCached = true;
     }
 
@@ -106,7 +119,7 @@ void TextureEditor::ShowTextureSelection()
             if (ImGui::Selectable(availableTextures[n], isSelected))
             {
                 std::shared_ptr<renderer::Texture> texture =
-                    manager->GetTexture(availableTextures[n]);
+                    assetManager->GetTexture(availableTextures[n]);
                 PublishTextureSelectedEvent(texture.get());
             }
 

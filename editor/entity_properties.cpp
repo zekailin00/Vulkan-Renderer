@@ -24,6 +24,24 @@ EntityProperties::EntityProperties()
                     this->selectedEntity = nullptr;
                 }
             }
+            else if (event->type == Event::Type::CloseProject)
+            {
+                this->selectedEntity = nullptr;
+                this->availableMaterials.clear();
+                this->availableMaterialCached = false;
+                this->availableMeshes.clear();
+                this->availableMeshCached = false;
+                this->assetManager = nullptr;
+            }
+            if (event->type == Event::Type::ProjectOpen)
+            {
+                EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
+                this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
+            }
+            else if (event->type == Event::Type::SceneOpen)
+            {
+                this->selectedEntity = nullptr;
+            }
             if (event->type == Event::Type::mesh_dirty_d)
             {
 
@@ -218,8 +236,7 @@ void EntityProperties::ShowEntityProperties()
 
                 if (!availableMeshCached)
                 {
-                    AssetManager* manager = AssetManager::GetInstance();
-                    manager->GetAvailableMeshes(availableMeshes);
+                    assetManager->GetAvailableMeshes(availableMeshes);
                     availableMeshCached = true;
                 }
 
@@ -250,8 +267,7 @@ void EntityProperties::ShowEntityProperties()
 
                 if (!availableMaterialCached)
                 {
-                    AssetManager* manager = AssetManager::GetInstance();
-                    manager->GetAvailableMaterials(availableMaterials);
+                    assetManager->GetAvailableMaterials(availableMaterials);
                     availableMaterialCached = true;
                 }
 

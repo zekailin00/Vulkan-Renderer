@@ -10,7 +10,7 @@
 
 namespace renderer
 {
-    class AssetManager
+    class IRendererAssetManager
     {
     public:
         virtual std::shared_ptr<Material> GetMaterial(std::string path) = 0;

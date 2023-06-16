@@ -25,6 +25,7 @@ private:
 
 private:
     int subscriberHandle = -1;
+    
     Scene* scene = nullptr;
     Entity* selectedEntity = nullptr;
 };

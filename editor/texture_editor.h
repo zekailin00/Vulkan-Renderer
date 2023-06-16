@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vulkan_texture.h"
+#include "asset_manager.h"
 
 class TextureEditor
 {
@@ -21,11 +22,12 @@ private:
     void PublishTextureSelectedEvent(renderer::Texture* tex);
 
 private:
-    renderer::VulkanTexture* selectedTexture = nullptr;
     int subscriberHandle = -1;
-
     VkDescriptorSet imageDescSet = VK_NULL_HANDLE;
 
+    renderer::VulkanTexture* selectedTexture = nullptr;
     bool availableTexureCached = false;
     std::vector<const char *> availableTextures;
+
+    AssetManager* assetManager = nullptr;
 };

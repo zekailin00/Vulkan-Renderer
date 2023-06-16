@@ -3,6 +3,7 @@
 #include "vulkan_renderer.h"
 #include "validation.h"
 #include "serialization.h"
+#include "renderer_asset_manager.h"
 
 namespace renderer
 {
@@ -41,12 +42,15 @@ Component* MeshDeserializer::operator()(Entity* entity, Json::Value& json)
 {
     std::string meshPath = json["mesh"].asString();
 
+    IRendererAssetManager* assetManager = dynamic_cast<IRendererAssetManager*>
+        (entity->GetScene()->GetAssetManager());
+
     MeshComponent* component = new MeshComponent();
     component->entity = entity;
     component->type = Component::Type::Mesh;
     component->technique = technique;
     component->mesh = std::dynamic_pointer_cast<VulkanMesh>(
-        renderer->GetAssetManager()->GetMesh(meshPath));
+        assetManager->GetMesh(meshPath));
 
     component->vulkanDevice = &renderer->vulkanDevice;
     component->uniform.Initialize(&renderer->vulkanDevice, sizeof(glm::mat4));

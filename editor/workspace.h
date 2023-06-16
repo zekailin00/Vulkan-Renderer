@@ -17,6 +17,9 @@ private:
     };
 
 public:
+    Workspace();
+    ~Workspace();
+    
     void Draw();
 
 private:
@@ -27,6 +30,10 @@ private:
     void RenderNodes(std::unique_ptr<FileSystemNode>& node);
 
 private:
+    int subscriberHandle = -1;
+
     std::unique_ptr<FileSystemNode> root = nullptr;
     bool filesystemCache = false;
+
+    AssetManager* assetManager = nullptr;
 };

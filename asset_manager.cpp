@@ -13,34 +13,91 @@
 #include <string>
 #include <stb/stb_image.h>
 
-AssetManager* AssetManager::GetInstance()
+
+AssetManager* AssetManager::OpenProject(std::string workspacePath)
 {
-    static AssetManager assetManager{};
-    return &assetManager;
+    AssetManager* manager = new AssetManager();
+    if (manager->InitializeWorkspace(workspacePath, false))
+    {
+        return manager;
+    }
+
+    delete manager;
+    return nullptr;
 }
 
-void AssetManager::InitializeWorkspace()
+AssetManager* AssetManager::NewProject(std::string workspacePath)
 {
-    if (!Configuration::Get(CONFIG_WORKSPACE_PATH, workspacePath))
+    AssetManager* manager = new AssetManager();
+    if (manager->InitializeWorkspace(workspacePath, true))
     {
-        Logger::Write(
-            "Workspace path is not specified.",
-            Logger::Level::Error, Logger::MsgType::Platform
-        );
+        return manager;
     }
+
+    delete manager;
+    return nullptr;
+}
+
+bool AssetManager::InitializeWorkspace(std::string workspacePath, bool isNew)
+{
+    this->workspacePath = workspacePath;
 
     if (!Filesystem::IsAbsolute(workspacePath))
     {
         Logger::Write(
             "Workspace path format is not supported.",
-            Logger::Level::Error, Logger::MsgType::Platform
+            Logger::Level::Warning, Logger::MsgType::Platform
         );
+        return false;
+    }
+
+    if (Filesystem::IsRegularFile(workspacePath))
+    {
+        Logger::Write(
+            "Workspace path format is not supported.",
+            Logger::Level::Warning, Logger::MsgType::Platform
+        );
+        return false;
     }
 
     if (Filesystem::IsDirectory(workspacePath))
+    {
+        if (!Filesystem::IsRegularFile(workspacePath  + "/" + PROJECT_FILE))
+        {
+            Logger::Write(
+                "The directory is not a valid project",
+                Logger::Level::Warning, Logger::MsgType::Platform
+            );
+            return false;
+        }
+
+        if (isNew)
+        {
+            Logger::Write(
+                "The project is already created!",
+                Logger::Level::Warning, Logger::MsgType::Platform
+            );
+            return false;
+        }
+
         LoadWorkspace();
+    }
     else
+    {
+        if (!isNew)
+        {
+            Logger::Write(
+                "The project is not yet created!",
+                Logger::Level::Warning, Logger::MsgType::Platform
+            );
+            return false;
+        }
+
         CreateWorkspace();
+    }
+
+    initialized = true;
+    return true;
 }
 
 void AssetManager::CreateWorkspace()
@@ -51,7 +108,10 @@ void AssetManager::CreateWorkspace()
     Filesystem::CreateDirectory(workspacePath + "/" + MODEL_PATH);
     Filesystem::CreateDirectory(workspacePath + "/" + SCENE_PATH);
 
-    //TODO: copy default assets??
+    std::ofstream out;
+    out.open(workspacePath + "/" + PROJECT_FILE);
+    out.write("record", 7);
+    out.close();
 }
 
 void AssetManager::LoadWorkspace()
@@ -131,11 +191,6 @@ std::shared_ptr<renderer::Material> AssetManager::NewMaterial()
 
 std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
 {
-    {
-        std::string path;
-        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
-        ASSERT(workspacePath == path);
-    }
 
     // Path is valid
     if (!Filesystem::IsRegularFile(path))
@@ -189,11 +244,6 @@ std::shared_ptr<renderer::Texture> AssetManager::ImportTexture(std::string path)
 
 Entity* AssetManager::ImportModelObj(std::string path, Scene* scene)
 {
-    {
-        std::string path;
-        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
-        ASSERT(workspacePath == path);
-    }
 
     // Path is valid
     if (!Filesystem::IsRegularFile(path))
@@ -337,11 +387,6 @@ std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
 
 bool AssetManager::StoreMaterial(std::shared_ptr<renderer::Material> material)
 {
-    {
-        std::string path;
-        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
-        ASSERT(workspacePath == path);
-    }
 
     Json::Value json;
     material->Serialize(json);
@@ -358,11 +403,6 @@ bool AssetManager::StoreMaterial(std::shared_ptr<renderer::Material> material)
 std::shared_ptr<renderer::Texture> AssetManager::LoadTexture(
     std::filesystem::path path)
 {
-    {
-        std::string path;
-        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
-        ASSERT(workspacePath == path);
-    }
 
     ASSERT(path.extension() == TEXTURE_EXTENSION);
     ASSERT(path.is_absolute());
@@ -405,11 +445,6 @@ std::shared_ptr<renderer::Texture> AssetManager::LoadTexture(
 bool AssetManager::StoreTexture(
     std::shared_ptr<renderer::Texture> texture)
 {
-    {
-        std::string path;
-        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
-        ASSERT(workspacePath == path);
-    }
 
     Json::Value json;
     texture->Serialize(json);
@@ -457,6 +492,26 @@ void AssetManager::GetAvailableTextures(
     return;
 }
 
+void AssetManager::GetAvailableScenes(
+    std::vector<std::string>& scenePaths)
+{
+    scenePaths.clear();
+
+    std::string path = GetWorkspacePath();
+    path = path + "/" + SCENE_PATH;
+    std::vector<std::filesystem::path> entries;
+    Filesystem::GetDirectoryEntries(path, entries);
+
+    for (auto& e: entries)
+    {
+        std::string path = Filesystem::RemoveParentPath(
+            e.string(),
+            GetWorkspacePath()
+        );
+        scenePaths.push_back(path);
+    }
+}
+
 std::shared_ptr<renderer::Mesh> AssetManager::LoadMesh(
     std::filesystem::path path)
 {
@@ -493,11 +548,6 @@ std::shared_ptr<renderer::Mesh> AssetManager::LoadMesh(
 
 bool AssetManager::StoreMesh(std::shared_ptr<renderer::Mesh> mesh)
 {
-    {
-        std::string path;
-        Configuration::Get(CONFIG_WORKSPACE_PATH, path);
-        ASSERT(workspacePath == path);
-    }
 
     Json::Value json;
     mesh->Serialize(json);

@@ -11,6 +11,16 @@ SceneGraph::SceneGraph()
                 EventEntitySelected* e = dynamic_cast<EventEntitySelected*>(event);
                 this->selectedEntity = e->entity;
             }
+            else if (event->type == Event::Type::CloseProject)
+            {
+                this->scene = nullptr;
+                this->selectedEntity = nullptr;
+            }
+            else if (event->type == Event::Type::SceneOpen)
+            {
+                EventSceneOpen* e = reinterpret_cast<EventSceneOpen*>(event);
+                this->scene = reinterpret_cast<Scene*>(e->scene);
+            }
         });
 }
 
@@ -33,7 +43,12 @@ void SceneGraph::Draw()
 
     if (scene)
     {
+        ImGui::Text(scene->GetSceneName().c_str());
         ShowEntityChildren(scene->GetRootEntity()->GetChildren());
+    }
+    else
+    {
+        ImGui::Text("No open scene.");
     }
 
     ImGui::End();

@@ -18,12 +18,15 @@ private:
     void PublishMaterialSelectedEvent(renderer::VulkanMaterial* mat);
 
 private:
-    Entity* selectedEntity = nullptr;
     int subscriberHandle = -1;
+
+    Entity* selectedEntity = nullptr;
 
     bool availableMeshCached = false;
     std::vector<const char*> availableMeshes;
 
     bool availableMaterialCached = false;
     std::vector<const char*> availableMaterials;
+
+    AssetManager* assetManager;
 };

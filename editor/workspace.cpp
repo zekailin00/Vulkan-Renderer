@@ -2,10 +2,38 @@
 
 #include "configuration.h"
 #include "filesystem.h"
+#include "validation.h"
+#include "event_queue.h"
+#include "events.h"
+
+
+Workspace::Workspace()
+{
+    subscriberHandle = EventQueue::GetInstance()->Subscribe(EventQueue::Editor,
+    [this](Event* event){
+        if (event->type == Event::Type::ProjectOpen)
+        {
+            EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
+            this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
+        }
+        else if (event->type == Event::Type::CloseProject)
+        {
+            this->root = nullptr;
+            this->filesystemCache = false;
+            this->assetManager = nullptr;
+        }
+    });
+}
+
+Workspace::~Workspace()
+{
+    EventQueue::GetInstance()->Unsubscribe(subscriberHandle);
+}
 
 
 void Workspace::Draw()
 {
+    ASSERT(assetManager != nullptr);
     ImGui::Begin("Workspace", nullptr);
 
     DrawButtons();
@@ -57,8 +85,7 @@ void Workspace::DrawTable()
 
         if (!filesystemCache)
         {
-            std::string workspacePath;
-            Configuration::Get(CONFIG_WORKSPACE_PATH, workspacePath);
+            std::string workspacePath = assetManager->GetWorkspacePath();
             std::filesystem::path fsPath = workspacePath;
 
             root = std::make_unique<FileSystemNode>();
@@ -76,8 +103,7 @@ void Workspace::DrawTable()
 
 void Workspace::BuildNodes(std::unique_ptr<FileSystemNode>& node)
 {
-    std::string workspacePath;
-    Configuration::Get(CONFIG_WORKSPACE_PATH, workspacePath);
+    std::string workspacePath = assetManager->GetWorkspacePath();
 
     for (auto const& entry : std::filesystem::directory_iterator{
         workspacePath + "/" + node->path.string()}) 

@@ -54,6 +54,7 @@ public:
 
     const std::string& GetName() {return name;}
     void SetName(const std::string& name) {this->name = name;}
+    Scene* GetScene() {return scene;}
 
 private:
     friend Scene;

@@ -156,3 +156,29 @@ struct EventTextureSelected: public Event
 
     void* texturePtr;
 };
+
+struct EventProjectOpen: public Event
+{
+    EVENT_TYPE(ProjectOpen);
+
+    void* assetManager;
+};
+
+struct EventCloseProject: public Event
+{
+    EVENT_TYPE(CloseProject);
+
+    void* assetManager;
+};
+
+struct EventSceneOpen: public Event
+{
+    EVENT_TYPE(SceneOpen);
+
+    void* scene;
+};
+
+struct EventWorkspaceChanged: public Event
+{
+    EVENT_TYPE(WorkspaceChanged);
+};

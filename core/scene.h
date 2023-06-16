@@ -2,6 +2,7 @@
 
 #include "timestep.h"
 #include "entity.h"
+#include "core_asset_manager.h"
 
 #include <string>
 
@@ -21,12 +22,14 @@ public:
     };
 
 public:
-    static Scene* NewScene(std::string name);
-    static Scene* LoadFromFile(std::string path, State state);
+    static Scene* NewScene(std::string name, ICoreAssetManager* manager);
+    static Scene* LoadFromFile(
+        std::string path, ICoreAssetManager* manager, State state);
     bool SaveToFile(std::string path);
     Scene* Replicate(State state);
 
     const std::string& GetSceneName() {return sceneName;}
+    ICoreAssetManager* GetAssetManager() {return assetManager;}
 
     Entity* NewEntity();
     bool RemoveEntity(Entity* entity);
@@ -51,4 +54,5 @@ private:
     std::string sceneName;
     Entity* rootEntity = nullptr;
     unsigned int entityCounter = 0;
+    ICoreAssetManager* assetManager = nullptr;
 };

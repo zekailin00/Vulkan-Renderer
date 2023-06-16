@@ -23,13 +23,18 @@ struct Event
         MouseWheel,
         CursorEnter,
 
-        /* Editor events */
-        EntitySelected,
-        NewEntity,
-        DeleteEntity,
-        MaterialSelected,
-        TextureSelected,
-        FS_dirty_debug,
+        /* Editor events and commands */
+        EntitySelected,     // e: an entity is selected
+        NewEntity,          // c: new an entity
+        DeleteEntity,       // c: delete an entity
+        MaterialSelected,   // e: material is selected
+        TextureSelected,    // e: textured is selected
+
+        ProjectOpen,        // e: a project is open
+        CloseProject,       // c: close the project
+        SceneOpen,          // e: a scene is open
+        CloseScene,         // c: close the scene
+        WorkspaceChanged,   // e: workspace data has changed     
         mesh_dirty_d,
 
     };

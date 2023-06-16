@@ -40,36 +40,30 @@ Scene* Application::EraseActiveScene(int handle)
     return scene;
 }
 
-Application::Application(std::string workspacePath)
+Application::Application()
 {
     ZoneScopedN("Application::Application");
-
-    Configuration::Set(CONFIG_WORKSPACE_PATH, workspacePath);
 
     Logger::Write(
         "Current path: " + std::filesystem::current_path().string(),
         Logger::Level::Info, Logger::MsgType::Platform
     );
 
-    GlfwWindow& window = GlfwWindow::GetInstance();
-    renderer::VulkanRenderer& renderer = renderer::VulkanRenderer::GetInstance();
+    this->window = &GlfwWindow::GetInstance();
+    this->renderer = &renderer::VulkanRenderer::GetInstance();
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize(this->input);
-    this->assetManager = AssetManager::GetInstance();
+    this->eventQueue = EventQueue::GetInstance();
 
-    window.InitializeWindow();
-    renderer.InitializeDevice(
-        MergeExtensions(window.GetVkInstanceExt(), 
+    window->InitializeWindow();
+    renderer->InitializeDevice(
+        MergeExtensions(window->GetVkInstanceExt(), 
         openxr? openxr->GetVkInstanceExt(): std::vector<const char*>()), 
-        MergeExtensions(window.GetVkDeviceExt(),
+        MergeExtensions(window->GetVkDeviceExt(),
         openxr? openxr->GetVkDeviceExt(): std::vector<const char *>()));
 
-    window.InitializeSurface();
-    renderer.AllocateResources(window.GetSwapchain(), assetManager);
-    assetManager->InitializeWorkspace();
-
-    this->renderer = &renderer;
-    this->window = &window;
+    window->InitializeSurface();
+    renderer->AllocateResources(window->GetSwapchain());
 }
 
 Application::~Application()
@@ -80,9 +74,6 @@ Application::~Application()
     {
         renderer->DestroyXrSession();
     }
-
-    assetManager->SaveToFilesystem();
-    assetManager->DestroyResources();
 
     renderer->DeallocateResources();
     window->DestroySurface();
@@ -99,6 +90,8 @@ Application::~Application()
     renderer = nullptr;
     window = nullptr;
     openxr = nullptr;
+    eventQueue = nullptr;
+    input = nullptr;
 }
 
 void Application::PollEvents()
@@ -113,7 +106,7 @@ void Application::PollEvents()
             renderer->DestroyXrSession();
     }
 
-    EventQueue::GetInstance()->ProcessEvents();
+    eventQueue->ProcessEvents();
 }
 
 void Application::Run()

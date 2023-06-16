@@ -19,6 +19,20 @@ MaterialEditor::MaterialEditor()
                 this->selectedMat = 
                     reinterpret_cast<renderer::VulkanMaterial*>(e->materialPtr);
             }
+            else if (event->type == Event::Type::ProjectOpen)
+            {
+                EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
+                this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
+            }
+            else if (event->type == Event::Type::CloseProject)
+            {
+                this->selectedMat = nullptr;
+                this->availableMaterials.clear();
+                this->availableMaterialCached = false;
+                this->availableTextures.clear();
+                this->availableTexureCached = false;
+                this->assetManager = nullptr;
+            }
         });
 }
 
@@ -30,11 +44,11 @@ MaterialEditor::~MaterialEditor()
 
 void MaterialEditor::Draw()
 {
+
+    ASSERT(assetManager != nullptr);
     ImGui::Begin("Material Editor", nullptr);
     ImGui::Text("Properties of the selected material");
     ImGui::Separator();
-
-
 
     ShowMaterialProperties();
     
@@ -43,11 +57,10 @@ void MaterialEditor::Draw()
 
 void MaterialEditor::ShowMaterialProperties()
 {
-    AssetManager* manager = AssetManager::GetInstance();
 
     if (!availableMaterialCached)
     {
-        manager->GetAvailableMaterials(availableMaterials);
+        assetManager->GetAvailableMaterials(availableMaterials);
         availableMaterialCached = true;
     }
 
@@ -74,7 +87,7 @@ void MaterialEditor::ShowMaterialProperties()
             if (ImGui::Selectable(availableMaterials[n], isSelected))
             {
                 std::shared_ptr<renderer::Material> material =
-                    manager->GetMaterial(availableMaterials[n]);
+                    assetManager->GetMaterial(availableMaterials[n]);
                 PublishMaterialSelectedEvent(material.get());
             }
 
@@ -108,8 +121,7 @@ void MaterialEditor::ShowAlbedoSection(
     
     if (!availableTexureCached)
     {
-        AssetManager* manager = AssetManager::GetInstance();
-        manager->GetAvailableTextures(availableTextures);
+        assetManager->GetAvailableTextures(availableTextures);
         availableTexureCached = true;
     }
 
@@ -187,8 +199,7 @@ void MaterialEditor::ShowMetallicSection(
 
     if (!availableTexureCached)
     {
-        AssetManager* manager = AssetManager::GetInstance();
-        manager->GetAvailableTextures(availableTextures);
+        assetManager->GetAvailableTextures(availableTextures);
         availableTexureCached = true;
     }
 
@@ -264,8 +275,7 @@ void MaterialEditor::ShowRoughnessSection(
 
     if (!availableTexureCached)
     {
-        AssetManager* manager = AssetManager::GetInstance();
-        manager->GetAvailableTextures(availableTextures);
+        assetManager->GetAvailableTextures(availableTextures);
         availableTexureCached = true;
     }
 
