@@ -25,7 +25,8 @@ Scene* Scene::NewScene(std::string name, ICoreAssetManager* manager)
     return scene;
 }
 
-Scene* Scene::LoadFromFile(std::string path, ICoreAssetManager* manager, State state)
+Scene* Scene::LoadFromFile(
+    std::string path, ICoreAssetManager* manager, State state)
 {
     Json::Value json;
     std::ifstream jsonIn;
