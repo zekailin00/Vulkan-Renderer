@@ -18,7 +18,6 @@ EntityProperties::EntityProperties()
             }
             else if (event->type == Event::Type::DeleteEntity)
             {
-                //TODO:
                 EventDeleteEntity* e = dynamic_cast<EventDeleteEntity*>(event);
                 if (e->entity == this->selectedEntity)
                 {

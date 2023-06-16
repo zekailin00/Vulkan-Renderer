@@ -69,7 +69,22 @@ Editor::Editor(Application* app)
 
     subscriberHandle = EventQueue::GetInstance()->Subscribe(EventQueue::Editor,
         [this](Event* event){
-            if (event->type == Event::Type::CloseProject)
+            if (event->type == Event::Type::NewEntity)
+            {
+                ASSERT(scene != nullptr);
+
+                EventNewEntity* e = reinterpret_cast<EventNewEntity*>(event);
+                Entity* entity = scene->NewEntity();
+                entity->ReparentTo(e->parent);
+            }
+            else if (event->type == Event::Type::DeleteEntity)
+            {
+                ASSERT(scene != nullptr);
+                
+                EventDeleteEntity* e = reinterpret_cast<EventDeleteEntity*>(event);
+                scene->RemoveEntity(e->entity);
+            }
+            else if (event->type == Event::Type::CloseProject)
             {
                 CloseScene(true);
 
