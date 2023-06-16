@@ -15,6 +15,11 @@ private:
     void ShowEntityProperties();
     void AddComponent();
 
+    void ShowLightComponent();
+    void ShowCameraComponent();
+    void ShowMeshComponent();
+    void ShowWireframeComponent();
+
     void PublishMaterialSelectedEvent(renderer::VulkanMaterial* mat);
 
 private:
