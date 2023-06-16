@@ -25,6 +25,7 @@ public:
 private:
     void DrawButtons();
     void DrawTable();
+    void DrawPopups();
 
     void BuildNodes(std::unique_ptr<FileSystemNode>& node);
     void RenderNodes(std::unique_ptr<FileSystemNode>& node);
@@ -34,6 +35,7 @@ private:
 
     std::unique_ptr<FileSystemNode> root = nullptr;
     bool filesystemCache = false;
+    Scene* scene = nullptr;
 
     AssetManager* assetManager = nullptr;
 };

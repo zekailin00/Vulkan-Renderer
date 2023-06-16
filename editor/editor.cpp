@@ -6,13 +6,13 @@
 
 #include <imgui.h>
 
-enum class MenuPopup
+enum class EditorMenuPopup
 {
     None,
     LoadScene
 };
 
-static MenuPopup menuPopup;
+static EditorMenuPopup menuPopup;
 
 std::string Editor::GetScenePath(std::string sceneName)
 {
@@ -119,12 +119,12 @@ Editor::~Editor()
 
 void Editor::DrawPopups()
 {
-    if (menuPopup == MenuPopup::LoadScene) ImGui::OpenPopup("Load Scene");
+    if (menuPopup == EditorMenuPopup::LoadScene) ImGui::OpenPopup("Load Scene");
 
     if (ImGui::BeginPopupModal("Load Scene", NULL,
         ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
     {
-        menuPopup = MenuPopup::None;
+        menuPopup = EditorMenuPopup::None;
 
         ImGui::Text("Load a scene from the workspace.");
         ImGui::Separator();
@@ -291,7 +291,7 @@ void Editor::DrawMenu()
 
             if (ImGui::MenuItem("Load Scene", nullptr, false))
             {
-                menuPopup = MenuPopup::LoadScene;
+                menuPopup = EditorMenuPopup::LoadScene;
             }
 
             if (ImGui::MenuItem("Close Scene", nullptr, false))

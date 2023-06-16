@@ -6,6 +6,15 @@
 #include "event_queue.h"
 #include "events.h"
 
+enum class WorkspacePopup
+{
+    None,
+    ImportTexture,
+    ImportOBJ,
+    ImportGLTF
+};
+
+static WorkspacePopup workspacePopup;
 
 Workspace::Workspace()
 {
@@ -21,6 +30,16 @@ Workspace::Workspace()
             this->root = nullptr;
             this->filesystemCache = false;
             this->assetManager = nullptr;
+            this->scene = nullptr;
+        }
+        else if (event->type == Event::Type::SceneOpen)
+        {
+            EventSceneOpen* e = reinterpret_cast<EventSceneOpen*>(event);
+            this->scene = reinterpret_cast<Scene*>(e->scene);
+        }
+        else if (event->type == Event::Type::CloseScene)
+        {
+            this->scene = nullptr;
         }
         else if (event->type == Event::Type::WorkspaceChanged)
         {
@@ -43,6 +62,7 @@ void Workspace::Draw()
     DrawButtons();
     ImGui::Separator();
     DrawTable();
+    DrawPopups();
 
 
     ImGui::End(); 
@@ -52,17 +72,166 @@ void Workspace::DrawButtons()
 {
     if(ImGui::Button("Refresh"))
     {
-
+        EventWorkspaceChanged* event = new EventWorkspaceChanged();
+        EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
     }
     ImGui::SameLine();
-    if(ImGui::Button("Import"))
+    if(ImGui::Button("Add"))
     {
-
+        ImGui::OpenPopup("Add Resources");
     }
     ImGui::SameLine();
     if(ImGui::Button("Open VS Code"))
     {
 
+    }
+
+    //------- Add action popups -------//
+
+    if (ImGui::BeginPopup("Add Resources", ImGuiWindowFlags_NoMove))
+    {
+        if (ImGui::BeginMenu("Import..."))
+        {
+            if (ImGui::MenuItem("Texture"))
+            {
+                workspacePopup = WorkspacePopup::ImportTexture;
+            }
+
+            if (ImGui::BeginMenu("Model"))
+            {
+                if (ImGui::MenuItem(".glfw(TODO:)"))
+                {
+                    workspacePopup = WorkspacePopup::ImportGLTF;
+                }
+
+                if (ImGui::MenuItem(".obj"))
+                {
+                    workspacePopup = WorkspacePopup::ImportOBJ;
+                }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::MenuItem("New Material"))
+        {
+            assetManager->NewMaterial();
+            EventWorkspaceChanged* event = new EventWorkspaceChanged();
+            EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+        }
+
+        if (ImGui::MenuItem("New Script (TODO:)"))
+        {
+
+        }
+
+        ImGui::EndPopup();
+    }
+}
+
+void Workspace::DrawPopups()
+{
+    if (workspacePopup == WorkspacePopup::ImportTexture)
+        ImGui::OpenPopup("Import Texture");
+    if (workspacePopup == WorkspacePopup::ImportOBJ)
+        ImGui::OpenPopup("Import Model: .obj");
+    
+
+    // Import Texture popup modal window
+    if (ImGui::BeginPopupModal("Import Texture", NULL,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        workspacePopup = WorkspacePopup::None;
+        static char strPath[128] = "";
+        static bool okFailed = false;
+
+        ImGui::Text("Import an image into the workspace.");
+        ImGui::Separator();
+
+        ImGui::InputTextWithHint("texture path",
+            "Absolute path to an image", strPath, IM_ARRAYSIZE(strPath));
+
+        // Ok or cancel. Resets static value.
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            if(assetManager->ImportTexture(strPath) == nullptr)
+            {
+                okFailed = true;
+            }
+            else
+            {
+                EventWorkspaceChanged* event = new EventWorkspaceChanged();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+
+                okFailed = false;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            okFailed = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        // Message when Ok button failed.
+        if (okFailed)
+        {
+            ImGui::Text("Path is invalid.");
+        }
+
+        ImGui::EndPopup();
+    }
+
+
+    // Import .obj model popup modal window
+    if (ImGui::BeginPopupModal("Import Model: .obj", NULL,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        workspacePopup = WorkspacePopup::None;
+        static char strPath[128] = "";
+        static bool okFailed = false;
+
+        ImGui::Text("Import a .obj model into the workspace.");
+        ImGui::Separator();
+
+        ImGui::InputTextWithHint("Model path",
+            "Absolute path to a model", strPath, IM_ARRAYSIZE(strPath));
+
+        // Ok or cancel. Resets static value.
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            if(!scene || assetManager->ImportModelObj(strPath, scene) == nullptr)
+            {
+                okFailed = true;
+            }
+            else
+            {
+                EventWorkspaceChanged* event = new EventWorkspaceChanged();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+
+                okFailed = false;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            okFailed = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        // Message when Ok button failed.
+        if (okFailed)
+        {
+            ImGui::Text("Import failed: Invalid path or no scene open.");
+        }
+
+        ImGui::EndPopup();
     }
 }
 
