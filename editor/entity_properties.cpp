@@ -16,13 +16,19 @@ EntityProperties::EntityProperties()
                 EventEntitySelected* e = dynamic_cast<EventEntitySelected*>(event);
                 this->selectedEntity = e->entity;
             }
-            if (event->type == Event::Type::DeleteEntity)
+            else if (event->type == Event::Type::DeleteEntity)
             {
+                //TODO:
                 EventDeleteEntity* e = dynamic_cast<EventDeleteEntity*>(event);
                 if (e->entity == this->selectedEntity)
                 {
                     this->selectedEntity = nullptr;
                 }
+            }
+            else if (event->type == Event::Type::ProjectOpen)
+            {
+                EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
+                this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
             }
             else if (event->type == Event::Type::CloseProject)
             {
@@ -33,18 +39,20 @@ EntityProperties::EntityProperties()
                 this->availableMeshCached = false;
                 this->assetManager = nullptr;
             }
-            if (event->type == Event::Type::ProjectOpen)
-            {
-                EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
-                this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
-            }
             else if (event->type == Event::Type::SceneOpen)
             {
                 this->selectedEntity = nullptr;
             }
-            if (event->type == Event::Type::mesh_dirty_d)
+            else if (event->type == Event::Type::CloseScene)
             {
-
+                this->selectedEntity = nullptr;
+            }
+            else if (event->type == Event::Type::WorkspaceChanged)
+            {
+                this->availableMaterials.clear();
+                this->availableMaterialCached = false;
+                this->availableMeshes.clear();
+                this->availableMeshCached = false;
             }
         });
 }

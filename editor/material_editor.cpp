@@ -23,6 +23,7 @@ MaterialEditor::MaterialEditor()
             {
                 EventProjectOpen* e = dynamic_cast<EventProjectOpen*>(event);
                 this->assetManager = reinterpret_cast<AssetManager*>(e->assetManager);
+                this->selectedMat = nullptr;
             }
             else if (event->type == Event::Type::CloseProject)
             {
@@ -32,6 +33,13 @@ MaterialEditor::MaterialEditor()
                 this->availableTextures.clear();
                 this->availableTexureCached = false;
                 this->assetManager = nullptr;
+            }
+            else if (event->type == Event::Type::WorkspaceChanged)
+            {
+                this->availableMaterials.clear();
+                this->availableMaterialCached = false;
+                this->availableTextures.clear();
+                this->availableTexureCached = false;
             }
         });
 }

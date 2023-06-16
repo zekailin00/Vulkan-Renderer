@@ -48,6 +48,10 @@ Viewport::Viewport()
                 EventSceneOpen* e = reinterpret_cast<EventSceneOpen*>(event);
                 this->scene = reinterpret_cast<Scene*>(e->scene);
             }
+            else if (event->type == Event::Type::CloseScene)
+            {
+                this->scene = nullptr;
+            }
         });
 }
 

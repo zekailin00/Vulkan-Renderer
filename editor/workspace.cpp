@@ -22,6 +22,10 @@ Workspace::Workspace()
             this->filesystemCache = false;
             this->assetManager = nullptr;
         }
+        else if (event->type == Event::Type::WorkspaceChanged)
+        {
+            this->filesystemCache = false;
+        }
     });
 }
 

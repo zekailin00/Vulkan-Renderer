@@ -48,6 +48,11 @@ TextureEditor::TextureEditor()
                 this->availableTextures.clear();
                 this->assetManager = nullptr;
             }
+            else if (event->type == Event::Type::WorkspaceChanged)
+            {
+                this->availableTextures.clear();
+                this->availableTexureCached = false;
+            }
         });
 
     {

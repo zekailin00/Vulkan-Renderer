@@ -21,17 +21,20 @@ std::string Editor::GetScenePath(std::string sceneName)
     return path;
 }
 
-void Editor::CloseScene()
+void Editor::CloseScene(bool saveToFilesystem)
 {
     if (this->scene)
     {
         std::string sceneName = this->scene->GetSceneName();
-        this->scene->SaveToFile(GetScenePath(sceneName));
+        if (saveToFilesystem)
+        {
+            this->scene->SaveToFile(GetScenePath(sceneName));
+            EventWorkspaceChanged* event2 = new EventWorkspaceChanged();
+            EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+        }
         delete application->EraseActiveScene(activeSceneHandle);
         this->scene = nullptr;
-
-        EventWorkspaceChanged* event2 = new EventWorkspaceChanged();
-        EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+        this->activeSceneHandle = -1;
     }
 }
 
@@ -68,7 +71,7 @@ Editor::Editor(Application* app)
         [this](Event* event){
             if (event->type == Event::Type::CloseProject)
             {
-                CloseScene();
+                CloseScene(true);
 
                 EventCloseProject* e = reinterpret_cast<EventCloseProject*>(event);
                 ASSERT(e->assetManager == this->assetManager);
@@ -78,12 +81,17 @@ Editor::Editor(Application* app)
             }
             else if (event->type == Event::Type::SceneOpen)
             {
-                CloseScene();
+                CloseScene(true);
 
                 EventSceneOpen* e = reinterpret_cast<EventSceneOpen*>(event);
                 this->scene = reinterpret_cast<Scene*>(e->scene);
                 this->activeSceneHandle =
                     this->application->SetActiveScene(this->scene);
+            }
+            else if (event->type == Event::Type::CloseScene)
+            {
+                EventCloseScene* e = reinterpret_cast<EventCloseScene*>(event);
+                CloseScene(e->saveToFs);
             }
         });
 }
@@ -273,7 +281,16 @@ void Editor::DrawMenu()
 
             if (ImGui::MenuItem("Close Scene", nullptr, false))
             {
+                EventCloseScene* event = new EventCloseScene();
+                event->saveToFs = false;
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+            }
 
+            if (ImGui::MenuItem("Close and Save Scene", nullptr, false))
+            {
+                EventCloseScene* event = new EventCloseScene();
+                event->saveToFs = true;
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
             if (ImGui::MenuItem("Close Project", nullptr, false))

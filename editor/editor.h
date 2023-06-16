@@ -30,7 +30,7 @@ private:
     void DrawPopups();
 
     std::string GetScenePath(std::string sceneName);
-    void CloseScene();
+    void CloseScene(bool saveToFilesystem);
 
 private:
     Application* application;

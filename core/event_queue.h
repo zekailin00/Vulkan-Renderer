@@ -35,7 +35,6 @@ struct Event
         SceneOpen,          // e: a scene is open
         CloseScene,         // c: close the scene
         WorkspaceChanged,   // e: workspace data has changed     
-        mesh_dirty_d,
 
     };
 

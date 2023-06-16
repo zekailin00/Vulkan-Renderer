@@ -178,6 +178,13 @@ struct EventSceneOpen: public Event
     void* scene;
 };
 
+struct EventCloseScene: public Event
+{
+    EVENT_TYPE(CloseScene);
+
+    bool saveToFs;
+};
+
 struct EventWorkspaceChanged: public Event
 {
     EVENT_TYPE(WorkspaceChanged);
