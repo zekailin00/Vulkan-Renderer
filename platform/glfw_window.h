@@ -33,6 +33,7 @@ public:
     void operator=(GlfwWindow const&) = delete;
 
 private:
+
     GlfwWindow() = default;
     ~GlfwWindow() = default;
     

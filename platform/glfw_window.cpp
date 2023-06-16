@@ -21,6 +21,46 @@
 static int ImGui_ImplGlfw_TranslateUntranslatedKey(int key, int scancode);
 static ImGuiKey ImGui_ImplGlfw_KeyToImGuiKey(int key);
 
+void PollImguiKeyMod(GLFWwindow* window)
+{
+    {   
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Ctrl;
+        event->pressed =(
+            (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)  == GLFW_PRESS) ||
+            (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS));
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }
+
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Shift;
+        event->pressed = (
+            (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)  == GLFW_PRESS) ||
+            (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS));
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }
+
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Alt;
+        event->pressed = (
+            (glfwGetKey(window, GLFW_KEY_LEFT_ALT)  == GLFW_PRESS) ||
+            (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS));
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+
+    }
+
+    {
+        EventKeyboardImgui* event = new EventKeyboardImgui();
+        event->keyCode = ImGuiMod_Super;
+        event->pressed = (
+            (glfwGetKey(window, GLFW_KEY_LEFT_SUPER)  == GLFW_PRESS) ||
+            (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS));
+        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+    }   
+}
+
 void CursorPosCallback(GLFWwindow* window, double x, double y)
 {
     if (glfwGetInputMode(window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
@@ -51,6 +91,8 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         event->button = (EventMouseButton::Button)button;
         event->action = (EventMouseButton::Action)action;
         EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+
+        PollImguiKeyMod(window);
     }
 }
 
@@ -81,6 +123,7 @@ void KeyCallback(GLFWwindow* window, int keycode, int scancode, int action, int 
         event->pressed = action == GLFW_PRESS;
 
         EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
+        PollImguiKeyMod(window);
     }
 }
 
@@ -190,7 +233,6 @@ void GlfwWindow::BeginFrame()
 {
     ZoneScopedN("GlfwWindow::BeginFrame");
 
-    PollImguiKeyMod();
     glfwPollEvents();
 
     // Rebuild swapchain when window size changes
@@ -238,45 +280,6 @@ void GlfwWindow::DestroyWindow()
 
     glfwDestroyWindow(window);
     glfwTerminate();
-}
-
-void GlfwWindow::PollImguiKeyMod()
-{
-    if ((glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)  == GLFW_PRESS) ||
-        (glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS))
-    {
-        EventKeyboardImgui* event = new EventKeyboardImgui();
-        event->keyCode = ImGuiMod_Ctrl;
-        event->pressed = true;
-        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
-    }
-
-    if((glfwGetKey(window, GLFW_KEY_LEFT_SHIFT)  == GLFW_PRESS) ||
-       (glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS))
-    {
-        EventKeyboardImgui* event = new EventKeyboardImgui();
-        event->keyCode = ImGuiMod_Shift;
-        event->pressed = true;
-        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
-    }
-
-    if((glfwGetKey(window, GLFW_KEY_LEFT_ALT)  == GLFW_PRESS) ||
-       (glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS))
-    {
-        EventKeyboardImgui* event = new EventKeyboardImgui();
-        event->keyCode = ImGuiMod_Alt;
-        event->pressed = true;
-        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
-    }
-
-    if((glfwGetKey(window, GLFW_KEY_LEFT_SUPER)  == GLFW_PRESS) ||
-       (glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS))
-    {
-        EventKeyboardImgui* event = new EventKeyboardImgui();
-        event->keyCode = ImGuiMod_Super;
-        event->pressed = true;
-        EventQueue::GetInstance()->Publish(EventQueue::InputGFLW, event);
-    }
 }
 
 static int ImGui_ImplGlfw_TranslateUntranslatedKey(int key, int scancode)
