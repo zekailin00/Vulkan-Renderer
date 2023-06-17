@@ -5,6 +5,8 @@
 
 #include <imgui.h>
 #include <memory>
+#include <string>
+#include <set>
 
 
 class Viewport
@@ -22,4 +24,6 @@ private:
     std::shared_ptr<renderer::VulkanTexture> launcherTexture;
 
     Scene* scene = nullptr;
+    std::set<std::string> cameraDocking{};
+
 };

@@ -42,10 +42,10 @@ public:
      * @param scale <x, y, z>
      */
     void SetLocalTransform(
-        const glm::vec3& postion, const glm::quat& rotation, const glm::vec3& scale);
+        const glm::vec3& postion, const glm::vec3& rotation, const glm::vec3& scale);
 
     glm::vec3 GetLocalTranslation();
-    glm::quat GetLocalRotation();
+    glm::vec3 GetLocalRotation();
     glm::vec3 GetLocalScale();
 
     Entity* GetChildByName(std::string name);

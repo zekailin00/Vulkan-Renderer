@@ -82,7 +82,7 @@ void EntityProperties::ShowEntityProperties()
     }
         
     ImGui::Text("%s", selectedEntity->GetName().c_str());
-    ImGui::SameLine(ImGui::GetWindowWidth()-40);
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x-30);
     AddComponent();
 
     ImGui::Separator();
@@ -144,6 +144,40 @@ void EntityProperties::ShowEntityProperties()
             ImGui::PopItemWidth();
 
             selectedEntity->SetLocalTransform(glm::transpose(localTransform));
+        }
+
+        ImGui::SeparatorText("Translation, Rotation, Scale");
+        {
+            glm::vec3 t = selectedEntity->GetLocalTranslation();
+
+            // Workaround for rotation conversion issue in glm library.
+            static bool uiControlling = false;
+            static glm::vec3 r;
+            static int frameCount;
+            if (!uiControlling && frameCount-- < 0)
+            {
+                // Euler angles, pitch as x, yaw as y, roll as z.
+                r = selectedEntity->GetLocalRotation();
+                frameCount = -1;
+            }
+
+            glm::vec3 s = selectedEntity->GetLocalScale();
+
+            ImGui::DragFloat3("Translation", &t[0], 0.01f, -FLT_MAX, FLT_MAX);
+
+            if (ImGui::DragFloat3("Rotation", &r[0], 0.01f, -FLT_MAX, FLT_MAX))
+            {
+                uiControlling = true;
+                frameCount = 100;
+            }
+            else
+            {
+                uiControlling = false;
+            }
+
+            ImGui::DragFloat3("Scale", &s[0], 0.01f, -FLT_MAX, FLT_MAX);
+
+            selectedEntity->SetLocalTransform(t, r, s);
         }
 
         ImGui::Separator();
@@ -268,7 +302,8 @@ void EntityProperties::ShowMeshComponent()
                 availableMeshCached = true;
             }
 
-            std::string currentMeshStr = component->mesh->GetResourcePath();
+            std::string currentMeshStr = component->mesh?
+                component->mesh->GetResourcePath(): "None";
             const char* currentMeshPath = currentMeshStr.c_str();
             if (ImGui::BeginCombo("Mesh Path", currentMeshPath))
             {
@@ -293,6 +328,7 @@ void EntityProperties::ShowMeshComponent()
         }
         
         ImGui::SeparatorText("Material");
+        if (component->mesh)
         {
 
             if (!availableMaterialCached)
@@ -367,7 +403,7 @@ void EntityProperties::AddComponent()
     };
 
     std::string selectedComponent;
-    if (ImGui::Button("New"))
+    if (ImGui::SmallButton("New"))
         ImGui::OpenPopup("NewComponents");
     if (ImGui::BeginPopup("NewComponents"))
     {
@@ -379,23 +415,21 @@ void EntityProperties::AddComponent()
         ImGui::EndPopup();
     }
 
-    // //TODO: prevent adding one that exists already
-    // if (selectedComponent == "Mesh Component")
-    // {
-    //     MeshComponent& mesh = context->ShowProperties.AddComponent<MeshComponent>();
-    //     mesh.LoadMesh("resources/models/cube/cube.obj");
-    //     mesh.LoadTexture("resources/textures/defaultTexture.png");
-    //     mesh.SetTextureEnabled(true);
-    // }
-    // else if (selectedComponent == "Camera Component")
-    // {
-    //     CameraComponent& camera = context->ShowProperties.AddComponent<CameraComponent>();
-    // }
-    // else if (selectedComponent == "Javascript Component")
-    // {
-    //     JavascriptComponent& script = 
-    //         context->ShowProperties.AddComponent<JavascriptComponent>();
-    // }
+    if (selectedComponent == "Light Component" &&
+        !selectedEntity->HasComponent(Component::Type::Light))
+    {
+        selectedEntity->AddComponent(Component::Type::Light);
+    }
+    else if (selectedComponent == "Camera Component" &&
+        !selectedEntity->HasComponent(Component::Type::Camera))
+    {
+        selectedEntity->AddComponent(Component::Type::Camera);
+    }
+    else if (selectedComponent == "Mesh Component" &&
+        !selectedEntity->HasComponent(Component::Type::Mesh))
+    {
+        selectedEntity->AddComponent(Component::Type::Mesh);
+    }
 }
 
 void EntityProperties::PublishMaterialSelectedEvent(

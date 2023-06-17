@@ -75,7 +75,10 @@ Editor::Editor(Application* app)
 
                 EventNewEntity* e = reinterpret_cast<EventNewEntity*>(event);
                 Entity* entity = scene->NewEntity();
-                entity->ReparentTo(e->parent);
+                if (e->parent)
+                {
+                    entity->ReparentTo(e->parent);
+                }
             }
             else if (event->type == Event::Type::DeleteEntity)
             {

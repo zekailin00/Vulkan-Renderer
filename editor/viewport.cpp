@@ -89,18 +89,15 @@ void Viewport::DrawNoCamera(ImGuiID& nextWindowDockID)
             launcherDescSet, {imageExtent.x, imageExtent.y}
         );
 
-        nextWindowDockID = ImGui::GetWindowDockID();
-
         ImGui::End();
 }
 
 void Viewport::Draw(ImGuiID dockID)
 {
-    ImGuiID nextWindowDockID = dockID;
 
     if (!scene)
     {
-        DrawNoCamera(nextWindowDockID);
+        DrawNoCamera(dockID);
         return;
     }
 
@@ -112,14 +109,22 @@ void Viewport::Draw(ImGuiID dockID)
 
     if (entityList.empty())
     {
-        DrawNoCamera(nextWindowDockID);
+        DrawNoCamera(dockID);
         return;
     }
 
-    for (Entity* e: entityList)
+    for (int i = 0; i < entityList.size(); i++)
     {
-        ImGui::SetNextWindowDockID(nextWindowDockID); 
-        ImGui::Begin(e->GetName().c_str(), nullptr, ImGuiWindowFlags_NoMove);
+        Entity* e = entityList[i];
+
+        // Window is docked to main window when first created.
+        if (cameraDocking.find(e->GetName()) == cameraDocking.cend())
+        {
+            ImGui::SetNextWindowDockID(dockID);
+            cameraDocking.insert(e->GetName());
+        }
+
+        ImGui::Begin(e->GetName().c_str(), nullptr);
 
         renderer::CameraComponent* comp = (renderer::CameraComponent*)
             e->GetComponent(Component::Type::Camera);
@@ -148,8 +153,6 @@ void Viewport::Draw(ImGuiID dockID)
             *(comp->camera->GetTextureDescriptorSet()),
             {imageExtent.x, imageExtent.y}, {0, 1}, {1, 0}
         );
-
-        nextWindowDockID = ImGui::GetWindowDockID();
 
         ImGui::End();
     }

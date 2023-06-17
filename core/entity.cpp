@@ -6,6 +6,7 @@
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 
 Component* Entity::AddComponent(Component::Type type)
@@ -145,11 +146,11 @@ void Entity::SetLocalTransform(const glm::mat4& transform)
 }
 
 void Entity::SetLocalTransform(const glm::vec3& postion,
-    const glm::quat& rotation, const glm::vec3& scale)
+    const glm::vec3& rotation, const glm::vec3& scale)
 {
     // Transform = T * R * S
     localTransform = glm::translate(glm::mat4(1.0f), postion) *
-                     glm::toMat4(rotation) *
+                     glm::eulerAngleXYZ(rotation[0], rotation[1], rotation[2]) *
                      glm::scale(glm::mat4(1.0f), scale);
 }
 
@@ -158,19 +159,18 @@ glm::vec3 Entity::GetLocalTranslation()
     return glm::vec3(localTransform[3]);
 }
 
-glm::quat Entity::GetLocalRotation()
+glm::vec3 Entity::GetLocalRotation()
 {
-    glm::vec3 scale;
-    glm::quat rotation;
-    glm::vec3 translation;
-    glm::vec3 skew;
-    glm::vec4 perspective;
-    glm::decompose(
-        localTransform, scale, rotation,
-        translation, skew, perspective
-    );
+    // glm library problem
+    // extractEulerAngleXYZ required unity scale
+    glm::mat4 transform = GetLocalTransform() *
+                glm::inverse(glm::scale(glm::mat4(1.0f),
+                    GetLocalScale()));
+    
+    glm::vec3 rot;
+    glm::extractEulerAngleXYZ(transform, rot[0], rot[1], rot[2]);
 
-    return rotation;
+    return rot;
 }
 
 glm::vec3 Entity::GetLocalScale()

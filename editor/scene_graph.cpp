@@ -49,6 +49,12 @@ void SceneGraph::Draw()
     if (scene)
     {
         ImGui::Text(scene->GetSceneName().c_str());
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - 70);
+        if (ImGui::SmallButton("New Entity"))
+        {
+            PublishNewEntityEvent(nullptr);
+        }
+
         ShowEntityChildren(scene->GetRootEntity()->GetChildren());
     }
     else
