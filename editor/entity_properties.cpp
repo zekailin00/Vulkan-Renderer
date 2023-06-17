@@ -283,7 +283,6 @@ void EntityProperties::ShowCameraComponent()
                 prop.Extent.x / (float)prop.Extent.y, fovy, zNear, zFar);
         }
 
-        static bool rebuildCamera = false;
         if (ImGui::TreeNode("Rebuild Camera"))
         {
             ImGui::SeparatorText("Camera Properties");
