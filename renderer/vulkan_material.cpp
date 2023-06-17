@@ -329,7 +329,8 @@ void VulkanMaterial::ResetAlbedoTexture()
         this->properties.albedoTexture = nullptr;
     }
 
-    this->properties.albedo = {255, 255, 255};
+    MaterialProperties originalProp{};
+    this->properties.albedo = originalProp.albedo;
     this->map->albedo = glm::vec4(this->properties.albedo, 0);
     this->map->useAlbedoTex = 0.0f;
 }
@@ -358,7 +359,8 @@ void VulkanMaterial::ResetMetallicTexture()
         this->properties.metallicTexture = nullptr;
     }
 
-    this->properties.metallic = 0.1f;
+    MaterialProperties originalProp{};
+    this->properties.metallic = originalProp.metallic;
     this->map->metallic = this->properties.metallic;
     this->map->useMetallicTex = 0.0f; 
 }
@@ -387,7 +389,8 @@ void VulkanMaterial::ResetRoughnessTexture()
         this->properties.roughnessTexture = nullptr;
     }
 
-    this->properties.roughness = 0.9f;
+    MaterialProperties originalProp{};
+    this->properties.roughness = originalProp.roughness;
     this->map->roughness = this->properties.roughness;
     this->map->useRoughnessTex = 0.0f;
 }

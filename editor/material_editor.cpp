@@ -134,7 +134,8 @@ void MaterialEditor::ShowAlbedoSection(
     }
 
     std::string resourcePath;
-    if (properties->albedoTexture)
+    bool hasTexture = (properties->albedoTexture != nullptr);
+    if (hasTexture)
     {
         const std::shared_ptr<renderer::Texture> texture =
             properties->albedoTexture;
@@ -155,10 +156,8 @@ void MaterialEditor::ShowAlbedoSection(
                 strcmp(availableTextures[n], currentTexPath) == 0;
             if (ImGui::Selectable(availableTextures[n], isSelected))
             {
-                //TODO: event to change texture
-                // AssetManager* manager = AssetManager::GetInstance();
-                // selectedMat->AddAlbedoTexture(
-                //     manager->GetTexture(availableTextures[n]));
+                selectedMat->AddAlbedoTexture(
+                    assetManager->GetTexture(availableTextures[n]));
             }
 
             // Set the initial focus to the selected mesh
@@ -169,7 +168,7 @@ void MaterialEditor::ShowAlbedoSection(
         ImGui::EndCombo();
     }
 
-    if (!properties->albedoTexture) ImGui::BeginDisabled();
+    if (!hasTexture) ImGui::BeginDisabled();
     {
         bool removeTex = ImGui::Button("Remove##1");
         ImGui::SameLine();
@@ -177,18 +176,17 @@ void MaterialEditor::ShowAlbedoSection(
 
         if (removeTex)
         {
-            //TODO: event
-            // selectedMat->ResetAlbedoTexture();
+            selectedMat->ResetAlbedoTexture();
         }
         else if (openInEditor)
         {
             PublishTextureSelectedEvent(properties->albedoTexture.get());
         }
     }
-    if (!properties->albedoTexture) ImGui::EndDisabled();
+    if (!hasTexture) ImGui::EndDisabled();
 
     ImGui::Text("Color:");
-    if (properties->albedoTexture) ImGui::BeginDisabled();
+    if (hasTexture) ImGui::BeginDisabled();
     {
         glm::vec3 color = properties->albedo;
         ImGui::ColorEdit3("Color##1", (float*)&color[0],
@@ -196,7 +194,7 @@ void MaterialEditor::ShowAlbedoSection(
             ImGuiColorEditFlags_Float);
         selectedMat->SetAlbedo(color);
     }
-    if (properties->albedoTexture) ImGui::EndDisabled();
+    if (hasTexture) ImGui::EndDisabled();
 
 }
 
@@ -212,7 +210,8 @@ void MaterialEditor::ShowMetallicSection(
     }
 
     std::string resourcePath;
-    if (properties->metallicTexture)
+    bool hasTexture = (properties->metallicTexture != nullptr);
+    if (hasTexture)
     {
         const std::shared_ptr<renderer::Texture> texture =
             properties->metallicTexture;
@@ -233,10 +232,8 @@ void MaterialEditor::ShowMetallicSection(
                 strcmp(availableTextures[n], currentTexPath) == 0;
             if (ImGui::Selectable(availableTextures[n], isSelected))
             {
-                //TODO: event to change texture
-                // AssetManager* manager = AssetManager::GetInstance();
-                // selectedMat->AddMetallicTexture(
-                //     manager->GetTexture(availableTextures[n]));
+                selectedMat->AddMetallicTexture(
+                    assetManager->GetTexture(availableTextures[n]));
             }
 
             // Set the initial focus to the selected mesh
@@ -247,7 +244,7 @@ void MaterialEditor::ShowMetallicSection(
         ImGui::EndCombo();
     }
 
-    if (!properties->metallicTexture) ImGui::BeginDisabled();
+    if (!hasTexture) ImGui::BeginDisabled();
     {
         bool removeTex = ImGui::Button("Remove##2");
         ImGui::SameLine();
@@ -255,24 +252,23 @@ void MaterialEditor::ShowMetallicSection(
 
         if (removeTex)
         {
-            //TODO: event
-            // selectedMat->ResetMetallicTexture();
+            selectedMat->ResetMetallicTexture();
         }
         else if (openInEditor)
         {
             PublishTextureSelectedEvent(properties->metallicTexture.get());
         }
     }
-    if (!properties->metallicTexture) ImGui::EndDisabled();
+    if (!hasTexture) ImGui::EndDisabled();
 
     ImGui::Text("Metallic:");
-    if (properties->metallicTexture) ImGui::BeginDisabled();
+    if (hasTexture) ImGui::BeginDisabled();
     {
         float metallic = properties->metallic;
         ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f, "%.2f");
         selectedMat->SetMetallic(metallic);
     }
-    if (properties->metallicTexture) ImGui::EndDisabled();
+    if (hasTexture) ImGui::EndDisabled();
 }
 
 void MaterialEditor::ShowRoughnessSection(
@@ -281,6 +277,7 @@ void MaterialEditor::ShowRoughnessSection(
 {
     ImGui::SeparatorText("Roughness");
 
+    bool hasTexture = (properties->roughnessTexture != nullptr);
     if (!availableTexureCached)
     {
         assetManager->GetAvailableTextures(availableTextures);
@@ -288,7 +285,7 @@ void MaterialEditor::ShowRoughnessSection(
     }
 
     std::string resourcePath;
-    if (properties->roughnessTexture)
+    if (hasTexture)
     {
         const std::shared_ptr<renderer::Texture> texture =
             properties->roughnessTexture;
@@ -309,10 +306,8 @@ void MaterialEditor::ShowRoughnessSection(
                 strcmp(availableTextures[n], currentTexPath) == 0;
             if (ImGui::Selectable(availableTextures[n], isSelected))
             {
-                //TODO: event to change texture
-                // AssetManager* manager = AssetManager::GetInstance();
-                // selectedMat->AddroughnessTexture(
-                //     manager->GetTexture(availableTextures[n]));
+                selectedMat->AddRoughnessTexture(
+                    assetManager->GetTexture(availableTextures[n]));
             }
 
             // Set the initial focus to the selected mesh
@@ -323,7 +318,7 @@ void MaterialEditor::ShowRoughnessSection(
         ImGui::EndCombo();
     }
 
-    if (!properties->roughnessTexture) ImGui::BeginDisabled();
+    if (!hasTexture) ImGui::BeginDisabled();
     {
         bool removeTex = ImGui::Button("Remove##3");
         ImGui::SameLine();
@@ -331,24 +326,23 @@ void MaterialEditor::ShowRoughnessSection(
 
         if (removeTex)
         {
-            //TODO: event
-            // selectedMat->ResetroughnessTexture();
+            selectedMat->ResetRoughnessTexture();
         }
         else if (openInEditor)
         {
             PublishTextureSelectedEvent(properties->roughnessTexture.get());
         }
     }
-    if (!properties->roughnessTexture) ImGui::EndDisabled();
+    if (!hasTexture) ImGui::EndDisabled();
 
     ImGui::Text("Roughness:");
-    if (properties->roughnessTexture) ImGui::BeginDisabled();
+    if (hasTexture) ImGui::BeginDisabled();
     {
         float roughness = properties->roughness;
         ImGui::SliderFloat("Roughness", &roughness, 0.01f, 1.0f, "%.2f");
         selectedMat->SetRoughness(roughness);
     }
-    if (properties->roughnessTexture) ImGui::EndDisabled();
+    if (hasTexture) ImGui::EndDisabled();
 }
 
 void MaterialEditor::PublishMaterialSelectedEvent(
