@@ -14,6 +14,7 @@ public:
 private:
     void ShowEntityProperties();
     void AddComponent();
+    void RemoveComponent(Component::Type type);
 
     void ShowLightComponent();
     void ShowCameraComponent();

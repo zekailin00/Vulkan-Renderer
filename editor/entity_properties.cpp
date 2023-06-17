@@ -208,6 +208,9 @@ void EntityProperties::ShowLightComponent()
 {
     if (ImGui::CollapsingHeader("Light Component"))
     {
+
+        RemoveComponent(Component::Type::Light);
+
         renderer::LightComponent* component =
             dynamic_cast<renderer::LightComponent*>(
                 selectedEntity->GetComponent(Component::Type::Light));
@@ -232,6 +235,8 @@ void EntityProperties::ShowCameraComponent()
 {
     if (ImGui::CollapsingHeader("Camera Component"))
     {
+        RemoveComponent(Component::Type::Camera);
+
         renderer::CameraComponent* component =
             dynamic_cast<renderer::CameraComponent*>(
                 selectedEntity->GetComponent(Component::Type::Camera));
@@ -289,6 +294,9 @@ void EntityProperties::ShowMeshComponent()
 {
     if (ImGui::CollapsingHeader("Mesh Component"))
     {
+
+        RemoveComponent(Component::Type::Mesh);
+
         renderer::MeshComponent* component =
             dynamic_cast<renderer::MeshComponent*>(
                 selectedEntity->GetComponent(Component::Type::Mesh));
@@ -383,6 +391,8 @@ void EntityProperties::ShowWireframeComponent()
 {
     if (ImGui::CollapsingHeader("Wireframe Component"))
     {
+        RemoveComponent(Component::Type::Wireframe);
+
         renderer::WireframeComponent* component =
             dynamic_cast<renderer::WireframeComponent*>(
                 selectedEntity->GetComponent(Component::Type::Wireframe));
@@ -430,6 +440,25 @@ void EntityProperties::AddComponent()
     {
         selectedEntity->AddComponent(Component::Type::Mesh);
     }
+}
+
+void EntityProperties::RemoveComponent(Component::Type type)
+{
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::Button("Remove Component"))
+        {
+            EventDeleteComponent* event = new EventDeleteComponent();
+            event->entity = selectedEntity;
+            event->componentType = type;
+            EventQueue::GetInstance()->Publish(
+                EventQueue::Editor, event);
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Right-click to open popup");
 }
 
 void EntityProperties::PublishMaterialSelectedEvent(

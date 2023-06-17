@@ -87,6 +87,16 @@ Editor::Editor(Application* app)
                 EventDeleteEntity* e = reinterpret_cast<EventDeleteEntity*>(event);
                 scene->RemoveEntity(e->entity);
             }
+            else if (event->type == Event::Type::DeleteComponent)
+            {
+                ASSERT(scene != nullptr);
+                
+                EventDeleteComponent* e =
+                    reinterpret_cast<EventDeleteComponent*>(event);
+                
+                ASSERT(e->entity->HasComponent(e->componentType));
+                e->entity->RemoveComponent(e->componentType);
+            }
             else if (event->type == Event::Type::CloseProject)
             {
                 CloseScene(true);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "event_queue.h"
+#include "component.h"
 
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
@@ -141,6 +142,14 @@ struct EventDeleteEntity: public Event
     EVENT_TYPE(DeleteEntity);
 
     Entity* entity;
+};
+
+struct EventDeleteComponent: public Event
+{
+    EVENT_TYPE(DeleteComponent);
+
+    Entity* entity;
+    Component::Type componentType;
 };
 
 struct EventMaterialSelected: public Event

@@ -123,10 +123,12 @@ void SceneGraph::ShowEntityPopupContext(Entity* entity)
     if(ImGui::Button("New Child"))
     {
         PublishNewEntityEvent(entity);
+        ImGui::CloseCurrentPopup();
     }
     if(ImGui::Button("Delete"))
     {
         PublishDeleteEntityEvent(entity);
+        ImGui::CloseCurrentPopup();
     }
 
     ImGui::EndPopup();

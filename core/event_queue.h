@@ -27,6 +27,7 @@ struct Event
         EntitySelected,     // e: an entity is selected
         NewEntity,          // c: new an entity
         DeleteEntity,       // c: delete an entity
+        DeleteComponent,    // c: delete the component from the entity 
         MaterialSelected,   // e: material is selected
         TextureSelected,    // e: textured is selected
 
