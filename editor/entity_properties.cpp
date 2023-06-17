@@ -153,7 +153,7 @@ void EntityProperties::ShowEntityProperties()
             // Workaround for rotation conversion issue in glm library.
             static bool uiControlling = false;
             static glm::vec3 r;
-            static int frameCount;
+            static int frameCount = -1;
             if (!uiControlling && frameCount-- < 0)
             {
                 // Euler angles, pitch as x, yaw as y, roll as z.
@@ -251,9 +251,11 @@ void EntityProperties::ShowCameraComponent()
 
         ImGui::SeparatorText("Resolution");
         {
+            ImGui::BeginDisabled();
             int extent[2] = {(int)prop.Extent.x, (int)prop.Extent.y};
             ImGui::DragInt2("Resolution (constant)", extent,
-                0, 360, 4096, "%d", ImGuiSliderFlags_NoInput);
+                0, 360, 4096, "%d");
+            ImGui::EndDisabled();
         }
 
         ImGui::SeparatorText("Projection");
@@ -263,14 +265,17 @@ void EntityProperties::ShowCameraComponent()
             float zNear = prop.ZNear;
             float zFar = prop.ZFar;
 
+            ImGui::BeginDisabled();
             ImGui::DragFloat("Aspect Ratio (x/y)", &aspectRatio,
-                0.0f, 0.001f, 1000, "%.3f", ImGuiSliderFlags_NoInput);
+                0.0f, 0.001f, 1000, "%.3f");
+            ImGui::EndDisabled();
+
             ImGui::DragFloat("Field of View (y axis in degree)", &fovy,
                 0.1f, 10.0f, 170.0f, "%.1f");
             ImGui::DragFloat("Near Plane (meter)", &zNear,
-                0.01f, 0.01f, FLT_MAX, "%.2f");
+                0.01f, 0.001f, FLT_MAX, "%.3f");
             ImGui::DragFloat("Far Plane (meter)", &zFar,
-                0.01f, 0.01f, FLT_MAX, "%.2f");
+                1.0f, 20.0f, FLT_MAX, "%.1f");
 
             // FIXME: component has a copy of cam prop, cam also has one
             // it better to just keep one copy. 
@@ -278,13 +283,48 @@ void EntityProperties::ShowCameraComponent()
                 prop.Extent.x / (float)prop.Extent.y, fovy, zNear, zFar);
         }
 
-        ImGui::PopItemWidth();
-
         static bool rebuildCamera = false;
-        if (ImGui::Button("Rebuilt Camera (TODO:)"))
+        if (ImGui::TreeNode("Rebuild Camera"))
         {
-            rebuildCamera = true;
+            ImGui::SeparatorText("Camera Properties");
+            static renderer::CameraProperties prop{};
+            static float extent[2];
+
+            prop.UseFrameExtent = false;
+            extent[0] = static_cast<float>(prop.Extent.x);
+            extent[1] = static_cast<float>(prop.Extent.y);
+
+            ImGui::DragFloat2("Resolution", extent,
+                10.0f, 360, 4100, "%.1f", ImGuiSliderFlags_AlwaysClamp);
+
+            prop.Extent.x = static_cast<unsigned int>(extent[0]);
+            prop.Extent.y = static_cast<unsigned int>(extent[1]);
+
+            ImGui::DragFloat("Field of View", &prop.Fov,
+                0.1f, 10.0f, 170.0f, "%.1f");
+            ImGui::DragFloat("Near Plane", &prop.ZNear,
+                0.01f, 0.001f, FLT_MAX, "%.3f");
+            ImGui::DragFloat("Far Plane", &prop.ZFar,
+                1.0f, 20.0f, FLT_MAX, "%.1f");
+
+            if (ImGui::SmallButton("Rebuild"))
+            {
+                component->camera->RebuildCamera(prop);
+            }
+
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Reset"))
+            {
+                renderer::CameraProperties defaultProp{};
+                defaultProp.UseFrameExtent = false;
+                prop = defaultProp;
+                component->camera->RebuildCamera(defaultProp);
+            }
+
+            ImGui::TreePop();
         }
+
+        ImGui::PopItemWidth();
 
         ImGui::Separator();
     }

@@ -33,6 +33,12 @@ public:
     */
     static std::shared_ptr<VulkanCamera> BuildCamera(CameraProperties&);
 
+    void Initialize(CameraProperties& prop);
+        
+    void Destroy();
+
+    void RebuildCamera(CameraProperties& prop);
+
     const CameraProperties& GetCamProperties() override;
 
     /* FIXME: has a bug */
@@ -52,8 +58,6 @@ public:
     const glm::mat4& GetTransform(); // Used by VulkanNode
 
     void SetTransform(const glm::mat4&); // Used by VulkanNode
-
-    void Destroy();
 
     VulkanCamera() = default;
     ~VulkanCamera() override;
