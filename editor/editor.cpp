@@ -121,6 +121,17 @@ Editor::Editor(Application* app)
                 EventCloseScene* e = reinterpret_cast<EventCloseScene*>(event);
                 CloseScene(e->saveToFs);
             }
+            else if (event->type == Event::Type::SaveProject)
+            {
+                if (this->scene)
+                {
+                    std::string sceneName = this->scene->GetSceneName();
+                    this->scene->SaveToFile(GetScenePath(sceneName));
+                }
+                this->assetManager->SaveToFilesystem();
+                EventWorkspaceChanged* event2 = new EventWorkspaceChanged();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+            }
         });
 }
 
@@ -223,7 +234,7 @@ void Editor::DrawUI()
     workspace.Draw();
     materialEditor.Draw();
     textureEditor.Draw();
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 }
 
 void Editor::DrawLauncher()
@@ -334,7 +345,8 @@ void Editor::DrawMenu()
         {
             if (ImGui::MenuItem("Save", nullptr, false))
             {
-
+                EventSaveProject* event = new EventSaveProject();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
             if (ImGui::MenuItem("Undo", nullptr, false))

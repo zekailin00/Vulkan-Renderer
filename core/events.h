@@ -198,3 +198,8 @@ struct EventWorkspaceChanged: public Event
 {
     EVENT_TYPE(WorkspaceChanged);
 };
+
+struct EventSaveProject: public Event
+{
+    EVENT_TYPE(SaveProject);
+};

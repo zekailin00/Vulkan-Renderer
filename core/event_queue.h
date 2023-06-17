@@ -35,6 +35,7 @@ struct Event
         CloseProject,       // c: close the project
         SceneOpen,          // e: a scene is open
         CloseScene,         // c: close the scene
+        SaveProject,        // c: save everything in the project
         WorkspaceChanged,   // e: workspace data has changed     
 
     };
