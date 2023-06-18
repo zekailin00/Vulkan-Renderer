@@ -80,8 +80,14 @@ Scene* Application::EraseActiveScene(int handle)
     Scene* scene = iterator->second;
     activeScenes.erase(handle);
 
-    if (scene->GetState() == Scene::State::RunningVR)
+    if (scene->GetState() == Scene::State::RunningVR &&
+        openxr->IsSessionRunning())
     {
+        openxr->RequestCloseSession();
+        while(!openxr->ShouldCloseSession())
+        {
+            openxr->PollEvents();
+        }
         renderer->DestroyXrSession();
     }
 
@@ -118,11 +124,11 @@ Application::~Application()
     renderer->DeallocateResources();
     window->DestroySurface();
 
-    renderer->Destroy();
-    window->DestroyWindow();
-
     openxr->Destroy();
     delete openxr;
+
+    renderer->Destroy();
+    window->DestroyWindow();
 
     renderer = nullptr;
     window = nullptr;
@@ -137,7 +143,7 @@ void Application::PollEvents()
 
     openxr->PollEvents();
 
-    if(openxr->ShouldCloseSeesion())
+    if(openxr->ShouldCloseSession())
         renderer->DestroyXrSession();
 
     eventQueue->ProcessEvents();
@@ -160,6 +166,7 @@ void Application::Run()
         OnUpdated(ts); // outside of scene update loop 
 
         // Render loop needs to support multiple scenes
+        bool hasVR = false;
         for (auto& scene: activeScenes)
         {   
             // update loop of a scene
@@ -175,10 +182,11 @@ void Application::Run()
             {
                 openxr->BeginFrame();
                 scene.second->Update(ts);
-                openxr->EndFrame();
+                hasVR = true;
             }
         }
         renderer->EndFrame();
+        if (hasVR) openxr->EndFrame();
 
         FrameMark;
     }

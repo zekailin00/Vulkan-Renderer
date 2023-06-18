@@ -18,7 +18,9 @@ class XrPlatform
 public:
     virtual bool SystemFound() = 0;
     virtual OpenxrSession* NewSession() = 0;
-    virtual bool ShouldCloseSeesion() = 0;
+    virtual bool ShouldCloseSession() = 0;
+    virtual void RequestCloseSession() = 0;
+    virtual bool IsSessionRunning() = 0;
     virtual void Destroy() = 0;
 
     virtual void PollEvents() = 0;
@@ -37,7 +39,9 @@ class XrPlatformNotFound: public XrPlatform
 public:
     bool SystemFound() override {return false;}
     OpenxrSession* NewSession() override {return nullptr;}
-    bool ShouldCloseSeesion() override {return false;}
+    bool ShouldCloseSession() override {return false;}
+    void RequestCloseSession() override {};
+    bool IsSessionRunning() override {return false;};
     void Destroy() override {};
 
     void PollEvents() override {}
@@ -65,7 +69,9 @@ public:
 
     bool SystemFound() override {return true;}
     OpenxrSession* NewSession() override;
-    bool ShouldCloseSeesion() override;
+    bool ShouldCloseSession() override;
+    void RequestCloseSession() override;
+    bool IsSessionRunning() override;
     void Destroy() override;
 
     void PollEvents() override;

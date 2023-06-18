@@ -100,7 +100,7 @@ Editor::Editor(Application* app)
 
                 delete this->assetManager;
                 this->assetManager = nullptr;
-                this->editorState = Editor::EditorState::Editing;
+                this->editorState = Editor::EditorState::NoScene;
             }
             else if (event->type == Event::Type::SceneOpen)
             {
@@ -110,11 +110,13 @@ Editor::Editor(Application* app)
                 this->scene = reinterpret_cast<Scene*>(e->scene);
                 this->activeSceneHandle =
                     this->application->SetActiveScene(this->scene);
+                this->editorState = Editor::EditorState::Editing;
             }
             else if (event->type == Event::Type::CloseScene)
             {
                 EventCloseScene* e = reinterpret_cast<EventCloseScene*>(event);
                 CloseScene(e->saveToFs);
+                this->editorState = Editor::EditorState::NoScene;
             }
             else if (event->type == Event::Type::SaveProject)
             {
@@ -140,6 +142,11 @@ Editor::Editor(Application* app)
                     );
 
                     delete runningScene;
+
+                    EventSceneSelected* event2 = new EventSceneSelected();
+                    event2->scene = this->scene;
+                    EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+
                     return;
                 };
 
@@ -155,7 +162,34 @@ Editor::Editor(Application* app)
             }
             else if (event->type == Event::Type::SimStartVR)
             {
+                Scene* runningScene = this->scene->Replicate(Scene::State::RunningVR);
+                int handle = this->application->SetActiveScene(runningScene);
 
+                if (handle < 0)
+                {
+                    Logger::Write(
+                        "[Editor] Start scene failed: " + std::to_string(handle),
+                        Logger::Level::Warning, Logger::MsgType::Editor
+                    );
+
+                    delete runningScene;
+
+                    EventSceneSelected* event2 = new EventSceneSelected();
+                    event2->scene = this->scene;
+                    EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+
+                    return;
+                };
+
+                CloseScene(true);
+
+                this->scene = runningScene;
+                this->activeSceneHandle = handle;
+                this->editorState = EditorState::Running;
+
+                EventSceneSelected* event2 = new EventSceneSelected();
+                event2->scene = runningScene;
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
             }
             else if (event->type == Event::Type::SimStop)
             {
@@ -345,7 +379,8 @@ void Editor::DrawMenu()
         if (ImGui::BeginMenu("File"))
         {
             if (ImGui::MenuItem("New Scene", nullptr, false,
-                editorState == EditorState::Editing))
+                editorState == EditorState::Editing | 
+                editorState == EditorState::NoScene))
             {
                 std::string strPath =
                     Filesystem::GetUnusedFilePath(assetManager->GetScenePath("scene"));
@@ -360,7 +395,8 @@ void Editor::DrawMenu()
             }
 
             if (ImGui::MenuItem("Load Scene", nullptr, false,
-                editorState == EditorState::Editing))
+                editorState == EditorState::Editing |
+                editorState == EditorState::NoScene))
             {
                 menuPopup = EditorMenuPopup::LoadScene;
             }
@@ -382,7 +418,8 @@ void Editor::DrawMenu()
             }
 
             if (ImGui::MenuItem("Close Project", nullptr, false,
-                editorState == EditorState::Editing))
+                editorState == EditorState::Editing|
+                editorState == EditorState::NoScene))
             {
                 EventCloseProject* event = new EventCloseProject();
                 event->assetManager = this->assetManager;

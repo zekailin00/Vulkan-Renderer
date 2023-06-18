@@ -146,7 +146,7 @@ OpenxrSession* OpenxrPlatform::NewSession()
     return session;
 }
 
-bool OpenxrPlatform::ShouldCloseSeesion()
+bool OpenxrPlatform::ShouldCloseSession()
 {
     ZoneScopedN("OpenxrPlatform::ShouldCloseSeesion");
 
@@ -161,6 +161,16 @@ bool OpenxrPlatform::ShouldCloseSeesion()
     }
 
     return false;
+}
+
+void OpenxrPlatform::RequestCloseSession()
+{
+    xrRequestExitSession(session->GetSession());
+}
+
+bool OpenxrPlatform::IsSessionRunning()
+{
+    return !(session == nullptr);
 }
 
 void OpenxrPlatform::Destroy()

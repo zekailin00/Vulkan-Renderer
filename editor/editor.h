@@ -39,12 +39,13 @@ private:
 
     enum class EditorState
     {
-        Editing,
-        Running
+        NoScene = 1 << 0,
+        Editing = 1 << 1,
+        Running = 1 << 2
     };
 
     //** editor **//
-    EditorState editorState = EditorState::Editing;
+    EditorState editorState = EditorState::NoScene;
     AssetManager* assetManager = nullptr;
     Scene* scene = nullptr;
     int activeSceneHandle = -1;
