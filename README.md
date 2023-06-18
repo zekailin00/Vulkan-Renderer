@@ -16,3 +16,8 @@
 ## Build setting
 - The engine MUST be compiled by a 64 bit compiler. 
 - For Visual Studio: x86_amd64 is good, but x86 does NOT work
+
+## Localization
+- Currently, all paths must be in English.
+- Specifically, all characters must be in ASCII format. Each character is 1 byte.
+- When conversion from path to string has non ASCII characters, exception is thrown
