@@ -194,6 +194,13 @@ struct EventCloseScene: public Event
     bool saveToFs;
 };
 
+struct EventSceneSelected: public Event
+{
+    EVENT_TYPE(SceneSelected);
+
+    void* scene;
+};
+
 struct EventWorkspaceChanged: public Event
 {
     EVENT_TYPE(WorkspaceChanged);
@@ -202,4 +209,19 @@ struct EventWorkspaceChanged: public Event
 struct EventSaveProject: public Event
 {
     EVENT_TYPE(SaveProject);
+};
+
+struct EventSimStartVR: public Event
+{
+    EVENT_TYPE(SimStartVR);
+};
+
+struct EventSimStart: public Event
+{
+    EVENT_TYPE(SimStart);
+};
+
+struct EventSimStop: public Event
+{
+    EVENT_TYPE(SimStop);
 };

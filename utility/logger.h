@@ -20,6 +20,7 @@ public:
         Renderer,
         Loader,
         Platform,
+        Editor,
         Others,
         MsgTypeSize
     };

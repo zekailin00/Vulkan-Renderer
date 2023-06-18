@@ -37,7 +37,14 @@ private:
     VkDescriptorSet launcherDescSet;
     std::shared_ptr<renderer::VulkanTexture> launcherTexture;
 
+    enum class EditorState
+    {
+        Editing,
+        Running
+    };
+
     //** editor **//
+    EditorState editorState = EditorState::Editing;
     AssetManager* assetManager = nullptr;
     Scene* scene = nullptr;
     int activeSceneHandle = -1;

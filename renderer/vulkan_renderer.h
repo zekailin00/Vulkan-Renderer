@@ -68,6 +68,7 @@ public:/* Services */
     void SetWindowContent(std::shared_ptr<Texture> texture);
     void SetWindowContent(std::shared_ptr<UI> ui);
     void SetWindowContent(std::shared_ptr<Camera> camera);
+    void SetXRWindowContext(std::shared_ptr<VulkanVrDisplay> vrDisplay);
 
 private: /* Private Vulkan helpers */
     VulkanRenderer() = default;
@@ -98,8 +99,10 @@ private:
     // Display to glfw window
     std::shared_ptr<UI> uiWindow;
     std::shared_ptr<Camera> cameraWindow;
-    VkDescriptorSet textureWindowDescSet = VK_NULL_HANDLE;
-    VkDescriptorSet cameraWindowDescSet = VK_NULL_HANDLE;
+    VkDescriptorSet textureWindowDescSet = VK_NULL_HANDLE;  // Owned by renderer
+    VkDescriptorSet cameraWindowDescSet = VK_NULL_HANDLE;   // Owned by the camera
+    VkDescriptorSet xrDisplayDescSet[2];                    // Owned by the VrDisplay
+    // If a descriptor set is owed by the renderer, cannot assign value to it.
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
     std::unique_ptr<PipelineImgui> pipelineImgui;
@@ -111,7 +114,6 @@ private:
     {
         IVulkanSwapchain* swapchain;
         VkRenderPass renderpass;
-        VulkanVrDisplay* display;
         std::unique_ptr<VulkanPipeline> pipeline;
     };
 

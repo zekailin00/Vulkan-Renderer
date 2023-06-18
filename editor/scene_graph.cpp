@@ -26,6 +26,26 @@ SceneGraph::SceneGraph()
                 this->scene = nullptr;
                 this->selectedEntity = nullptr;
             }
+            else if (event->type == Event::Type::SceneSelected)
+            {
+                EventSceneSelected* e = reinterpret_cast<EventSceneSelected*>(event);
+                this->scene = reinterpret_cast<Scene*>(e->scene);
+            }
+            else if (event->type == Event::Type::SimStart)
+            {
+                this->scene = nullptr;
+                this->selectedEntity = nullptr;
+            }
+            else if (event->type == Event::Type::SimStartVR)
+            {
+                this->scene = nullptr;
+                this->selectedEntity = nullptr;
+            }
+            else if (event->type == Event::Type::SimStop)
+            {
+                this->scene = nullptr;
+                this->selectedEntity = nullptr;
+            }
         });
 }
 

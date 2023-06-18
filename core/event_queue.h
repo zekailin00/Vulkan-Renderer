@@ -27,7 +27,7 @@ struct Event
         EntitySelected,     // e: an entity is selected
         NewEntity,          // c: new an entity
         DeleteEntity,       // c: delete an entity
-        DeleteComponent,    // c: delete the component from the entity 
+        DeleteComponent,    // c: delete the component from the entity
         MaterialSelected,   // e: material is selected
         TextureSelected,    // e: textured is selected
 
@@ -35,9 +35,13 @@ struct Event
         CloseProject,       // c: close the project
         SceneOpen,          // e: a scene is open
         CloseScene,         // c: close the scene
+        SceneSelected,      // e: scene is selected
         SaveProject,        // c: save everything in the project
-        WorkspaceChanged,   // e: workspace data has changed     
+        WorkspaceChanged,   // e: workspace data has changed
 
+        SimStart,           // c: start simulation
+        SimStartVR,         // c: start simulation in vr
+        SimStop             // c: stop current simulation
     };
 
     Type type;

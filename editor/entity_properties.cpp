@@ -2,6 +2,7 @@
 
 #include "light_component.h"
 #include "camera_component.h"
+#include "openxr_components.h"
 
 #include "asset_manager.h"
 #include "validation.h"
@@ -52,6 +53,18 @@ EntityProperties::EntityProperties()
                 this->availableMaterialCached = false;
                 this->availableMeshes.clear();
                 this->availableMeshCached = false;
+            }
+            else if (event->type == Event::Type::SimStart)
+            {
+                this->selectedEntity = nullptr;
+            }
+            else if (event->type == Event::Type::SimStartVR)
+            {
+                this->selectedEntity = nullptr;
+            }
+            else if (event->type == Event::Type::SimStop)
+            {
+                this->selectedEntity = nullptr;
             }
         });
 }
@@ -193,6 +206,11 @@ void EntityProperties::ShowEntityProperties()
         ShowCameraComponent();
     }
 
+    if (selectedEntity->HasComponent(Component::Type::VrDisplay))
+    {
+        ShowVrDisplayComponent();
+    }
+
     if (selectedEntity->HasComponent(Component::Type::Mesh))
     {
         ShowMeshComponent();
@@ -306,6 +324,8 @@ void EntityProperties::ShowCameraComponent()
             ImGui::DragFloat("Far Plane", &prop.ZFar,
                 1.0f, 20.0f, FLT_MAX, "%.1f");
 
+
+            // FIXME: camera rebuild has LAYOUT_UNDEFINED bug
             if (ImGui::SmallButton("Rebuild"))
             {
                 component->camera->RebuildCamera(prop);
@@ -324,6 +344,25 @@ void EntityProperties::ShowCameraComponent()
         }
 
         ImGui::PopItemWidth();
+
+        ImGui::Separator();
+    }
+}
+
+void EntityProperties::ShowVrDisplayComponent()
+{
+    if (ImGui::CollapsingHeader("VR Display Component"))
+    {
+        RemoveComponent(Component::Type::VrDisplay);
+
+        renderer::VrDisplayComponent* component =
+            dynamic_cast<renderer::VrDisplayComponent*>(
+                selectedEntity->GetComponent(Component::Type::VrDisplay));
+
+        ImGui::SeparatorText("VR Display");
+        {
+            ImGui::Text("Nothing to show :(");
+        }
 
         ImGui::Separator();
     }
@@ -448,6 +487,7 @@ void EntityProperties::AddComponent()
     {
         "Light Component",
         "Camera Component",
+        "VR Display Component",
         "Mesh Component",
     };
 
@@ -473,6 +513,11 @@ void EntityProperties::AddComponent()
         !selectedEntity->HasComponent(Component::Type::Camera))
     {
         selectedEntity->AddComponent(Component::Type::Camera);
+    }
+    else if (selectedComponent == "VR Display Component" &&
+        !selectedEntity->HasComponent(Component::Type::VrDisplay))
+    {
+        selectedEntity->AddComponent(Component::Type::VrDisplay);
     }
     else if (selectedComponent == "Mesh Component" &&
         !selectedEntity->HasComponent(Component::Type::Mesh))

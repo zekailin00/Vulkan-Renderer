@@ -2,6 +2,7 @@
 
 #include "vulkan_renderer.h"
 #include "validation.h"
+#include "math_library.h"
 
 #include <array>
 #include <glm/glm.hpp>
@@ -211,6 +212,15 @@ void VulkanCamera::SetProjection(float aspectRatioXy, float fovy,
         glm::radians(fovy), aspectRatioXy, zNear, zFar);
 }
 
+void VulkanCamera::SetProjection(glm::vec4 fov, float zNear, float zFar)
+{
+    properties.Fov = fov[2] - fov[3];
+    properties.ZFar = zFar;
+    properties.ZNear = zNear;
+
+    math::XrProjectionFov(this->vpMap->projection, fov, zNear, zFar);
+}
+
 const glm::mat4& VulkanCamera::GetTransform()
 {
     ZoneScopedN("VulkanCamera::GetTransform");
@@ -262,6 +272,11 @@ std::shared_ptr<VulkanVrDisplay> VulkanVrDisplay::BuildCamera()
         std::make_shared<VulkanVrDisplay>();
     display->cameraType = CameraType::VR_DISPLAY;
 
+    CameraProperties prop{};
+    prop.UseFrameExtent = false;
+    display->cameras[0] = VulkanCamera::BuildCamera(prop);
+    display->cameras[1] = VulkanCamera::BuildCamera(prop);
+
     return display;
 }
 
@@ -272,9 +287,11 @@ void VulkanVrDisplay::Initialize(glm::vec2 extent)
     CameraProperties prop{};
     prop.UseFrameExtent = false;
     prop.Extent = extent;
+    prop.Fov = 90; // Just a placeholder.
+    // Fox is directly acquired from Openxr system.
 
-    cameras[0] = VulkanCamera::BuildCamera(prop);
-    cameras[1] = VulkanCamera::BuildCamera(prop);
+    cameras[0]->RebuildCamera(prop);
+    cameras[1]->RebuildCamera(prop);
 }
 
 void VulkanVrDisplay::Destory()
@@ -283,6 +300,11 @@ void VulkanVrDisplay::Destory()
 
     cameras[0] = nullptr;
     cameras[1] = nullptr;
+}
+
+VulkanVrDisplay::~VulkanVrDisplay()
+{
+    Destory();
 }
 
 } // namespace renderer

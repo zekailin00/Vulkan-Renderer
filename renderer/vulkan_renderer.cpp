@@ -19,6 +19,7 @@
 #include "mesh_component.h"
 #include "ui_component.h"
 #include "wireframe_component.h"
+#include "openxr_components.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -214,6 +215,11 @@ void VulkanRenderer::AllocateResources(
        WireframeInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::Wireframe,
        WireframeDeserializer(&defaultTechnique));
+
+    ComponentLocator::SetInitializer(Component::Type::VrDisplay,
+       VrDisplayInitializer(&defaultTechnique));
+    ComponentLocator::SetDeserializer(Component::Type::VrDisplay,
+       VrDisplayDeserializer(&defaultTechnique));
 }
 
 void VulkanRenderer::RebuildSwapchain()
@@ -742,7 +748,7 @@ void VulkanRenderer::RenderOpenxrFrame(VkCommandBuffer vkCommandBuffer)
         vkRenderPassinfo.pClearValues = &clearValue;
         vkCmdBeginRenderPass(vkCommandBuffer, &vkRenderPassinfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        VkDescriptorSet descSet = defaultTechnique.GetXrDisplayDescSet()[i];
+        VkDescriptorSet descSet = xrDisplayDescSet[i];
 
         vkCmdBindPipeline(vkCommandBuffer, 
             VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -838,30 +844,11 @@ bool VulkanRenderer::InitializeXrSession(IVulkanSwapchain* xrSwapchain)
 {
     ZoneScopedN("VulkanRenderer::InitializeXrSession");
 
-    //FIXME: put updates
-    // VulkanVrDisplay* display = nullptr;
-    // for (const auto& n: dynamic_cast<VulkanNode*>(scene->GetRootNode())->nodeLists)
-    // {
-    //     VulkanNode* vulkanNode = static_cast<VulkanNode*>(n.get());
-    //     if (vulkanNode->camera &&
-    //         vulkanNode->camera->cameraType == CameraType::VR_DISPLAY)
-    //         display = static_cast<VulkanVrDisplay*>(vulkanNode->camera.get());
-    // }
-
-    // if (display == nullptr)
-    //     return false;
-
     // Validate vr display is in the scene
-    throw;
-    VulkanVrDisplay* display = nullptr;
-
     xrSwapchain->Initialize(&vulkanDevice);
-    // Software antialising by a factor of 4
-    display->Initialize({swapchain->GetWidth() * 4, swapchain->GetHeight() * 4});
 
     xrContext = new OpenxrContext();
     xrContext->swapchain = xrSwapchain;
-    xrContext->display = display;
 
     {
         VkAttachmentDescription colorAttachmentDesc{};
@@ -970,7 +957,6 @@ void VulkanRenderer::DestroyXrSession()
     xrContext->pipeline = nullptr;
     vkDestroyRenderPass(vulkanDevice.vkDevice, xrContext->renderpass, nullptr);
 
-    xrContext->display->Destory();
     xrContext->swapchain->Destroy(&vulkanDevice);
 
     delete xrContext->swapchain;
@@ -1071,6 +1057,16 @@ void VulkanRenderer::SetWindowContent(std::shared_ptr<Camera> camera)
         uiWindow = nullptr;
         cameraWindow = camera;
     }
+}
+
+void VulkanRenderer::SetXRWindowContext(
+    std::shared_ptr<VulkanVrDisplay> vrDisplay)
+{
+    xrDisplayDescSet[0] = 
+        *vrDisplay->GetLeftCamera()->GetTextureDescriptorSet();
+
+    xrDisplayDescSet[1] = 
+        *vrDisplay->GetRightCamera()->GetTextureDescriptorSet();
 }
 
 } // namespace renderer

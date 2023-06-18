@@ -25,5 +25,4 @@ private:
 
     Scene* scene = nullptr;
     std::set<std::string> cameraDocking{};
-
 };

@@ -17,7 +17,7 @@ static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 #define CHK_XRCMD(result)                                                      \
     if (XR_FAILED(result)) {PrintErrorMsg(result);}                                                                   
 
-OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
+XrPlatform* OpenxrPlatform::Initialize()
 {
     ZoneScopedN("OpenxrPlatform::Initialize");
 
@@ -85,7 +85,7 @@ OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
             std::to_string(result),
             Logger::Level::Info, Logger::MsgType::Platform
         );
-        return nullptr;
+        return new XrPlatformNotFound();
     }
 
     XrInstanceProperties instanceProp{XR_TYPE_INSTANCE_PROPERTIES};
@@ -112,7 +112,7 @@ OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
             Logger::Level::Info, Logger::MsgType::Platform
         );
         xrDestroyInstance(xrInstance);
-        return nullptr;
+        return new XrPlatformNotFound();
     }
 
     XrSystemProperties systemProp{XR_TYPE_SYSTEM_PROPERTIES};
@@ -129,8 +129,6 @@ OpenxrPlatform* OpenxrPlatform::Initialize(Input* input)
     platform->extensionList = extensionList;
     platform->xrInstance = xrInstance;
     platform->xrSystemId = xrSystemId;
-
-    platform->input = input;
 
     platform->LoadViewConfig();
     platform->LoadVulkanRequirements();

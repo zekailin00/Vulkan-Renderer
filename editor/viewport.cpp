@@ -1,10 +1,14 @@
 #include "viewport.h"
 
 #include "camera_component.h"
+#include "openxr_components.h"
+
 #include "event_queue.h"
 #include "events.h"
 #include "vulkan_renderer.h"
 #include "validation.h"
+
+typedef std::pair<std::string, std::shared_ptr<renderer::VulkanCamera>> ViewportTarget;
 
 Viewport::Viewport()
 {
@@ -49,6 +53,23 @@ Viewport::Viewport()
                 this->scene = reinterpret_cast<Scene*>(e->scene);
             }
             else if (event->type == Event::Type::CloseScene)
+            {
+                this->scene = nullptr;
+            }
+            else if (event->type == Event::Type::SceneSelected)
+            {
+                EventSceneSelected* e = reinterpret_cast<EventSceneSelected*>(event);
+                this->scene = reinterpret_cast<Scene*>(e->scene);
+            }
+            else if (event->type == Event::Type::SimStart)
+            {
+                this->scene = nullptr;
+            }
+            else if (event->type == Event::Type::SimStartVR)
+            {
+                this->scene = nullptr;
+            }
+            else if (event->type == Event::Type::SimStop)
             {
                 this->scene = nullptr;
             }
@@ -100,11 +121,31 @@ void Viewport::Draw(ImGuiID dockID)
         DrawNoCamera(dockID);
         return;
     }
+    
+    std::vector<ViewportTarget> entityList;
 
-    std::vector<Entity*> entityList;
-    scene->GetEntitiesWithComponent(
-        Component::Type::Camera,
-        entityList
+    scene->GetRootEntity()->ScanEntities(
+        [&entityList](Entity* e){
+            if (e->HasComponent(Component::Type::Camera))
+            {
+                entityList.push_back({
+                    e->GetName(),
+                    ((renderer::CameraComponent*)
+                    e->GetComponent(Component::Type::Camera))->camera
+                });
+            }
+            if (e->HasComponent(Component::Type::VrDisplay))
+            {
+                // If entity has a VR display component,
+                // only show th left camera.
+                entityList.push_back({
+                    e->GetName() + " (VR)",
+                    ((renderer::VrDisplayComponent*)
+                    e->GetComponent(Component::Type::VrDisplay))
+                        ->vrDisplay->GetLeftCamera()
+                });
+            }
+        }
     );
 
     if (entityList.empty())
@@ -115,22 +156,19 @@ void Viewport::Draw(ImGuiID dockID)
 
     for (int i = 0; i < entityList.size(); i++)
     {
-        Entity* e = entityList[i];
+        const ViewportTarget& t = entityList[i];
 
         // Window is docked to main window when first created.
-        if (cameraDocking.find(e->GetName()) == cameraDocking.cend())
+        if (cameraDocking.find(t.first.c_str()) == cameraDocking.cend())
         {
             ImGui::SetNextWindowDockID(dockID);
-            cameraDocking.insert(e->GetName());
+            cameraDocking.insert(t.first);
         }
 
-        ImGui::Begin(e->GetName().c_str(), nullptr);
-
-        renderer::CameraComponent* comp = (renderer::CameraComponent*)
-            e->GetComponent(Component::Type::Camera);
+        ImGui::Begin(t.first.c_str(), nullptr);
 
         ImVec2 contentExtent = ImGui::GetContentRegionAvail();
-        glm::vec2 imageExtent = comp->camera->GetCamProperties().Extent;
+        glm::vec2 imageExtent = t.second->GetCamProperties().Extent;
 
         float heightRatio = imageExtent.y / contentExtent.y;
         float widthRatio = imageExtent.x / contentExtent.x;
@@ -150,7 +188,7 @@ void Viewport::Draw(ImGuiID dockID)
             (contentExtent.x - imageExtent.x) * 0.5f + ImGui::GetCursorPos().x, 
             (contentExtent.y - imageExtent.y) * 0.5f + ImGui::GetCursorPos().y));
         ImGui::Image(
-            *(comp->camera->GetTextureDescriptorSet()),
+            *(t.second->GetTextureDescriptorSet()),
             {imageExtent.x, imageExtent.y}, {0, 1}, {1, 0}
         );
 

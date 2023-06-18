@@ -512,6 +512,13 @@ void AssetManager::GetAvailableScenes(
     }
 }
 
+std::string AssetManager::GetScenePath(std::string sceneName)
+{
+    std::string path = GetWorkspacePath();
+    path = path + "/" + SCENE_PATH + "/" + sceneName + SCENE_EXTENSION;
+    return path;
+}
+
 std::shared_ptr<renderer::Mesh> AssetManager::LoadMesh(
     std::filesystem::path path)
 {

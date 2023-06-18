@@ -22,6 +22,13 @@
 #include <map>
 
 
+enum SceneHandle
+{
+    SCENE_XR_SYSTEM_NOT_FOUNT = -1,
+    SCENE_VALIDATION_FAILED = -2
+};
+
+
 class Application
 {
 public:
@@ -49,7 +56,7 @@ private:
 private:
     EventQueue* eventQueue = nullptr;
     GlfwWindow* window = nullptr;
-    OpenxrPlatform* openxr = nullptr;
+    XrPlatform* openxr = nullptr;
     Input* input = nullptr;
 
     std::map<int, Scene*> activeScenes;

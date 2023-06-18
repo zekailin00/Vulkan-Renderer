@@ -62,8 +62,9 @@ bool Scene::SaveToFile(std::string path)
 
 Scene* Scene::Replicate(Scene::State state)
 {
-    SaveToFile("tmp.json");
-    Scene* scene = LoadFromFile("tmp.json", assetManager, state);
+    std::string path = assetManager->GetScenePath(GetSceneName());
+    SaveToFile(path);
+    Scene* scene = LoadFromFile(path, assetManager, state);
 
     return scene;
 }

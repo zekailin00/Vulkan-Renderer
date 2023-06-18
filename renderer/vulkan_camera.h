@@ -45,7 +45,8 @@ public:
     void SetCamProperties(CameraProperties&) override;
 
     /**
-     * @brief Set the Field Of View object
+     * @brief Set projection.
+     * Usually used for regular cameras
      * 
      * @param aspectRatioXy aspect ratio: x over y
      * @param fovy field of view of y axis in degree
@@ -54,6 +55,16 @@ public:
      */
     void SetProjection(float aspectRatioXy, float fovy = 45.0f,
         float zNear = 0.1f, float zFar = 100.0f);
+
+    /**
+     * @brief Set projection.
+     * Usually used for fov data from openxr system
+     * 
+     * @param fov <left, right, up, down> in ????
+     * @param zNear near plane in meter
+     * @param zFar far plane in meter
+     */
+    void SetProjection(glm::vec4 fov, float zNear, float zFar);
 
     const glm::mat4& GetTransform(); // Used by VulkanNode
 
@@ -97,17 +108,14 @@ class VulkanVrDisplay: public VrDisplay
 
 public:
     /**
-     * @brief It is only a placeholder so that 
-     * there is a VR HMD in the scene.
-     * The vulkan resources are initialized when
-     * a new XR session is created.
+     * @brief Build two regular cameras.
      * 
      * @return std::shared_ptr<VulkanVrDisplay> 
      */
     static std::shared_ptr<VulkanVrDisplay> BuildCamera();
 
     /**
-     * @brief Allocating vulkan resources when a new XR sessions is created.
+     * @brief Rebuild the two cameras when a new XR sessions is created.
      * The extent is the resolution of the displays acquired from the session.
      * 
      * @param extent 
@@ -121,9 +129,13 @@ public:
      */
     void Destory();
 
-    friend RenderTechnique;
+    ~VulkanVrDisplay();
+
+    std::shared_ptr<VulkanCamera> GetLeftCamera() {return cameras[0];}
+    std::shared_ptr<VulkanCamera> GetRightCamera() {return cameras[1];}
 
 private:
+    // index 0 = left eye, index 1 = right eye
     std::shared_ptr<VulkanCamera> cameras[2] = {nullptr, nullptr};
 };
 

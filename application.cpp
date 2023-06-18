@@ -1,12 +1,14 @@
 #include <iostream>
 #include <filesystem>
+#include <memory>
 
 #include "application.h"
 #include "logger.h"
 #include "timestep.h"
 #include "validation.h"
 
-bool launchXR = false;
+#include "openxr_components.h"
+
 
 Scene* Application::GetActiveScene(int handle)
 {
@@ -20,6 +22,46 @@ Scene* Application::GetActiveScene(int handle)
 int Application::SetActiveScene(Scene* scene)
 {
     ZoneScopedN("Application::SetActiveScene");
+
+    if (scene->GetState() == Scene::State::RunningVR)
+    {
+        if (!openxr->SystemFound())
+        {
+            return SCENE_XR_SYSTEM_NOT_FOUNT;
+        }
+
+        std::shared_ptr<renderer::VulkanVrDisplay> vrDisplay = nullptr;
+        int displayCount = 0;
+
+        scene->GetRootEntity()->ScanEntities(
+            [&vrDisplay, &displayCount](Entity* entity){
+                if (entity->HasComponent(Component::Type::VrDisplay))
+                {
+                    displayCount++;
+                    vrDisplay = ((renderer::VrDisplayComponent*)entity
+                        ->GetComponent(Component::Type::VrDisplay))
+                        ->vrDisplay; 
+                }
+            }
+        );
+
+        if (displayCount > 1 || vrDisplay == nullptr)
+        {
+            return SCENE_VALIDATION_FAILED;
+        }
+
+        // Renderer initializes the swapchain
+        // vrDisplay then is initialized with the correct extent
+        OpenxrSession* session = openxr->NewSession();
+        renderer->InitializeXrSession(session);
+        vrDisplay->Initialize({
+            // Software antialising by a factor of 4
+            session->GetWidth() * 4,
+            session->GetHeight() * 4
+        });
+
+        renderer->SetXRWindowContext(vrDisplay);
+    }
 
     int handle = activeSceneHandleCount++;
     ASSERT(scene != nullptr);
@@ -37,6 +79,12 @@ Scene* Application::EraseActiveScene(int handle)
 
     Scene* scene = iterator->second;
     activeScenes.erase(handle);
+
+    if (scene->GetState() == Scene::State::RunningVR)
+    {
+        renderer->DestroyXrSession();
+    }
+
     return scene;
 }
 
@@ -52,16 +100,13 @@ Application::Application()
     this->window = &GlfwWindow::GetInstance();
     this->renderer = &renderer::VulkanRenderer::GetInstance();
     this->input = Input::GetInstance();
-    this->openxr = OpenxrPlatform::Initialize(this->input);
+    this->openxr = OpenxrPlatform::Initialize();
     this->eventQueue = EventQueue::GetInstance();
 
     window->InitializeWindow();
     renderer->InitializeDevice(
-        MergeExtensions(window->GetVkInstanceExt(), 
-        openxr? openxr->GetVkInstanceExt(): std::vector<const char*>()), 
-        MergeExtensions(window->GetVkDeviceExt(),
-        openxr? openxr->GetVkDeviceExt(): std::vector<const char *>()));
-
+        MergeExtensions(window->GetVkInstanceExt(), openxr->GetVkInstanceExt()), 
+        MergeExtensions(window->GetVkDeviceExt(), openxr->GetVkDeviceExt()));
     window->InitializeSurface();
     renderer->AllocateResources(window->GetSwapchain());
 }
@@ -70,22 +115,14 @@ Application::~Application()
 {
     ZoneScopedN("Application::~Application");
 
-    if (launchXR)
-    {
-        renderer->DestroyXrSession();
-    }
-
     renderer->DeallocateResources();
     window->DestroySurface();
 
     renderer->Destroy();
     window->DestroyWindow();
 
-    if (openxr)
-    {
-        openxr->Destroy();
-        delete openxr;
-    } 
+    openxr->Destroy();
+    delete openxr;
 
     renderer = nullptr;
     window = nullptr;
@@ -98,15 +135,13 @@ void Application::PollEvents()
 {
     ZoneScopedN("Application::PollEvents");
 
-    if (openxr)
-    {
-        openxr->PollEvents();
+    openxr->PollEvents();
 
-        if(openxr->ShouldCloseSeesion())
-            renderer->DestroyXrSession();
-    }
+    if(openxr->ShouldCloseSeesion())
+        renderer->DestroyXrSession();
 
     eventQueue->ProcessEvents();
+    window->BeginFrame(); // poll window events
 }
 
 void Application::Run()
@@ -114,12 +149,6 @@ void Application::Run()
     ZoneScopedN("Application::Run");
 
     OnCreated();
-
-    if (launchXR && openxr)
-    {
-        renderer->InitializeXrSession(openxr->NewSession());
-        // TODO: intialization failed
-    }
     
     Timer timer{};
     while (!window->ShouldClose()) 
@@ -127,16 +156,27 @@ void Application::Run()
         Timestep ts = timer.GetTimestep();
 
         PollEvents();
-        window->BeginFrame(); // poll window events
 
         OnUpdated(ts); // outside of scene update loop 
 
         // Render loop needs to support multiple scenes
         for (auto& scene: activeScenes)
-        {   // update loop of a scene
-            // if (openxr) openxr->BeginFrame();
-            scene.second->Update(ts);
-            // if (openxr) openxr->EndFrame();
+        {   
+            // update loop of a scene
+            if (scene.second->GetState() == Scene::State::Editor)
+            {
+                scene.second->Update(ts);
+            }
+            else if (scene.second->GetState() == Scene::State::Running)
+            {
+                scene.second->Update(ts);
+            }
+            else if (scene.second->GetState() == Scene::State::RunningVR)
+            {
+                openxr->BeginFrame();
+                scene.second->Update(ts);
+                openxr->EndFrame();
+            }
         }
         renderer->EndFrame();
 

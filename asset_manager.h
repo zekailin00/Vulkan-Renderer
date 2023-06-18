@@ -78,6 +78,8 @@ public:
     void GetAvailableTextures(std::vector<const char*>& texturePaths);
     void GetAvailableScenes(std::vector<std::string>& scenePaths);
 
+    std::string GetScenePath(std::string sceneName) override;
+
     ~AssetManager()
     {
         SaveToFilesystem();

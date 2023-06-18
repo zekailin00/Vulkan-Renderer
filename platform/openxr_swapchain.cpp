@@ -3,6 +3,7 @@
 #include "openxr_platform.h"
 #include "logger.h"
 #include "validation.h"
+#include "input.h"
 
 #include <vector>
 #include <tracy/Tracy.hpp>
@@ -375,17 +376,19 @@ void OpenxrSession::BeginFrame()
             CHK_XRCMD(xrLocateViews(
                 xrSession, &locateInfo, &viewState, 2, &count, views));
 
-            platform->input->xr_left_eye_fov =
+            Input* input = Input::GetInstance();
+            
+            input->xr_left_eye_fov =
                 *reinterpret_cast<glm::vec4*>(&views[0].fov);
-            platform->input->xr_right_eye_fov =
+            input->xr_right_eye_fov =
                 *reinterpret_cast<glm::vec4*>(&views[1].fov);
-            platform->input->xr_left_eye_pos = 
+            input->xr_left_eye_pos = 
                 *reinterpret_cast<glm::vec3*>(&views[0].pose.position);
-            platform->input->xr_right_eye_pos = 
+            input->xr_right_eye_pos = 
                 *reinterpret_cast<glm::vec3*>(&views[1].pose.position);
-            platform->input->xr_left_eye_quat = 
+            input->xr_left_eye_quat = 
                 *reinterpret_cast<glm::vec4*>(&views[0].pose.orientation);
-            platform->input->xr_right_eye_quat = 
+            input->xr_right_eye_quat = 
                 *reinterpret_cast<glm::vec4*>(&views[1].pose.orientation);
         }
 

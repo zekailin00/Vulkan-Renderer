@@ -48,6 +48,7 @@ public:
     glm::vec3 GetLocalRotation();
     glm::vec3 GetLocalScale();
 
+    Entity* GetParent() {return parent;}
     Entity* GetChildByName(std::string name);
     void ScanEntities(std::function<void(Entity*)> fn);
     const std::list<Entity*>& GetChildren();

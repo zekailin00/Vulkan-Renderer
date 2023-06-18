@@ -16,11 +16,13 @@ struct Component
     enum class Type
     {
         Camera,
+        // Drives local transform. Must be before components that use local transform.
         VrDisplay,
         Light,
         Mesh,
         UI,
         Wireframe,
+        VrController,
         Size
     };
 

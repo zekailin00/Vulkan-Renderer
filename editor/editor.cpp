@@ -3,6 +3,7 @@
 #include "vulkan_renderer.h"
 #include "filesystem_viewer.h"
 #include "validation.h"
+#include "logger.h"
 
 #include <imgui.h>
 
@@ -14,13 +15,6 @@ enum class EditorMenuPopup
 
 static EditorMenuPopup menuPopup;
 
-std::string Editor::GetScenePath(std::string sceneName)
-{
-    std::string path = assetManager->GetWorkspacePath();
-    path = path + "/" + SCENE_PATH + "/" + sceneName + SCENE_EXTENSION;
-    return path;
-}
-
 void Editor::CloseScene(bool saveToFilesystem)
 {
     if (this->scene)
@@ -28,7 +22,7 @@ void Editor::CloseScene(bool saveToFilesystem)
         std::string sceneName = this->scene->GetSceneName();
         if (saveToFilesystem)
         {
-            this->scene->SaveToFile(GetScenePath(sceneName));
+            this->scene->SaveToFile(assetManager->GetScenePath(sceneName));
             EventWorkspaceChanged* event2 = new EventWorkspaceChanged();
             EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
         }
@@ -106,6 +100,7 @@ Editor::Editor(Application* app)
 
                 delete this->assetManager;
                 this->assetManager = nullptr;
+                this->editorState = Editor::EditorState::Editing;
             }
             else if (event->type == Event::Type::SceneOpen)
             {
@@ -126,10 +121,60 @@ Editor::Editor(Application* app)
                 if (this->scene)
                 {
                     std::string sceneName = this->scene->GetSceneName();
-                    this->scene->SaveToFile(GetScenePath(sceneName));
+                    this->scene->SaveToFile(assetManager->GetScenePath(sceneName));
                 }
                 this->assetManager->SaveToFilesystem();
                 EventWorkspaceChanged* event2 = new EventWorkspaceChanged();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+            }
+            else if (event->type == Event::Type::SimStart)
+            {
+                Scene* runningScene = this->scene->Replicate(Scene::State::Running);
+                int handle = this->application->SetActiveScene(runningScene);
+
+                if (handle < 0)
+                {
+                    Logger::Write(
+                        "[Editor] Start scene failed: " + std::to_string(handle),
+                        Logger::Level::Warning, Logger::MsgType::Editor
+                    );
+
+                    delete runningScene;
+                    return;
+                };
+
+                CloseScene(true);
+
+                this->scene = runningScene;
+                this->activeSceneHandle = handle;
+                this->editorState = EditorState::Running;
+
+                EventSceneSelected* event2 = new EventSceneSelected();
+                event2->scene = runningScene;
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
+            }
+            else if (event->type == Event::Type::SimStartVR)
+            {
+
+            }
+            else if (event->type == Event::Type::SimStop)
+            {
+                std::string sceneName = this->scene->GetSceneName();
+                CloseScene(false);
+
+                std::string strPath = assetManager->GetScenePath(sceneName);
+
+                this->scene = Scene::LoadFromFile(
+                    strPath, assetManager, Scene::State::Editor
+                );
+
+                this->activeSceneHandle =
+                    this->application->SetActiveScene(this->scene);
+
+                this->editorState = EditorState::Editing;
+
+                EventSceneSelected* event2 = new EventSceneSelected();
+                event2->scene = scene;
                 EventQueue::GetInstance()->Publish(EventQueue::Editor, event2);
             }
         });
@@ -234,7 +279,7 @@ void Editor::DrawUI()
     workspace.Draw();
     materialEditor.Draw();
     textureEditor.Draw();
-    // ImGui::ShowDemoWindow();
+    ImGui::ShowDemoWindow();
 }
 
 void Editor::DrawLauncher()
@@ -299,40 +344,45 @@ void Editor::DrawMenu()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("New Scene", nullptr, false))
+            if (ImGui::MenuItem("New Scene", nullptr, false,
+                editorState == EditorState::Editing))
             {
                 std::string strPath =
-                    Filesystem::GetUnusedFilePath(GetScenePath("scene"));
+                    Filesystem::GetUnusedFilePath(assetManager->GetScenePath("scene"));
 
                 std::filesystem::path fsPath = strPath;
                 Scene* scene = Scene::NewScene(fsPath.stem().string(), assetManager);
-                scene->SaveToFile(GetScenePath(fsPath.stem().string()));
+                scene->SaveToFile(assetManager->GetScenePath(fsPath.stem().string()));
 
                 EventSceneOpen* event = new EventSceneOpen();
                 event->scene = scene;
                 EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
-            if (ImGui::MenuItem("Load Scene", nullptr, false))
+            if (ImGui::MenuItem("Load Scene", nullptr, false,
+                editorState == EditorState::Editing))
             {
                 menuPopup = EditorMenuPopup::LoadScene;
             }
 
-            if (ImGui::MenuItem("Close Scene", nullptr, false))
+            if (ImGui::MenuItem("Close Scene", nullptr, false,
+                editorState == EditorState::Editing))
             {
                 EventCloseScene* event = new EventCloseScene();
                 event->saveToFs = false;
                 EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
-            if (ImGui::MenuItem("Close and Save Scene", nullptr, false))
+            if (ImGui::MenuItem("Close and Save Scene", nullptr, false,
+                editorState == EditorState::Editing))
             {
                 EventCloseScene* event = new EventCloseScene();
                 event->saveToFs = true;
                 EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
-            if (ImGui::MenuItem("Close Project", nullptr, false))
+            if (ImGui::MenuItem("Close Project", nullptr, false,
+                editorState == EditorState::Editing))
             {
                 EventCloseProject* event = new EventCloseProject();
                 event->assetManager = this->assetManager;
@@ -343,7 +393,8 @@ void Editor::DrawMenu()
         }
         if (ImGui::BeginMenu("Edit"))
         {
-            if (ImGui::MenuItem("Save", nullptr, false))
+            if (ImGui::MenuItem("Save", nullptr, false,
+                editorState == EditorState::Editing))
             {
                 EventSaveProject* event = new EventSaveProject();
                 EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
@@ -363,9 +414,18 @@ void Editor::DrawMenu()
         }
         if (ImGui::BeginMenu("Run"))
         {
-            if (ImGui::MenuItem("Start", nullptr, false))
+            if (ImGui::MenuItem("Start", nullptr, false,
+                editorState == EditorState::Editing))
             {
-            
+                EventSimStart* event = new EventSimStart();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+            }
+
+            if (ImGui::MenuItem("Start in VR", nullptr, false,
+                editorState == EditorState::Editing))
+            {
+                EventSimStartVR* event = new EventSimStartVR();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
             if (ImGui::MenuItem("Pause", nullptr, false))
@@ -378,9 +438,11 @@ void Editor::DrawMenu()
 
             }
 
-            if (ImGui::MenuItem("Stop", nullptr, false))
+            if (ImGui::MenuItem("Stop", nullptr, false,
+                editorState == EditorState::Running))
             {
-
+                EventSimStop* event = new EventSimStop();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
             }
 
             ImGui::EndMenu();
@@ -424,9 +486,7 @@ void Editor::DrawMenu()
 
             ImGui::EndMenu();
         }
+
         ImGui::EndMainMenuBar();
-
-
-
     }
 }

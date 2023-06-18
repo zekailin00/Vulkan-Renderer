@@ -12,32 +12,74 @@
 #include <vector>
 
 class OpenxrSession;
-class OpenxrPlatform
+
+class XrPlatform
+{
+public:
+    virtual bool SystemFound() = 0;
+    virtual OpenxrSession* NewSession() = 0;
+    virtual bool ShouldCloseSeesion() = 0;
+    virtual void Destroy() = 0;
+
+    virtual void PollEvents() = 0;
+    virtual void BeginFrame() = 0;
+    virtual void EndFrame() = 0;
+
+    virtual IVulkanSwapchain* GetSwapchain() = 0;
+    virtual std::vector<const char*> GetVkInstanceExt() = 0;
+    virtual std::vector<const char*> GetVkDeviceExt() = 0;
+
+    virtual ~XrPlatform() = default;
+};
+
+class XrPlatformNotFound: public XrPlatform
+{
+public:
+    bool SystemFound() override {return false;}
+    OpenxrSession* NewSession() override {return nullptr;}
+    bool ShouldCloseSeesion() override {return false;}
+    void Destroy() override {};
+
+    void PollEvents() override {}
+    void BeginFrame() override {}
+    void EndFrame() override {}
+
+    IVulkanSwapchain* GetSwapchain() override {return nullptr;}
+    std::vector<const char*> GetVkInstanceExt() override 
+        {return std::vector<const char*>();};
+    std::vector<const char*> GetVkDeviceExt() override
+        {return std::vector<const char*>();}
+
+    ~XrPlatformNotFound() override = default;
+};
+
+class OpenxrPlatform: public XrPlatform
 {
 public:
     /**
      * @brief Get an instance of the OpenXR platform.
-     * If openxr instance cannot be created, nullptr is returned.
+     * If openxr instance cannot be created, an empty platform is returned.
      * @return OpenxrPlatform* 
      */
-    static OpenxrPlatform* Initialize(Input* input);
+    static XrPlatform* Initialize();
 
-    OpenxrSession* NewSession();
-    bool ShouldCloseSeesion();
-    void Destroy();
+    bool SystemFound() override {return true;}
+    OpenxrSession* NewSession() override;
+    bool ShouldCloseSeesion() override;
+    void Destroy() override;
 
-    void PollEvents();
-    void BeginFrame();
-    void EndFrame();
+    void PollEvents() override;
+    void BeginFrame() override;
+    void EndFrame() override;
 
-    IVulkanSwapchain* GetSwapchain() {return nullptr;};
-    std::vector<const char*> GetVkInstanceExt() {return vulkanInstanceExt;}
-    std::vector<const char*> GetVkDeviceExt() {return vulkanDeviceExt;}
+    IVulkanSwapchain* GetSwapchain() override {return nullptr;};
+    std::vector<const char*> GetVkInstanceExt() override {return vulkanInstanceExt;}
+    std::vector<const char*> GetVkDeviceExt() override {return vulkanDeviceExt;}
 
     const OpenxrPlatform& operator=(const OpenxrPlatform&) = delete;
     OpenxrPlatform(const OpenxrPlatform&) = delete;
 
-    ~OpenxrPlatform() = default;
+    ~OpenxrPlatform() override = default;
 
     friend OpenxrSession;
 
@@ -53,8 +95,6 @@ private:
     std::vector<const char*> ParseExtensionString(char* names);
 
 private:
-    Input* input;
-
     //------- Instance data -------//
     std::vector<XrApiLayerProperties> layerList{};
     std::vector<XrExtensionProperties> extensionList{};

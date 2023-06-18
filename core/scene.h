@@ -18,6 +18,7 @@ public:
         Inactive, // Not actively being rendered
         Editor, // active rendered in editor mode(No physics, scripts... running)
         Running,
+        RunningVR,
         Paused
     };
 
@@ -30,6 +31,7 @@ public:
 
     const std::string& GetSceneName() {return sceneName;}
     ICoreAssetManager* GetAssetManager() {return assetManager;}
+    State GetState() {return state;}
 
     Entity* NewEntity();
     bool RemoveEntity(Entity* entity);

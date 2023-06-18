@@ -18,6 +18,7 @@ private:
 
     void ShowLightComponent();
     void ShowCameraComponent();
+    void ShowVrDisplayComponent();
     void ShowMeshComponent();
     void ShowWireframeComponent();
 

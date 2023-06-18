@@ -35,7 +35,12 @@ void EventQueue::ProcessEvents()
 {
     for (int i = 0; i < CategorySize; i++)
     {
-        while(!queues[i].empty())
+        // Capture the size of the queue before processing it.
+        // If more events are added to the current queue 
+        // while processing the queue events,
+        // the additional events are NOT processed as current frame.
+        int queueSize = queues[i].size();
+        while(queueSize-- > 0)
         {
             Event* event = queues[i].front();
             queues[i].pop_front();
