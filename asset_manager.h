@@ -34,22 +34,60 @@ class AssetManager:
     public ICoreAssetManager
 {
 public:
+    /**
+     * @brief Open a project located at the path
+     * 
+     * @param workspacePath Absolute path to the workspace folder
+     * @return AssetManager* 
+     */
     static AssetManager* OpenProject(std::string workspacePath);
+
+    /**
+     * @brief Create a new project located at the path
+     * 
+     * @param workspacePath Absolute path to the new workspace folder
+     * @return AssetManager* 
+     */
     static AssetManager* NewProject(std::string workspacePath);
+
+    /**
+     * @brief Save all changes in memory back to filesystem.
+     * 
+     */
     void SaveToFilesystem();
+
+    /**
+     * @brief Destory all resources in memory.
+     * It is automatically called when AssetManager is destoryed.
+     * Because all resources are reference counted,
+     * if a resource is still used by other parts of the system
+     * (scene graph, renderer), it wouldn't be freed immediately
+     * when Assetmanager is destroyed. 
+     * 
+     */
     void DestroyResources();
 
     std::shared_ptr<renderer::Material> NewMaterial();
+
+    /**
+     * @brief Import a texture into the current workspace.
+     * 
+     * @param path Absolute path to a valid image file.
+     * @return std::shared_ptr<renderer::Texture> 
+     */
     std::shared_ptr<renderer::Texture> ImportTexture(std::string path);
 
     Entity* ImportModelObj(std::string path, Scene* scene);
-    // Entity* ImportModelGlft(std::string path, Scene* scene);
+
+    // bool ImportModeObj(std::string path);
+    // bool ImportModelGlft(std::string path);
+    // Entity* AddModelToScene(std::string path);
     
 
     /**
      * @brief Get the Material object
      * 
-     * @param path Relative path.
+     * @param path Path relative to workspace directory.
      * @return std::shared_ptr<renderer::Material> 
      */
     std::shared_ptr<renderer::Material> GetMaterial(std::string path) override;
@@ -57,7 +95,7 @@ public:
     /**
      * @brief Get the Mesh object
      * 
-     * @param path Relative path.
+     * @param path Path relative to workspace directory.
      * @return std::shared_ptr<renderer::Mesh> 
      */
     std::shared_ptr<renderer::Mesh> GetMesh(std::string path) override;
@@ -65,7 +103,7 @@ public:
     /**
      * @brief Get the Texture object
      * 
-     * @param path Relative path.
+     * @param path Path relative to workspace directory.
      * @return std::shared_ptr<renderer::Texture> 
      */
     std::shared_ptr<renderer::Texture> GetTexture(std::string path) override;
