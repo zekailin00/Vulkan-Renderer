@@ -22,12 +22,13 @@
 #define MODEL_PATH      "resources/models"
 #define SCENE_PATH      "resources/scenes"
 
-#define MATERIAL_EXTENSION   ".slmat"
-#define TEXTURE_EXTENSION    ".sltex"
-#define MESH_EXTENSION       ".slmsh"
-#define MESH_DATA_EXTENSION  ".slmshd"
-#define MODEL_EXTENSION      ".slmod"
-#define SCENE_EXTENSION      ".slscn"
+#define MATERIAL_EXTENSION     ".slmat"
+#define TEXTURE_EXTENSION      ".sltex"
+#define TEXTURE_DATA_EXTENSION ".jpg"
+#define MESH_EXTENSION         ".slmsh"
+#define MESH_DATA_EXTENSION    ".slmshd"
+#define MODEL_EXTENSION        ".slmod"
+#define SCENE_EXTENSION        ".slscn"
 
 class AssetManager:
     public renderer::IRendererAssetManager,
@@ -78,11 +79,10 @@ public:
     std::shared_ptr<renderer::Texture> ImportTexture(std::string path);
 
     Entity* ImportModelObj(std::string path, Scene* scene);
+    Entity* ImportModelGltf(std::string path, Scene* scene);
 
-    // bool ImportModeObj(std::string path);
     // bool ImportModelGlft(std::string path);
-    // Entity* AddModelToScene(std::string path);
-    
+    // Entity* AddModelToScene(std::string path, Scene* scene);
 
     /**
      * @brief Get the Material object
@@ -109,7 +109,7 @@ public:
     std::shared_ptr<renderer::Texture> GetTexture(std::string path) override;
 
     bool IsWorkspaceInitialized() override {return initialized;}
-    std::string GetWorkspacePath() {return workspacePath;}
+    std::string GetWorkspacePath() override {return workspacePath;}
     
     void GetAvailableMeshes(std::vector<const char*>& meshPaths);
     void GetAvailableMaterials(std::vector<const char*>& materialPaths);
@@ -117,6 +117,9 @@ public:
     void GetAvailableScenes(std::vector<std::string>& scenePaths);
 
     std::string GetScenePath(std::string sceneName) override;
+    std::string GetTexturePath(std::string textureName) override;
+    std::string GetMaterialPath(std::string materialName) override;
+    std::string GetMeshPath(std::string meshName) override;
 
     ~AssetManager()
     {

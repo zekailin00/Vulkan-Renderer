@@ -116,7 +116,7 @@ void Workspace::DrawButtons()
 
             if (ImGui::BeginMenu("Model"))
             {
-                if (ImGui::MenuItem(".glfw(TODO:)"))
+                if (ImGui::MenuItem(".glfw"))
                 {
                     workspacePopup = WorkspacePopup::ImportGLTF;
                 }
@@ -154,6 +154,8 @@ void Workspace::DrawPopups()
         ImGui::OpenPopup("Import Texture");
     if (workspacePopup == WorkspacePopup::ImportOBJ)
         ImGui::OpenPopup("Import Model: .obj");
+    if (workspacePopup == WorkspacePopup::ImportGLTF)
+        ImGui::OpenPopup("Import Model: .gltf");
     
 
     // Import Texture popup modal window
@@ -222,6 +224,53 @@ void Workspace::DrawPopups()
         if (ImGui::Button("OK", ImVec2(120, 0)))
         {
             if(!scene || assetManager->ImportModelObj(strPath, scene) == nullptr)
+            {
+                okFailed = true;
+            }
+            else
+            {
+                EventWorkspaceChanged* event = new EventWorkspaceChanged();
+                EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
+
+                okFailed = false;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        ImGui::SetItemDefaultFocus();
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120, 0)))
+        {
+            okFailed = false;
+            ImGui::CloseCurrentPopup();
+        }
+
+        // Message when Ok button failed.
+        if (okFailed)
+        {
+            ImGui::Text("Import failed: Invalid path or no scene open.");
+        }
+
+        ImGui::EndPopup();
+    }
+
+    // Import .obj model popup modal window
+    if (ImGui::BeginPopupModal("Import Model: .gltf", NULL,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        workspacePopup = WorkspacePopup::None;
+        static char strPath[128] = "";
+        static bool okFailed = false;
+
+        ImGui::Text("Import a .gltf model into the workspace.");
+        ImGui::Separator();
+
+        ImGui::InputTextWithHint("Model path",
+            "Absolute path to a model", strPath, IM_ARRAYSIZE(strPath));
+
+        // Ok or cancel. Resets static value.
+        if (ImGui::Button("OK", ImVec2(120, 0)))
+        {
+            if(!scene || assetManager->ImportModelGltf(strPath, scene) == nullptr)
             {
                 okFailed = true;
             }

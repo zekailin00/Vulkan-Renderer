@@ -7,6 +7,8 @@
 #include "logger.h"
 
 #include "obj_loader.h"
+#include "gltf_importer.h"
+#include <stb/stb_image_write.h>
 
 #include "mesh_component.h"
 
@@ -286,6 +288,112 @@ Entity* AssetManager::ImportModelObj(std::string path, Scene* scene)
     return entity;
 }
 
+
+Entity* AssetManager::ImportModelGltf(std::string path, Scene* scene)
+{
+    if (!Filesystem::IsRegularFile(path))
+        return nullptr;
+
+    std::filesystem::path fsPath = path;
+    if (fsPath.extension() != ".gltf")
+        return nullptr;
+        
+    std::shared_ptr<GltfModel> model = GltfModel::Import(path, scene);
+
+    // Save mesh data
+    for (auto& info: model->GetMeshInfoList())
+    {
+        std::string relativeMeshDataPath = Filesystem::ChangeExtensionTo(
+            info->resourcePath, MESH_DATA_EXTENSION
+        );
+        MeshFile::Store(
+            GetWorkspacePath() + "/" + relativeMeshDataPath,
+            info->indices, info->vertices
+        );
+    }
+
+    // Save mesh resource
+    for (auto& m: model->GetMeshList())
+    {
+        std::string relativePath = m->GetResourcePath();
+        ASSERT(meshList.find(relativePath) == meshList.cend());
+        meshList[relativePath] = m;
+    
+    }
+
+    // Save material resource
+    for (auto& m: model->GetMaterialList())
+    {
+        std::string relativePath = m->GetProperties()->resourcePath;
+        ASSERT(materialList.find(relativePath) == materialList.cend());
+        materialList[relativePath] = m;
+    }
+
+
+    // Save albedo texture resource
+    {
+        auto& t = model->GetTextureList();
+        auto& p = model->GetPixelDataList();
+        ASSERT(t.size() == p.size());
+        for (unsigned int i = 0; i < t.size(); i++)
+        {
+            std::string relativeTexPath = t[i]->GetBuildInfo().resourcePath;
+            ASSERT(textureList.find(relativeTexPath) == textureList.cend());
+            textureList[relativeTexPath] = t[i];
+
+            std::string fullPixPath = 
+                GetWorkspacePath() + "/" + t[i]->GetBuildInfo().imagePath;
+            int result = stbi_write_jpg(fullPixPath.c_str(), 
+                p[i]->width, p[i]->height, 4, p[i]->pixels, 100);
+
+            ASSERT(result != 0);
+        }
+    }
+
+    // Save roughness texture resource
+    {
+        auto& t = model->GetRoughTexList();
+        auto& p = model->GetRoughPixDataList();
+        ASSERT(t.size() == p.size());
+        for (unsigned int i = 0; i < t.size(); i++)
+        {
+            std::string relativeTexPath = t[i]->GetBuildInfo().resourcePath;
+            ASSERT(textureList.find(relativeTexPath) == textureList.cend());
+            textureList[relativeTexPath] = t[i];
+
+            std::string fullPixPath = 
+                GetWorkspacePath() + "/" + t[i]->GetBuildInfo().imagePath;
+            int result = stbi_write_jpg(fullPixPath.c_str(), 
+                p[i]->width, p[i]->height, 4, p[i]->pixels, 100);
+
+            ASSERT(result != 0);
+        }
+    }
+
+    // Save metallic texture resource
+    {
+        auto& t = model->GetMetalTexList();
+        auto& p = model->GetMetalPixDataList();
+        ASSERT(t.size() == p.size());
+        for (unsigned int i = 0; i < t.size(); i++)
+        {
+            std::string relativeTexPath = t[i]->GetBuildInfo().resourcePath;
+            ASSERT(textureList.find(relativeTexPath) == textureList.cend());
+            textureList[relativeTexPath] = t[i];
+
+            std::string fullPixPath = 
+                GetWorkspacePath() + "/" + t[i]->GetBuildInfo().imagePath;
+            int result = stbi_write_jpg(fullPixPath.c_str(), 
+                p[i]->width, p[i]->height, 4, p[i]->pixels, 100);
+
+            ASSERT(result != 0);
+        }
+    }
+
+    SaveToFilesystem();
+    return model->GetModelEntity();
+}
+
 void AssetManager::SaveToFilesystem()
 {
     for(auto& e: materialList)
@@ -516,6 +624,27 @@ std::string AssetManager::GetScenePath(std::string sceneName)
 {
     std::string path = GetWorkspacePath();
     path = path + "/" + SCENE_PATH + "/" + sceneName + SCENE_EXTENSION;
+    return path;
+}
+
+std::string AssetManager::GetTexturePath(std::string textureName)
+{
+    std::string path = GetWorkspacePath();
+    path = path + "/" + TEXTURE_PATH + "/" + textureName + TEXTURE_EXTENSION;
+    return path;
+}
+
+std::string AssetManager::GetMaterialPath(std::string materialName)
+{
+    std::string path = GetWorkspacePath();
+    path = path + "/" + MATERIAL_PATH + "/" + materialName + MATERIAL_EXTENSION;
+    return path;
+}
+
+std::string AssetManager::GetMeshPath(std::string meshName)
+{
+    std::string path = GetWorkspacePath();
+    path = path + "/" + MESH_PATH + "/" + meshName + MESH_EXTENSION;
     return path;
 }
 

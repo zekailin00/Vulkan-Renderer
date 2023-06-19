@@ -34,11 +34,11 @@
 namespace base64
 {
 
-inline bool is_base64(unsigned char c) {
+static inline bool is_base64(unsigned char c) {
   return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-std::string base64_encode(unsigned char const *bytes_to_encode,
+static std::string base64_encode(unsigned char const *bytes_to_encode,
                           unsigned int in_len) {
   ZoneScopedN("base64_encode");
 
@@ -85,7 +85,7 @@ std::string base64_encode(unsigned char const *bytes_to_encode,
   return ret;
 }
 
-std::string base64_decode(std::string const &encoded_string) {
+static std::string base64_decode(std::string const &encoded_string) {
   ZoneScopedN("base64_decode");
 
   int in_len = static_cast<int>(encoded_string.size());
