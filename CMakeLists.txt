@@ -17,7 +17,7 @@ file(GLOB MODEL_LOADERS_HEADERS "model_loaders/*.h")
 file(GLOB MODEL_LOADERS_SOURCE "model_loaders/*.cpp")
 
 #v8 engine
-add_subdirectory("${CMAKE_SOURCE_DIR}/external/v8-engine")
+add_subdirectory("${CMAKE_SOURCE_DIR}/external/v8-library")
 
 # Vulkan
 if (APPLE)
@@ -75,6 +75,8 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/core")
 # Renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
 
+# Scripting subsystem
+add_subdirectory("${CMAKE_SOURCE_DIR}/scripting")
 
 # platform library
 add_library(platform
