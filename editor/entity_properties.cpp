@@ -188,7 +188,8 @@ void EntityProperties::ShowEntityProperties()
                 uiControlling = false;
             }
 
-            ImGui::DragFloat3("Scale", &s[0], 0.01f, -FLT_MAX, FLT_MAX);
+            ImGui::DragFloat3("Scale", &s[0], 0.001f, 0.001, FLT_MAX,
+                "%.3f", ImGuiSliderFlags_AlwaysClamp);
 
             selectedEntity->SetLocalTransform(t, r, s);
         }
