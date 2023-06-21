@@ -22,3 +22,6 @@
 [submodule "external/OpenXR-SDK"]
 	path = external/OpenXR-SDK
 	url = git@github.com:KhronosGroup/OpenXR-SDK.git
+[submodule "external/v8-engine"]
+	path = external/v8-engine
+	url = git@github.com:zekailin00/v8-library.git
