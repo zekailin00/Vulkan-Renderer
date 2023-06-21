@@ -49,6 +49,3 @@ target_link_libraries(renderer PUBLIC
     ${Vulkan_LIBRARY}
     engine_core
 )
-
-# Build settings
-set_property(TARGET renderer PROPERTY CXX_STANDARD 17)

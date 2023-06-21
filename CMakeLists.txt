@@ -5,7 +5,7 @@ project(SemaLink_Engine)
 set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 include(CTest)
 set(CMAKE_CXX_STANDARD 17)
-# enable_testing()
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
@@ -114,8 +114,26 @@ target_link_libraries(engine
     engine_core
 )
 
-# Build settings
-set_property(TARGET engine PROPERTY CXX_STANDARD 17)
+
+message("----------- CMake and Compiler Configurations -----------")
+message(" * Compiler path:\n${CMAKE_CXX_COMPILER}")
+message(" * Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
+message(" * Compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+message(" * Operating System: ${CMAKE_SYSTEM_NAME}")
+message(" * Source Directory: ${CMAKE_SOURCE_DIR}")
+message(" * Binary Directory: ${CMAKE_BINARY_DIR}")
+get_target_property(TARGET_CXX_STANDARD engine CXX_STANDARD)
+message(" * Target C++ Standard: ${TARGET_CXX_STANDARD}")
+get_target_property(TARGET_LIBRARIES engine LINK_LIBRARIES)
+message(" * Target Linked Libraries: ${TARGET_LIBRARIES}")
+get_target_property(TARGET_INCLUDE_DIRS engine INCLUDE_DIRECTORIES)
+string(REPLACE ";" "\n" TARGET_INCLUDE_DIRS "${TARGET_INCLUDE_DIRS}")
+message(" * Target Include Directories:\n${TARGET_INCLUDE_DIRS}")
+get_target_property(TARGET_SOURCES engine SOURCES)
+string(REPLACE ";" "\n" TARGET_SOURCES "${TARGET_SOURCES}")
+message(" * Target Sources:\n${TARGET_SOURCES}")
+message("--------------------------------------------------------")
+
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/editor")
 add_subdirectory("${CMAKE_SOURCE_DIR}/samples")

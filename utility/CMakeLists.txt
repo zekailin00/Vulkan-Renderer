@@ -18,6 +18,3 @@ target_link_libraries(utility PUBLIC
 target_include_directories(utility PUBLIC 
     .
 )
-
-# Build settings
-set_property(TARGET utility PROPERTY CXX_STANDARD 17)

@@ -8,7 +8,6 @@ add_executable(editor
 )
 
 target_link_libraries(editor engine)
-set_property(TARGET editor PROPERTY CXX_STANDARD 17)
 
 add_custom_command(TARGET editor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
