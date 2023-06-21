@@ -20,7 +20,7 @@ void EventQueue::Unsubscribe(int handle)
 {
     for (int i = 0; i < CategorySize; i++)
     {
-        auto& it = subscribers[i].find(handle);
+        auto it = subscribers[i].find(handle);
         if (it != subscribers[i].cend())
         {
             subscribers[i].erase(it);

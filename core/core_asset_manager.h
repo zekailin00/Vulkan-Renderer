@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 class ICoreAssetManager
 {
 public:
@@ -9,4 +11,5 @@ public:
     virtual std::string GetMaterialPath(std::string materialName) = 0;
     virtual std::string GetMeshPath(std::string meshName) = 0;
     virtual std::string GetWorkspacePath() = 0;
+    virtual ~ICoreAssetManager() {}
 };

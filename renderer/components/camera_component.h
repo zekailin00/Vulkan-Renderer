@@ -2,7 +2,7 @@
 
 #include "component.h"
 
-#include "vulkan_Camera.h"
+#include "vulkan_camera.h"
 #include "render_technique.h"
 
 #include <string>

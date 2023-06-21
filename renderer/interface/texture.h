@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include <Json/json.h>
+#include <json/json.h>
 #include <glm/vec2.hpp>
 
 #define DEFAULT_TEXTURE_PATH "@default"

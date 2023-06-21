@@ -349,7 +349,7 @@ void Editor::DrawLauncher()
 
     if (ImGui::Button("New"))
     {
-        if (assetManager = AssetManager::NewProject(strPath))
+        if ((assetManager = AssetManager::NewProject(strPath)))
         {
             EventProjectOpen* event = new EventProjectOpen();
             event->assetManager = assetManager;
@@ -359,7 +359,7 @@ void Editor::DrawLauncher()
     ImGui::SameLine();
     if (ImGui::Button("Open"))
     {
-        if (assetManager = AssetManager::OpenProject(strPath))
+        if ((assetManager = AssetManager::OpenProject(strPath)))
         {
             EventProjectOpen* event = new EventProjectOpen();
             event->assetManager = assetManager;

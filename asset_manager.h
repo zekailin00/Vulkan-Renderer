@@ -153,7 +153,6 @@ private:
 
     std::string workspacePath;
     bool initialized = false;
-    unsigned int materialCounter = 0;
 };
 
 struct MeshFile

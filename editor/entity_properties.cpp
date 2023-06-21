@@ -105,7 +105,7 @@ void EntityProperties::ShowEntityProperties()
         {
             char nameBuffer[128];
             ImGui::PushItemWidth(-0.1);
-            strcpy(nameBuffer, selectedEntity->GetName().c_str());
+            strcpy_s(nameBuffer, selectedEntity->GetName().c_str());
             if (ImGui::InputText(
                 "##identifier", nameBuffer, IM_ARRAYSIZE(nameBuffer),
                 ImGuiInputTextFlags_EnterReturnsTrue))
@@ -356,9 +356,9 @@ void EntityProperties::ShowVrDisplayComponent()
     {
         RemoveComponent(Component::Type::VrDisplay);
 
-        renderer::VrDisplayComponent* component =
-            dynamic_cast<renderer::VrDisplayComponent*>(
-                selectedEntity->GetComponent(Component::Type::VrDisplay));
+        // renderer::VrDisplayComponent* component =
+        //     dynamic_cast<renderer::VrDisplayComponent*>(
+        //         selectedEntity->GetComponent(Component::Type::VrDisplay));
 
         ImGui::SeparatorText("VR Display");
         {
@@ -472,9 +472,9 @@ void EntityProperties::ShowWireframeComponent()
     {
         RemoveComponent(Component::Type::Wireframe);
 
-        renderer::WireframeComponent* component =
-            dynamic_cast<renderer::WireframeComponent*>(
-                selectedEntity->GetComponent(Component::Type::Wireframe));
+        // renderer::WireframeComponent* component =
+        //     dynamic_cast<renderer::WireframeComponent*>(
+        //         selectedEntity->GetComponent(Component::Type::Wireframe));
 
         ImGui::SeparatorText("Wireframe");
         ImGui::Text("TODO:");

@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.23.0)
 
 project(SemaLink_Engine)
 
+set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
 include(CTest)
+set(CMAKE_CXX_STANDARD 17)
+# enable_testing()
 
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
@@ -12,6 +15,9 @@ file(GLOB PLT_SOURCE "platform/*.cpp")
 
 file(GLOB MODEL_LOADERS_HEADERS "model_loaders/*.h")
 file(GLOB MODEL_LOADERS_SOURCE "model_loaders/*.cpp")
+
+#v8 engine
+add_subdirectory("${CMAKE_SOURCE_DIR}/external/v8-engine")
 
 # Vulkan
 if (APPLE)

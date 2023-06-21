@@ -18,7 +18,7 @@
 #include "ui_component.h"
 #include "wireframe_component.h"
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #include <map>
 
 

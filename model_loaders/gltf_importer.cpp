@@ -529,7 +529,7 @@ void GltfModel::LoadMeshes(Entity* parentEntity, int meshIndex)
             int accOffset = gltfAccessor["byteOffset"].asInt();
             int accCount = gltfAccessor["count"].asInt();
             int bufIndex = gltfBufferView["buffer"].asInt();
-            int bufLength = gltfBufferView["byteLength"].asInt();
+            // int bufLength = gltfBufferView["byteLength"].asInt();
             int bufOffset = gltfBufferView["byteOffset"].asInt();
             int bufStride = gltfBufferView["byteStride"].asInt();
 
@@ -570,7 +570,7 @@ void GltfModel::LoadMeshes(Entity* parentEntity, int meshIndex)
             int accOffset = gltfAccessor["byteOffset"].asInt();
             int accCount = gltfAccessor["count"].asInt();
             int bufIndex = gltfBufferView["buffer"].asInt();
-            int bufLength = gltfBufferView["byteLength"].asInt();
+            // int bufLength = gltfBufferView["byteLength"].asInt();
             int bufOffset = gltfBufferView["byteOffset"].asInt();
             int bufStride = gltfBufferView["byteStride"].asInt();
 
@@ -611,7 +611,7 @@ void GltfModel::LoadMeshes(Entity* parentEntity, int meshIndex)
             int accOffset = gltfAccessor["byteOffset"].asInt();
             int accCount = gltfAccessor["count"].asInt();
             int bufIndex = gltfBufferView["buffer"].asInt();
-            int bufLength = gltfBufferView["byteLength"].asInt();
+            // int bufLength = gltfBufferView["byteLength"].asInt();
             int bufOffset = gltfBufferView["byteOffset"].asInt();
             int bufStride = gltfBufferView["byteStride"].asInt();
 
@@ -652,7 +652,7 @@ void GltfModel::LoadMeshes(Entity* parentEntity, int meshIndex)
             int accOffset = gltfAccessor["byteOffset"].asInt();
             int accCount = gltfAccessor["count"].asInt();
             int bufIndex = gltfBufferView["buffer"].asInt();
-            int bufLength = gltfBufferView["byteLength"].asInt();
+            // int bufLength = gltfBufferView["byteLength"].asInt();
             int bufOffset = gltfBufferView["byteOffset"].asInt();
             int bufStride = gltfBufferView["byteStride"].asInt();
 

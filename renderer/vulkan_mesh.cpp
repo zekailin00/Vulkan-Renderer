@@ -30,7 +30,6 @@ std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
     void* indexData = mesh->vertexbuffer.MapIndex();
     void* vertexData = mesh->vertexbuffer.MapVertex();
 
-    int indexCount = info.indices.size();
     memcpy(indexData, info.indices.data(),
         sizeof(VertexIndex) * info.indices.size());
     memcpy(vertexData, info.vertices.data(),

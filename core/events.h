@@ -8,8 +8,8 @@
 #include <glm/vec2.hpp>
 
 
-#define EVENT_TYPE(eType) Event##eType##() \
-    {type = Event::Type::##eType;}
+#define EVENT_TYPE(eType) Event##eType() \
+    {type = Event::Type::eType;}
 
 struct EventInputViews: public Event
 {

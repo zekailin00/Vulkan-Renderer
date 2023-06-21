@@ -29,7 +29,7 @@
 #include <memory>
 #include <stddef.h> // offset(type, member)
 
-#include <Tracy/Tracy.hpp>
+#include <tracy/Tracy.hpp>
 #include <tracy/TracyVulkan.hpp>
 
 #define VULKAN_DEBUG_REPORT
@@ -46,7 +46,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(
         "[Vulkan Renderer] Debug report from ObjectType: " +
         std::to_string(objectType) + " at location "+
         std::to_string(location) + ".\n\tMessage: " + pMessage + "\n",
-        Logger::Level::Warning,
+        Logger::Level::Verbose,
         Logger::MsgType::Renderer
     );
 

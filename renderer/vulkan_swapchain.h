@@ -30,4 +30,5 @@ public:
      * 
      */
     virtual void RebuildSwapchain(VulkanDevice* vulkanDevice) = 0;
+    virtual ~IVulkanSwapchain() {}
 };

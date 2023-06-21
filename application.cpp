@@ -74,7 +74,7 @@ Scene* Application::EraseActiveScene(int handle)
 {
     ZoneScopedN("Application::EraseActiveScene");
 
-    auto& iterator = activeScenes.find(handle);
+    auto iterator = activeScenes.find(handle);
     ASSERT(iterator != activeScenes.end());
 
     Scene* scene = iterator->second;
