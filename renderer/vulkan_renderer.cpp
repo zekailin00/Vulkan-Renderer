@@ -33,7 +33,10 @@
 #include <tracy/TracyVulkan.hpp>
 
 #define VULKAN_DEBUG_REPORT
-// #define VULKAN_APPLE_SUPPORT
+
+#ifdef __APPLE__
+#define VULKAN_APPLE_SUPPORT
+#endif
 
 #ifdef VULKAN_DEBUG_REPORT
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;

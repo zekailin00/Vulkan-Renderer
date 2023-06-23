@@ -15,7 +15,32 @@ static XrResult result;
 static char resultBuffer[XR_MAX_STRUCTURE_NAME_SIZE];
 
 #define CHK_XRCMD(result)                                                      \
-    if (XR_FAILED(result)) {PrintErrorMsg(result);}                                                                   
+    if (XR_FAILED(result)) {PrintErrorMsg(result);}    
+
+
+
+// OSX C standard library does not have strcpy_s
+// helper for cross-platform 
+namespace utility
+{
+
+/**
+ * dest buffer size MUST be larger than src buffer size.
+ * src MUST be null terminated.
+*/
+static void strcpy_s(char* dest, const char* src)
+{
+    int i = 0;
+    while(src[i] != 0)
+    {
+        dest[i] = src[i];
+    }
+    
+    dest[i] = 0;
+}
+ 
+} // namespace utility
+                                                     
 
 XrPlatform* OpenxrPlatform::Initialize()
 {
@@ -70,7 +95,7 @@ XrPlatform* OpenxrPlatform::Initialize()
         XR_CURRENT_API_VERSION
     };
 
-    std::vector<char*> enabledExt = {
+    std::vector<const char*> enabledExt = {
         "XR_KHR_vulkan_enable", "XR_EXT_debug_utils"
     };
     instanceInfo.enabledExtensionCount = enabledExt.size();
@@ -293,150 +318,150 @@ void OpenxrPlatform::InitializeActions()
 {
     // Create an action set
     XrActionSetCreateInfo actionSetInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
-    strcpy_s(actionSetInfo.actionSetName, "input");
-    strcpy_s(actionSetInfo.localizedActionSetName, "input");
+    utility::strcpy_s(actionSetInfo.actionSetName, "input");
+    utility::strcpy_s(actionSetInfo.localizedActionSetName, "input");
     actionSetInfo.priority = 0;
     CHK_XRCMD(xrCreateActionSet(xrInstance, &actionSetInfo, &inputActionSet));
 
     XrActionCreateInfo actioninfo{XR_TYPE_ACTION_CREATE_INFO};
 
-    strcpy_s(actioninfo.actionName, "l_squeeze_value");
-    strcpy_s(actioninfo.localizedActionName, "l_squeeze_value");
+    utility::strcpy_s(actioninfo.actionName, "l_squeeze_value");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_squeeze_value");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lSqueezeValueAction));
 
-    strcpy_s(actioninfo.actionName, "r_squeeze_value");
-    strcpy_s(actioninfo.localizedActionName, "rSqueezeValue");
+    utility::strcpy_s(actioninfo.actionName, "r_squeeze_value");
+    utility::strcpy_s(actioninfo.localizedActionName, "rSqueezeValue");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rSqueezeValueAction));
 
-    strcpy_s(actioninfo.actionName, "l_trigger_value");
-    strcpy_s(actioninfo.localizedActionName, "l_trigger_value");
+    utility::strcpy_s(actioninfo.actionName, "l_trigger_value");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_trigger_value");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lTriggerValueAction));
 
-    strcpy_s(actioninfo.actionName, "r_trigger_value");
-    strcpy_s(actioninfo.localizedActionName, "r_trigger_value");
+    utility::strcpy_s(actioninfo.actionName, "r_trigger_value");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_trigger_value");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rTriggerValueAction));
 
-    strcpy_s(actioninfo.actionName, "l_trigger_touch");
-    strcpy_s(actioninfo.localizedActionName, "l_trigger_touch");
+    utility::strcpy_s(actioninfo.actionName, "l_trigger_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_trigger_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lTriggerTouchAction));
 
-    strcpy_s(actioninfo.actionName, "r_trigger_touch");
-    strcpy_s(actioninfo.localizedActionName, "r_trigger_touch");
+    utility::strcpy_s(actioninfo.actionName, "r_trigger_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_trigger_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rTriggerTouchAction));
 
-    strcpy_s(actioninfo.actionName, "l_thumbstick_x");
-    strcpy_s(actioninfo.localizedActionName, "l_thumbstick_x");
+    utility::strcpy_s(actioninfo.actionName, "l_thumbstick_x");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_thumbstick_x");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lThumbstickXAction));
 
-    strcpy_s(actioninfo.actionName, "r_thumbstick_x");
-    strcpy_s(actioninfo.localizedActionName, "r_thumbstick_x");
+    utility::strcpy_s(actioninfo.actionName, "r_thumbstick_x");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_thumbstick_x");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rThumbstickXAction));
 
-    strcpy_s(actioninfo.actionName, "l_thumbstick_y");
-    strcpy_s(actioninfo.localizedActionName, "l_thumbstick_y");
+    utility::strcpy_s(actioninfo.actionName, "l_thumbstick_y");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_thumbstick_y");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lThumbstickYAction));
 
-    strcpy_s(actioninfo.actionName, "r_thumbstick_y");
-    strcpy_s(actioninfo.localizedActionName, "r_thumbstick_y");
+    utility::strcpy_s(actioninfo.actionName, "r_thumbstick_y");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_thumbstick_y");
     actioninfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rThumbstickYAction));
 
-    strcpy_s(actioninfo.actionName, "l_thumbstick_click");
-    strcpy_s(actioninfo.localizedActionName, "l_thumbstick_click");
+    utility::strcpy_s(actioninfo.actionName, "l_thumbstick_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_thumbstick_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lThumbstickClickAction));
 
-    strcpy_s(actioninfo.actionName, "r_thumbstick_click");
-    strcpy_s(actioninfo.localizedActionName, "r_thumbstick_click");
+    utility::strcpy_s(actioninfo.actionName, "r_thumbstick_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_thumbstick_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rThumbstickClickAction));
 
-    strcpy_s(actioninfo.actionName, "l_thumbstick_touch");
-    strcpy_s(actioninfo.localizedActionName, "l_thumbstick_touch");
+    utility::strcpy_s(actioninfo.actionName, "l_thumbstick_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_thumbstick_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lThumbstickTouchAction));
 
-    strcpy_s(actioninfo.actionName, "r_thumbstick_touch");
-    strcpy_s(actioninfo.localizedActionName, "r_thumbstick_touch");
+    utility::strcpy_s(actioninfo.actionName, "r_thumbstick_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_thumbstick_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rThumbstickTouchAction));
 
-    strcpy_s(actioninfo.actionName, "l_x_click");
-    strcpy_s(actioninfo.localizedActionName, "l_x_click");
+    utility::strcpy_s(actioninfo.actionName, "l_x_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_x_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lXClickAction));
 
-    strcpy_s(actioninfo.actionName, "l_x_touch");
-    strcpy_s(actioninfo.localizedActionName, "l_x_touch");
+    utility::strcpy_s(actioninfo.actionName, "l_x_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_x_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lXTouchAction));
 
-    strcpy_s(actioninfo.actionName, "l_y_click");
-    strcpy_s(actioninfo.localizedActionName, "l_y_click");
+    utility::strcpy_s(actioninfo.actionName, "l_y_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_y_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lYClickAction));
 
-    strcpy_s(actioninfo.actionName, "l_y_touch");
-    strcpy_s(actioninfo.localizedActionName, "l_y_touch");
+    utility::strcpy_s(actioninfo.actionName, "l_y_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_y_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lYTouchAction));
 
-    strcpy_s(actioninfo.actionName, "l_menu_click");
-    strcpy_s(actioninfo.localizedActionName, "l_menu_click");
+    utility::strcpy_s(actioninfo.actionName, "l_menu_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_menu_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lMenuClickAction));
 
-    strcpy_s(actioninfo.actionName, "r_a_click");
-    strcpy_s(actioninfo.localizedActionName, "r_a_click");
+    utility::strcpy_s(actioninfo.actionName, "r_a_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_a_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rAClickAction));
 
-    strcpy_s(actioninfo.actionName, "r_a_touch");
-    strcpy_s(actioninfo.localizedActionName, "r_a_touch");
+    utility::strcpy_s(actioninfo.actionName, "r_a_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_a_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rATouchAction));
 
-    strcpy_s(actioninfo.actionName, "r_b_click");
-    strcpy_s(actioninfo.localizedActionName, "r_b_click");
+    utility::strcpy_s(actioninfo.actionName, "r_b_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_b_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rBClickAction));
 
-    strcpy_s(actioninfo.actionName, "r_b_touch");
-    strcpy_s(actioninfo.localizedActionName, "r_b_touch");
+    utility::strcpy_s(actioninfo.actionName, "r_b_touch");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_b_touch");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rBTouchAction));
 
-    strcpy_s(actioninfo.actionName, "r_system_click");
-    strcpy_s(actioninfo.localizedActionName, "r_system_click");
+    utility::strcpy_s(actioninfo.actionName, "r_system_click");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_system_click");
     actioninfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rSystemClickAction));
 
-    strcpy_s(actioninfo.actionName, "l_grip_pose");
-    strcpy_s(actioninfo.localizedActionName, "l_grip_pose");
+    utility::strcpy_s(actioninfo.actionName, "l_grip_pose");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_grip_pose");
     actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lGripPoseAction));
 
-    strcpy_s(actioninfo.actionName, "r_grip_pose");
-    strcpy_s(actioninfo.localizedActionName, "r_grip_pose");
+    utility::strcpy_s(actioninfo.actionName, "r_grip_pose");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_grip_pose");
     actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rGripPoseAction));
 
-    strcpy_s(actioninfo.actionName, "l_aim_pose");
-    strcpy_s(actioninfo.localizedActionName, "l_aim_pose");
+    utility::strcpy_s(actioninfo.actionName, "l_aim_pose");
+    utility::strcpy_s(actioninfo.localizedActionName, "l_aim_pose");
     actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &lAimPoseAction));
 
-    strcpy_s(actioninfo.actionName, "r_aim_pose");
-    strcpy_s(actioninfo.localizedActionName, "r_aim_pose");
+    utility::strcpy_s(actioninfo.actionName, "r_aim_pose");
+    utility::strcpy_s(actioninfo.localizedActionName, "r_aim_pose");
     actioninfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
     CHK_XRCMD(xrCreateAction(inputActionSet, &actioninfo, &rAimPoseAction));
 

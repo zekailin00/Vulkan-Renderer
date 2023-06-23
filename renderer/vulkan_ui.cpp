@@ -76,10 +76,31 @@ void VulkanUI::Destroy()
 void VulkanUI::RenderUI()
 {
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(extent.x, extent.y);
+
+    /**
+     * TODO: Display and framebuffer size scaling
+     * Current solution is not good.
+     * Want to support both in-3D and glfw Window rendering
+     * on both OSX and Windows
+    */
 
     if (editorUI)
     {
+
+#ifdef __APPLE__
+        io.DisplayFramebufferScale = {2.0, 2.0};
+        io.DisplaySize = ImVec2(
+            extent.x / io.DisplayFramebufferScale.x,
+            extent.y / io.DisplayFramebufferScale.y
+            );
+#else // Windows
+        io.DisplayFramebufferScale = {1.0, 1.0};
+        io.DisplaySize = ImVec2(
+            extent.x / io.DisplayFramebufferScale.x,
+            extent.y / io.DisplayFramebufferScale.y
+            );
+#endif
+
         windowEventHandler->ProcessInputs();
         ImGui::NewFrame();
         this->renderUI();
@@ -87,6 +108,12 @@ void VulkanUI::RenderUI()
     }
     else
     {
+        io.DisplayFramebufferScale = {1.0, 1.0};
+        io.DisplaySize = ImVec2(
+            extent.x / io.DisplayFramebufferScale.x,
+            extent.y / io.DisplayFramebufferScale.y
+        );
+
         ImGui::NewFrame();
         ImGui::SetNextWindowPos({0.0f, 0.0f});
         ImGui::SetNextWindowSize({extent.x, extent.y});

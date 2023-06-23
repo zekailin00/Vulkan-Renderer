@@ -38,6 +38,7 @@ else()
 endif()
 
 # openxr
+option(DYNAMIC_LOADER "Build the loader as a .dll library" OFF)
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/OpenXR-SDK")
 
 # tracy
