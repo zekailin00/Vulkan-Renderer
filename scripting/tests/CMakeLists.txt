@@ -1,7 +1,7 @@
 
 
 
-add_library(test_script_compile
+add_executable(test_script_compile
     test_script_compile.cpp
 )
 

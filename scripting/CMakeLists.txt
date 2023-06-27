@@ -4,7 +4,8 @@ file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
 add_library(scripting_subsystem
-    scripting_subsystem.h
+    script.cpp
+    script_context.cpp
     scripting_subsystem.cpp
     environment.h
 )
