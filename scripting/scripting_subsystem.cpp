@@ -6,13 +6,9 @@
 #include <v8-template.h>
 #include <v8-external.h>
 
-#include <fstream>
-#include <iostream> // debug
-#include <filesystem>
 #include <string>
 
 #include "logger.h"
-#include "environment.h"
 
 namespace scripting
 {
@@ -39,6 +35,9 @@ void ScriptingSystem::Initialize(char* argv[])
     // if not doing multithreading
     // Put it here as a placeholder
     v8::Isolate::Scope isolateScope(isolate);
+
+
+
     this->initialized = true;
 }
 
@@ -74,9 +73,14 @@ ScriptContext* ScriptingSystem::NewContext()
     return scriptContext;
 }
 
+void ScriptingSystem::BuildEnvironment()
+{
+
+}
+
 
 std::string ScriptingSystem::scriptResource =
-"<filename> = function()\n"
+" = function()\n"
 "{\n"
 "    this.OnCreated = function(){\n\n"
 "    }\n\n"

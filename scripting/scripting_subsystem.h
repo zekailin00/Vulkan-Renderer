@@ -28,16 +28,22 @@ public:
     {
         static ScriptingSystem scriptingSystem;
         return &scriptingSystem;
-    } 
-
-    ScriptingSystem(ScriptingSystem const&) = delete;
-    void operator=(ScriptingSystem const&) = delete;
+    }
 
     void Initialize(char* argv[] = nullptr);
 
     ScriptContext* NewContext();
 
     v8::Isolate* GetIsolate() {return isolate;}
+
+    ScriptingSystem(ScriptingSystem const&) = delete;
+    void operator=(ScriptingSystem const&) = delete;
+
+private:
+    ScriptingSystem() = default;
+    ~ScriptingSystem();
+
+    void BuildEnvironment();
 
 private:
     bool initialized = false;
@@ -51,12 +57,6 @@ private:
     v8::Global<v8::ObjectTemplate> entityTemplate;
     v8::Global<v8::ObjectTemplate> componentTemplate;
 
-private:
-    ScriptingSystem() = default;
-    ~ScriptingSystem();
-
-    void ExceptionHandler(v8::Isolate* isolate, v8::TryCatch* try_catch);
-    v8::Local<v8::Context> CreateEnvironment(v8::Isolate* isolate);
 };
 
 } // namespace scripting
