@@ -18,6 +18,7 @@ public:
     enum MsgType
     {
         Renderer,
+        Scripting,
         Loader,
         Platform,
         Editor,

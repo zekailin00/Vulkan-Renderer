@@ -3,10 +3,10 @@
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
-add_executable(scripting_subsystem
-scripting_subsystem.h
-scripting_subsystem.cpp
-environment.h
+add_library(scripting_subsystem
+    scripting_subsystem.h
+    scripting_subsystem.cpp
+    environment.h
 )
 
 target_link_libraries(scripting_subsystem PUBLIC
@@ -16,4 +16,8 @@ target_link_libraries(scripting_subsystem PUBLIC
 
 target_include_directories(scripting_subsystem PUBLIC
     .
+)
+
+add_subdirectory(
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests"
 )
