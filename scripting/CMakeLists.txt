@@ -4,10 +4,11 @@ file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
 add_library(scripting_subsystem
+
     script.cpp
     script_context.cpp
     scripting_subsystem.cpp
-    environment.h
+    environment/environment.cpp
 )
 
 target_link_libraries(scripting_subsystem PUBLIC

@@ -12,6 +12,10 @@ int main(int, char**)
 
     scripting::Script* script = context->NewScript();
 
-    script->LoadSource("???", "a = 1+ 1");
+    std::string sourceCode = "source";
+    sourceCode = sourceCode + scripting::ScriptingSystem::scriptResource;
+    sourceCode = sourceCode + "\nsystem.print(\"Hello World\")";
+
+    script->LoadSource("scripts/source.js", sourceCode);
 
 }

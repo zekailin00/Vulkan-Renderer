@@ -9,6 +9,7 @@
 #include <string>
 
 #include "logger.h"
+#include "environment/environment.h"
 
 namespace scripting
 {
@@ -35,7 +36,7 @@ void ScriptingSystem::Initialize(char* argv[])
     // if not doing multithreading
     // Put it here as a placeholder
     v8::Isolate::Scope isolateScope(isolate);
-
+    BuildEnvironment();
 
 
     this->initialized = true;
@@ -63,9 +64,23 @@ ScriptContext* ScriptingSystem::NewContext()
 
     ScriptContext* scriptContext = new ScriptContext();
 
-    v8::Local<v8::ObjectTemplate> globalT =
+    v8::Local<v8::ObjectTemplate> globalTemp =
         v8::Local<v8::ObjectTemplate>::New(GetIsolate(), globalTemplate);
-    v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, globalT);
+    v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, globalTemp);
+
+    {
+        v8::Local<v8::ObjectTemplate> localSystemTemplate =
+            v8::Local<v8::ObjectTemplate>::New(GetIsolate(), systemTemplate);
+
+        v8::Local<v8::Object> systemObject =
+            localSystemTemplate->NewInstance(context).ToLocalChecked();
+
+        v8::Local<v8::String> systemStr =
+            v8::String::NewFromUtf8Literal(isolate, "system");
+        
+        context->Global()->Set(context, systemStr, systemObject).FromJust();
+    }
+
     scriptContext->context.Reset(isolate, context);
     scriptContext->isolate = isolate;
     scriptContext->assetManager = assetManager;
@@ -75,7 +90,15 @@ ScriptContext* ScriptingSystem::NewContext()
 
 void ScriptingSystem::BuildEnvironment()
 {
+    v8::HandleScope handleScope(isolate);
 
+    v8::Local<v8::ObjectTemplate> temp;
+    
+    temp = v8::ObjectTemplate::New(isolate);
+    globalTemplate.Reset(isolate, temp);
+
+    temp = MakeSystemTemplate(isolate);
+    systemTemplate.Reset(isolate, temp);
 }
 
 
