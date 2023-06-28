@@ -383,14 +383,21 @@ void GetParent(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     Entity* parent = entity->GetParent();
 
+    if (parent == nullptr)
+    {
+        return;
+    }
+
     ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
-    v8::Local<v8::ObjectTemplate> entityTemplate =
-        v8::Local<v8::ObjectTemplate>::New(isolate,
+    v8::Local<v8::FunctionTemplate> entityTemplate =
+        v8::Local<v8::FunctionTemplate>::New(isolate,
         scriptingSystem->GetEntityTemplate());
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
-    v8::Local<v8::Object> v8Parent =
-        entityTemplate->NewInstance(context).ToLocalChecked();
+    v8::Local<v8::Function> entityFunction =
+        entityTemplate->GetFunction(context).ToLocalChecked();
+    v8::Local<v8::Object> v8Parent = 
+        entityFunction->NewInstance(context).ToLocalChecked();
     
     v8Parent->SetInternalField(0, v8::External::New(isolate, parent));
     info.GetReturnValue().Set(v8Parent);
@@ -422,13 +429,20 @@ void GetChildByName(const v8::FunctionCallbackInfo<v8::Value> &info)
         isolate, info[0]->ToString(context).ToLocalChecked());
     Entity* child = entity->GetChildByName(*v8Name);
 
+    if (child == nullptr)
+    {
+        return;
+    }
+
     ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
-    v8::Local<v8::ObjectTemplate> entityTemplate =
-        v8::Local<v8::ObjectTemplate>::New(isolate,
+    v8::Local<v8::FunctionTemplate> entityTemplate =
+        v8::Local<v8::FunctionTemplate>::New(isolate,
         scriptingSystem->GetEntityTemplate());
-    
-    v8::Local<v8::Object> v8Child =
-        entityTemplate->NewInstance(context).ToLocalChecked();
+
+    v8::Local<v8::Function> entityFunction =
+        entityTemplate->GetFunction(context).ToLocalChecked();
+    v8::Local<v8::Object> v8Child = 
+        entityFunction->NewInstance(context).ToLocalChecked();
     
     v8Child->SetInternalField(0, v8::External::New(isolate, child));
     info.GetReturnValue().Set(v8Child);
@@ -447,11 +461,15 @@ void GetChildren(const v8::FunctionCallbackInfo<v8::Value> &info)
     ASSERT(entity != nullptr);
 
     ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
-    v8::Local<v8::ObjectTemplate> entityTemplate =
-        v8::Local<v8::ObjectTemplate>::New(isolate,
+    v8::Local<v8::FunctionTemplate> entityTemplate =
+        v8::Local<v8::FunctionTemplate>::New(isolate,
         scriptingSystem->GetEntityTemplate());
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    
+    v8::Local<v8::Function> entityFunction =
+        entityTemplate->GetFunction(context).ToLocalChecked();
+
 
     const std::list<Entity*>& children = entity->GetChildren();
     v8::Local<v8::Array> v8Children = v8::Array::New(isolate, children.size());
@@ -460,7 +478,7 @@ void GetChildren(const v8::FunctionCallbackInfo<v8::Value> &info)
     for (Entity* child: children)
     {
         v8::Local<v8::Object> v8Entity =
-            entityTemplate->NewInstance(context).ToLocalChecked();
+            entityFunction->NewInstance(context).ToLocalChecked();
 
         v8::Local<v8::External> field =
             v8::External::New(info.GetIsolate(), child);

@@ -1,6 +1,7 @@
 #include "environment/environment.h"
 
 #include "environment/entity_callbacks.h"
+#include "environment/scene_callbacks.h"
 #include "logger.h"
 
 namespace scripting
@@ -66,6 +67,29 @@ v8::Local<v8::FunctionTemplate> MakeEntityTemplate(v8::Isolate* isolate)
     return handleScope.Escape(temp);
 }
 
+v8::Local<v8::FunctionTemplate> MakeSceneTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(isolate);
+    v8::Local<v8::ObjectTemplate> prototype = temp->PrototypeTemplate();
+
+    prototype->SetInternalFieldCount(1);
+
+    prototype->Set(isolate, "GetSceneName",
+        v8::FunctionTemplate::New(isolate, GetSceneName));
+    prototype->Set(isolate, "NewEntity",
+        v8::FunctionTemplate::New(isolate, NewEntity));
+    prototype->Set(isolate, "RemoveEntity",
+        v8::FunctionTemplate::New(isolate, RemoveEntity));
+    prototype->Set(isolate, "GetEntityByName",
+        v8::FunctionTemplate::New(isolate, GetEntityByName));
+    prototype->Set(isolate, "GetEntitiesWithComponent",
+        v8::FunctionTemplate::New(isolate, GetEntitiesWithComponent));
+    prototype->Set(isolate, "GetRootEntity",
+        v8::FunctionTemplate::New(isolate, GetRootEntity));
+
+    return handleScope.Escape(temp);
+}
 
 void print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {

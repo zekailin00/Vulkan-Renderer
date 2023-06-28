@@ -91,13 +91,29 @@ void ScriptingSystem::BuildEnvironment()
 {
     v8::HandleScope handleScope(isolate);
 
-    v8::Local<v8::ObjectTemplate> temp;
-    
-    temp = v8::ObjectTemplate::New(isolate);
-    globalTemplate.Reset(isolate, temp);
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = v8::ObjectTemplate::New(isolate);
+        globalTemplate.Reset(isolate, temp);
+    }
 
-    temp = MakeSystemTemplate(isolate);
-    systemTemplate.Reset(isolate, temp);
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeSystemTemplate(isolate);
+        systemTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::FunctionTemplate> temp;
+        temp = MakeEntityTemplate(isolate);
+        entityTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::FunctionTemplate> temp;
+        temp = MakeSceneTemplate(isolate);
+        sceneTemplate.Reset(isolate, temp);
+    }
 }
 
 

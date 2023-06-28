@@ -11,6 +11,7 @@ add_library(scripting_subsystem
     environment/script_math.cpp
     environment/environment.cpp
     environment/entity_callbacks.cpp
+    environment/scene_callbacks.cpp
 )
 
 target_link_libraries(scripting_subsystem PUBLIC
