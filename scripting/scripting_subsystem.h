@@ -36,6 +36,26 @@ public:
 
     v8::Isolate* GetIsolate() {return isolate;}
 
+    const v8::Global<v8::ObjectTemplate>& GetGlobalTemplate()
+    {
+        return globalTemplate;
+    }
+
+    const v8::Global<v8::ObjectTemplate>& GetSystemTemplate()
+    {
+        return systemTemplate;
+    }
+
+    const v8::Global<v8::ObjectTemplate>& GetEntityTemplate()
+    {
+        return entityTemplate;
+    }
+
+    const v8::Global<v8::ObjectTemplate>& GetComponentTemplate()
+    {
+        return componentTemplate;
+    }
+
     ScriptingSystem(ScriptingSystem const&) = delete;
     void operator=(ScriptingSystem const&) = delete;
 

@@ -1,4 +1,4 @@
-vec3 = function(x, y, z)
+Vec3 = function(x, y, z)
 {
     this.x = x? x:0;
     this.y = y? y:0;
@@ -9,7 +9,7 @@ vec3 = function(x, y, z)
     }
 }
 
-vec3 = function(x, y, z)
+Vec3 = function(x, y, z)
 {
     this.x = x? x:0;
     this.y = y? y:0;
@@ -21,7 +21,7 @@ vec3 = function(x, y, z)
     }
 }
 
-vec4 = function(x, y, z, w)
+Vec4 = function(x, y, z, w)
 {
     this.x = x? x:0;
     this.y = y? y:0;
@@ -34,7 +34,7 @@ vec4 = function(x, y, z, w)
     }
 }
 
-mat3 = function(c0, c1, c2)
+Mat3 = function(c0, c1, c2)
 {
     this.c0 = c0? c0:new vec3();
     this.c1 = c1? c1:new vec3();
@@ -48,7 +48,7 @@ mat3 = function(c0, c1, c2)
     }
 }
 
-mat4 = function(c0, c1, c2, c3)
+Mat4 = function(c0, c1, c2, c3)
 {
     this.c0 = c0? c0:new vec4();
     this.c1 = c1? c1:new vec4();

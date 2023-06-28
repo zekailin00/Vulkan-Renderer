@@ -112,7 +112,7 @@ void ScriptContext::Execute(std::string source)
     std::string output = *v8Output;
 
     Logger::Write(
-        "[scripting] Output: " + output,
+        "[Scripting] Output: " + output,
         Logger::Level::Info, Logger::MsgType::Scripting
     );
 
