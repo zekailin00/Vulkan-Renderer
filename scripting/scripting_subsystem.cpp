@@ -83,7 +83,6 @@ ScriptContext* ScriptingSystem::NewContext()
 
     scriptContext->context.Reset(isolate, context);
     scriptContext->isolate = isolate;
-    scriptContext->assetManager = assetManager;
 
     return scriptContext;
 }

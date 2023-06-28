@@ -8,6 +8,9 @@
 #include "script.h"
 #include "script_asset_manager.h"
 
+#include <filesystem>
+
+
 namespace scripting
 {
 
@@ -16,8 +19,12 @@ class ScriptingSystem;
 class ScriptContext
 {
 public:
-    Script* NewScript(std::string resourcePath);
-    Script* NewScript();
+    Script* NewScript(std::string resourcePath,
+        IScriptAssetManager* assetManager);
+    Script* NewScript(IScriptAssetManager* assetManager);
+
+    void Execute(std::string source);
+    void ExecuteFromPath(std::string fullPath);
     
     const v8::Persistent<v8::Context>& GetContext() {return context;}
 
@@ -36,7 +43,6 @@ private:
 private:
     v8::Persistent<v8::Context> context;
 
-    IScriptAssetManager* assetManager = nullptr;
     v8::Isolate* isolate = nullptr; // Owned by scripting system
 };
 

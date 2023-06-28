@@ -10,11 +10,22 @@ v8::Local<v8::ObjectTemplate> MakeSystemTemplate(v8::Isolate* isolate)
 {
     v8::EscapableHandleScope handleScope(isolate);
     v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
-    temp->Set(isolate, "print", 
-    v8::FunctionTemplate::New(isolate, print));
+    temp->Set(isolate, "print", v8::FunctionTemplate::New(isolate, print));
 
     return handleScope.Escape(temp);
 }
+
+v8::Local<v8::FunctionTemplate> MakeEntityTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(isolate);
+    v8::Local<v8::ObjectTemplate> prototype = temp->PrototypeTemplate();
+
+
+
+    return handleScope.Escape(temp);
+}
+
 
 void print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
@@ -26,7 +37,7 @@ void print(const v8::FunctionCallbackInfo<v8::Value>& args)
         if (first)
         {
             first = false;
-            output = "[Javascript] ";
+            output = "[scripting] ";
         }
         else
         {

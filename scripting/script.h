@@ -44,7 +44,6 @@ private:
     Script() = default;
 
     bool Compile();
-    void ExceptionHandler(v8::TryCatch* tryCatch);
 
     friend ScriptContext;
 

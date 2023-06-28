@@ -50,7 +50,6 @@ private:
     v8::Isolate* isolate;
     v8::Isolate::CreateParams createParams;
     std::unique_ptr<v8::Platform> platform;
-    IScriptAssetManager* assetManager;
 
     v8::Global<v8::ObjectTemplate> globalTemplate;
     v8::Global<v8::ObjectTemplate> systemTemplate;

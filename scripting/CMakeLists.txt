@@ -9,6 +9,7 @@ add_library(scripting_subsystem
     script_context.cpp
     scripting_subsystem.cpp
     environment/environment.cpp
+    environment/entity_callbacks.cpp
 )
 
 target_link_libraries(scripting_subsystem PUBLIC

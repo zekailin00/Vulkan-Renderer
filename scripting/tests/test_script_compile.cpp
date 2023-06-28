@@ -1,5 +1,8 @@
 #include "scripting_subsystem.h"
 
+#include <iostream>
+#include <string>
+
 int main(int, char**)
 {
     scripting::ScriptingSystem* scriptingSystem =
@@ -10,12 +13,17 @@ int main(int, char**)
     scripting::ScriptContext* context =
         scriptingSystem->NewContext();
 
-    scripting::Script* script = context->NewScript();
-
-    std::string sourceCode = "source";
-    sourceCode = sourceCode + scripting::ScriptingSystem::scriptResource;
-    sourceCode = sourceCode + "\nsystem.print(\"Hello World\")";
-
-    script->LoadSource("scripts/source.js", sourceCode);
-
+    std::string source;
+    while(std::getline(std::cin, source))
+    {
+        if (source[0] == '@')
+        {
+            context->ExecuteFromPath(source.substr(1));
+        }
+        else
+        {
+            context->Execute(source);
+        }
+    }
+    
 }
