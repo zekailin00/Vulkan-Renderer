@@ -34,6 +34,7 @@ static void strcpy_s(char* dest, const char* src)
     while(src[i] != 0)
     {
         dest[i] = src[i];
+        i++;
     }
     
     dest[i] = 0;
