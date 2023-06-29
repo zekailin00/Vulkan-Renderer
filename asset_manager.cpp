@@ -447,6 +447,33 @@ std::shared_ptr<renderer::Texture> AssetManager::GetTexture(std::string path)
     return texture;
 }
 
+bool AssetManager::GetSourceCode(
+    std::string resourcePath, std::string& source)
+{
+    Filesystem::ToUnixPath(resourcePath);
+    std::string fullPath = GetWorkspacePath() + "/" + resourcePath;
+
+    if (!Filesystem::IsRegularFile(fullPath))
+    {
+        return false;
+    }
+
+    source = "";
+    std::string buffer;
+    std::ifstream file;
+    file.open(fullPath);
+    if (file.good(), std::ifstream::in)
+    {
+        while(std::getline(file, buffer))
+            source = source + buffer + "\n";
+        file.close();
+
+        return true;
+    }
+
+    return false;
+}
+
 std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
     std::filesystem::path path)
 {

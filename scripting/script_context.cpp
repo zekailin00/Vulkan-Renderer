@@ -55,7 +55,8 @@ void ScriptContext::ExecuteFromPath(std::string fullPath)
         Logger::Write(
             "[Scripting] Invalid path.",
             Logger::Level::Warning, Logger::MsgType::Scripting);
-        
+
+        return;
     }
     
     std::string buffer;

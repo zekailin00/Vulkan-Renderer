@@ -11,6 +11,7 @@
 
 #include "renderer_asset_manager.h"
 #include "core_asset_manager.h"
+#include "script_asset_manager.h"
 
 #include "scene.h"
 
@@ -21,17 +22,20 @@
 #define MATERIAL_PATH   "resources/materials"
 #define MODEL_PATH      "resources/models"
 #define SCENE_PATH      "resources/scenes"
+#define SCRIPT_PATH     "resource/scripts"
 
-#define MATERIAL_EXTENSION     ".slmat"
-#define TEXTURE_EXTENSION      ".sltex"
-#define TEXTURE_DATA_EXTENSION ".jpg"
-#define MESH_EXTENSION         ".slmsh"
-#define MESH_DATA_EXTENSION    ".slmshd"
-#define MODEL_EXTENSION        ".slmod"
-#define SCENE_EXTENSION        ".slscn"
+#define MATERIAL_EXTENSION      ".slmat"
+#define TEXTURE_EXTENSION       ".sltex"
+#define TEXTURE_DATA_EXTENSION  ".jpg"
+#define MESH_EXTENSION          ".slmsh"
+#define MESH_DATA_EXTENSION     ".slmshd"
+#define MODEL_EXTENSION         ".slmod"
+#define SCENE_EXTENSION         ".slscn"
+#define SCRIPT_EXTENSION        ".js"
 
 class AssetManager:
     public renderer::IRendererAssetManager,
+    public scripting::IScriptAssetManager,
     public ICoreAssetManager
 {
 public:
@@ -107,6 +111,15 @@ public:
      * @return std::shared_ptr<renderer::Texture> 
      */
     std::shared_ptr<renderer::Texture> GetTexture(std::string path) override;
+
+    /**
+     * @brief Get the Javascript source code.
+     * 
+     * @param resourcePath Path relative to workspace directory.
+     * @param source source code is written into the variable
+     * @return Return true if loaded successfully
+     */
+    bool GetSourceCode(std::string resourcePath, std::string& source) override;
 
     bool IsWorkspaceInitialized() override {return initialized;}
     std::string GetWorkspacePath() override {return workspacePath;}
