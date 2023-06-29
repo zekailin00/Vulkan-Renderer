@@ -49,6 +49,7 @@ bool Script::LoadSource(std::string resourcePath, std::string source)
 bool Script::Compile()
 {
     scriptInstance.Reset();
+    OnCreatedCalled = false;
 
     // isolate -> handle -> context scopes
     v8::HandleScope handleScope(isolate);
@@ -130,21 +131,52 @@ bool Script::Compile()
 
 void Script::Run(Timestep ts)
 {
+    if (scriptInstance.IsEmpty())
+    {
+        return;
+    }
+
+    std::string callbackName;
+    if (OnCreatedCalled)
+    {
+        callbackName = "OnUpdated";
+    }
+    else
+    {
+        OnCreatedCalled = true;
+        callbackName = "OnCreated";
+    }
+
+    RunCallback(callbackName, ts);
+}
+
+void Script::RunOnDestroyed()
+{
+    if (scriptInstance.IsEmpty())
+    {
+        return;
+    }
+
+    RunCallback("OnDestroyed", 0.0f);
+}
+
+void Script::RunCallback(std::string callbackName, Timestep ts)
+{
     v8::HandleScope scope(isolate);
     v8::Local<v8::Context> localContext =
         v8::Local<v8::Context>::New(isolate, scriptContext->GetContext());
     v8::Context::Scope contextScope(localContext);
 
-    std::string callbackName; //TODO:
-
-    v8::Local<v8::String> strCallback = 
+    v8::Local<v8::String> v8CallbackName = 
         v8::String::NewFromUtf8(isolate, callbackName.c_str())
         .ToLocalChecked();
 
-    v8::Local<v8::Value> valCallback;
+    v8::Local<v8::Value> v8Value;
+    v8::Local<v8::Object> localScriptInstance =
+        v8::Local<v8::Object>::New(isolate, scriptInstance);
 
-    if (!scriptInstance->Get(localContext, strCallback)
-        .ToLocal(&valCallback) || !valCallback->IsFunction())
+    if (!localScriptInstance->Get(localContext, v8CallbackName)
+        .ToLocal(&v8Value) || !v8Value->IsFunction())
     {
         Logger::Write(
             "[Scripting] Function <" + callbackName + "> cannot be found",
@@ -154,40 +186,41 @@ void Script::Run(Timestep ts)
         return;
     }
 
-    v8::Local<v8::Function> functCallback = valCallback.As<v8::Function>();
+    v8::Local<v8::Function> v8Callback = v8Value.As<v8::Function>();
 
     v8::TryCatch tryCatch(isolate);
     v8::Local<v8::Value> result;
-    if (ts)
+    if (callbackName == "OnUpdated")
     {
         v8::Local<v8::Value> v8Timestep =
             v8::Number::New(isolate, ts).As<v8::Value>();
         
-        if (!functCallback->Call(
+        if (!v8Callback->Call(
             localContext, localContext->Global(), 1, &v8Timestep)
             .ToLocal(&result))
         {
             ASSERT(tryCatch.HasCaught());
             ExceptionHandler(&tryCatch, isolate);
+
             return;
         }
     }
-    else
+    else if (callbackName == "OnCreated" || callbackName == "OnDestroyed")
     {
-        if (!functCallback->Call(
+        if (!v8Callback->Call(
             localContext, localContext->Global(), 0, nullptr)
             .ToLocal(&result))
         {
             ASSERT(tryCatch.HasCaught());
             ExceptionHandler(&tryCatch, isolate);
+
             return;
         }
     }
-
-    v8::String::Utf8Value instanceName(
-        isolate, scriptInstance->GetConstructorName());
-    double debugValue =
-        result->NumberValue(localContext).ToChecked(); // not used
+    else
+    {
+        throw;
+    }
 }
 
 Script::~Script()

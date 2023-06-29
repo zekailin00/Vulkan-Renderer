@@ -37,7 +37,15 @@ public:
     bool LoadSource(std::string resourcePath, std::string source);
     std::string GetResourcePath() {return resourcePath;}
 
-    void Run(Timestep ts);
+    /**
+     * @brief Run callback "OnUpdated",
+     * or "OnCreated" if called the first time
+     * 
+     * @param ts Timestep in float.
+     */
+    void Run(Timestep ts = 0.0f);
+
+    void RunOnDestroyed();
 
     ~Script();
     Script(const Script&) = delete;
@@ -47,6 +55,7 @@ private:
     Script() = default;
 
     bool Compile();
+    void RunCallback(std::string callbackName, Timestep ts);
 
     friend ScriptContext;
 
@@ -54,6 +63,7 @@ private:
     std::string resourcePath = "None";
     std::string source = "";
     v8::Persistent<v8::Object> scriptInstance;
+    bool OnCreatedCalled = false;
 
     ScriptContext* scriptContext = nullptr;
     IScriptAssetManager* assetManager = nullptr;
