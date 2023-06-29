@@ -3,6 +3,7 @@
 #include "light_component.h"
 #include "camera_component.h"
 #include "openxr_components.h"
+#include "script_component.h"
 
 #include "asset_manager.h"
 #include "validation.h"
@@ -222,6 +223,11 @@ void EntityProperties::ShowEntityProperties()
     if (selectedEntity->HasComponent(Component::Type::Wireframe))
     {
         ShowWireframeComponent();
+    }
+
+    if (selectedEntity->HasComponent(Component::Type::Script))
+    {
+        ShowScriptComponent();
     }
 }
 
@@ -484,6 +490,28 @@ void EntityProperties::ShowWireframeComponent()
     }
 }
 
+void EntityProperties::ShowScriptComponent()
+{
+    if (ImGui::CollapsingHeader("Script Component"))
+    {
+        RemoveComponent(Component::Type::Script);
+
+        scripting::ScriptComponent* component =
+            dynamic_cast<scripting::ScriptComponent*>(
+                selectedEntity->GetComponent(Component::Type::Script));
+
+        ImGui::SeparatorText("Script");
+        
+        std::string resourcePath = component->script->GetResourcePath();
+
+        if (ImGui::Button("Open in VS Code"))
+        {
+
+        }
+        ImGui::Separator();
+    }
+}
+
 void EntityProperties::AddComponent()
 {
     std::vector<std::string> components
@@ -492,6 +520,7 @@ void EntityProperties::AddComponent()
         "Camera Component",
         "VR Display Component",
         "Mesh Component",
+        "Script Component",
     };
 
     std::string selectedComponent;
@@ -526,6 +555,11 @@ void EntityProperties::AddComponent()
         !selectedEntity->HasComponent(Component::Type::Mesh))
     {
         selectedEntity->AddComponent(Component::Type::Mesh);
+    }
+    else if (selectedComponent == "Script Component" &&
+        !selectedEntity->HasComponent(Component::Type::Script))
+    {
+        selectedEntity->AddComponent(Component::Type::Script);
     }
 }
 
