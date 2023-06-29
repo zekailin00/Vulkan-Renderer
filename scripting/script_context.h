@@ -7,6 +7,8 @@
 
 #include "script.h"
 #include "script_asset_manager.h"
+#include "scene_context.h"
+#include "component.h"
 
 #include <filesystem>
 
@@ -16,7 +18,7 @@ namespace scripting
 
 class ScriptingSystem;
 
-class ScriptContext
+class ScriptContext: SceneContext
 {
 public:
     Script* NewScript(std::string resourcePath,
@@ -27,6 +29,11 @@ public:
     void ExecuteFromPath(std::string fullPath);
     
     const v8::Persistent<v8::Context>& GetContext() {return context;}
+
+    Component::Type GetSceneContextType() override
+    {
+        return Component::Type::Script;
+    }
 
     ScriptContext(const ScriptContext&) = delete;
     void operator=(const ScriptContext&) = delete;

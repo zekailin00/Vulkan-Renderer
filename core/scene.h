@@ -1,6 +1,7 @@
 #pragma once
 
 #include "timestep.h"
+#include "scene_context.h"
 #include "entity.h"
 #include "core_asset_manager.h"
 
@@ -28,6 +29,9 @@ public:
         std::string path, ICoreAssetManager* manager, State state);
     bool SaveToFile(std::string path);
     Scene* Replicate(State state);
+
+    SceneContext* GetSceneContext(Component::Type type);
+    void SetSceneContext(Component::Type type, SceneContext* context);
 
     const std::string& GetSceneName() {return sceneName;}
     ICoreAssetManager* GetAssetManager() {return assetManager;}
@@ -57,4 +61,5 @@ private:
     Entity* rootEntity = nullptr;
     unsigned int entityCounter = 0;
     ICoreAssetManager* assetManager = nullptr;
+    SceneContext* contexts[(int)Component::Type::Size] = {};
 };

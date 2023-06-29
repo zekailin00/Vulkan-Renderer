@@ -9,6 +9,7 @@
 #include <v8-exception.h>
 #include <v8-persistent-handle.h>
 
+#include "timestep.h"
 #include "script_asset_manager.h"
 
 namespace scripting
@@ -35,6 +36,8 @@ public:
 
     bool LoadSource(std::string resourcePath, std::string source);
     std::string GetResourcePath() {return resourcePath;}
+
+    void Run(Timestep ts);
 
     ~Script();
     Script(const Script&) = delete;

@@ -56,6 +56,11 @@ public:
         return componentTemplate;
     }
 
+    const v8::Global<v8::FunctionTemplate>& GetSceneTemplate()
+    {
+        return sceneTemplate;
+    }
+
     ScriptingSystem(ScriptingSystem const&) = delete;
     void operator=(ScriptingSystem const&) = delete;
 

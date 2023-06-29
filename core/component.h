@@ -22,7 +22,7 @@ struct Component
         Mesh,
         UI,
         Wireframe,
-        VrController,
+        Script,
         Size
     };
 

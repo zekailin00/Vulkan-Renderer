@@ -559,9 +559,22 @@ void GetScene(const v8::FunctionCallbackInfo<v8::Value> &info)
     Entity* entity = static_cast<Entity*>(field->Value());
     ASSERT(entity != nullptr);
 
-    //  = entity->GetScene();
+    Scene* scene = entity->GetScene();
 
-    //TODO:
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+    v8::Local<v8::FunctionTemplate> sceneTemplate =
+        v8::Local<v8::FunctionTemplate>::New(isolate,
+        scriptingSystem->GetSceneTemplate());
+
+    v8::Local<v8::Function> sceneFunction =
+        sceneTemplate->GetFunction(context).ToLocalChecked();
+    v8::Local<v8::Object> v8Scene = 
+        sceneFunction->NewInstance(context).ToLocalChecked();
+    
+    v8Scene->SetInternalField(0, v8::External::New(isolate, scene));
+    info.GetReturnValue().Set(v8Scene);
 }
 
 } // namespace scripting

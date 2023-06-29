@@ -9,6 +9,8 @@
 #include <string>
 
 #include "logger.h"
+#include "component.h"
+#include "script_component.h"
 #include "environment/environment.h"
 
 namespace scripting
@@ -38,7 +40,9 @@ void ScriptingSystem::Initialize(char* argv[])
     v8::Isolate::Scope isolateScope(isolate);
     BuildEnvironment();
 
-
+    ComponentLocator::SetInitializer(
+        Component::Type::Script, ScriptInitializer());
+    
     this->initialized = true;
 }
 

@@ -195,7 +195,7 @@ Entity* Entity::GetChildByName(std::string name)
     {
         if (e->name == name)
             return e;
-        if (childResult = e->GetChildByName(name))
+        if ((childResult = e->GetChildByName(name)))
             return childResult;
     }
 

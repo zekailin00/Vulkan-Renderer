@@ -69,6 +69,18 @@ Scene* Scene::Replicate(Scene::State state)
     return scene;
 }
 
+
+SceneContext* Scene::GetSceneContext(Component::Type type)
+{
+    ASSERT(contexts[(int)type] != nullptr);
+    return contexts[(int)type];
+}
+
+void Scene::SetSceneContext(Component::Type type, SceneContext* context)
+{
+    contexts[(int)type] = context;
+}
+
 Entity* Scene::NewEntity()
 {
 
