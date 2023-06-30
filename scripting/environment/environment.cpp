@@ -73,13 +73,13 @@ v8::Local<v8::FunctionTemplate> MakeSceneTemplate(v8::Isolate* isolate)
     v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(isolate);
     v8::Local<v8::ObjectTemplate> prototype = temp->PrototypeTemplate();
 
-    prototype->SetInternalFieldCount(1);
+    temp->InstanceTemplate()->SetInternalFieldCount(1);
 
     prototype->Set(isolate, "GetSceneName",
         v8::FunctionTemplate::New(isolate, GetSceneName));
     prototype->Set(isolate, "NewEntity",
         v8::FunctionTemplate::New(isolate, NewEntity));
-    prototype->Set(isolate, "RemoveEntity",
+    prototype->Set(isolate, "RemoveEntity", //FIXME:
         v8::FunctionTemplate::New(isolate, RemoveEntity));
     prototype->Set(isolate, "GetEntityByName",
         v8::FunctionTemplate::New(isolate, GetEntityByName));
