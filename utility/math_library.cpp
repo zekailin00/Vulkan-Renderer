@@ -64,5 +64,19 @@ void XrProjectionFov(glm::mat4& result, glm::vec4 fov, float nearZ, float farZ)
     }
 }
 
+void XrToTransform(glm::mat4& result,
+    glm::vec4* quaternion, glm::vec3* position)
+{
+    glm::mat4 translation = glm::translate(glm::mat4(1.0f), *position);
+
+    glm::quat quat;
+    quat.x = (*quaternion)[0];
+    quat.y = (*quaternion)[1];
+    quat.z = (*quaternion)[2];
+    quat.w = (*quaternion)[3];
+    glm::mat4 rotation = glm::toMat4(quat);
+
+    result = translation * rotation;
+}
 
 } // namespace math

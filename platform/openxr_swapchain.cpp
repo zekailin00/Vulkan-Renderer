@@ -5,6 +5,8 @@
 #include "validation.h"
 #include "input.h"
 
+#include "math_library.h"
+
 #include <vector>
 #include <tracy/Tracy.hpp>
 
@@ -393,11 +395,71 @@ void OpenxrSession::BeginFrame()
         }
 
         {   // Locate hand aims
+            XrSpaceLocation lAimPoseLocation;
+            xrLocateSpace(
+                lAimPoseSpace, localSpace,
+                frameState.predictedDisplayTime, &lAimPoseLocation
+            );
 
+            EventLeftAimPose* eventLeftAimPose = new EventLeftAimPose();
+            math::XrToTransform(
+                eventLeftAimPose->transform,
+                reinterpret_cast<glm::vec4*>(&lAimPoseLocation.pose.orientation),
+                reinterpret_cast<glm::vec3*>(&lAimPoseLocation.pose.position)
+            );
+
+            EventQueue::GetInstance()->Publish(
+                EventQueue::InputXR, eventLeftAimPose);
+
+            XrSpaceLocation rAimPoseLocation;
+            xrLocateSpace(
+                rAimPoseSpace, localSpace,
+                frameState.predictedDisplayTime, &rAimPoseLocation
+            );
+
+            EventRightAimPose* eventRightAimPose = new EventRightAimPose();
+            math::XrToTransform(
+                eventRightAimPose->transform,
+                reinterpret_cast<glm::vec4*>(&rAimPoseLocation.pose.orientation),
+                reinterpret_cast<glm::vec3*>(&rAimPoseLocation.pose.position)
+            );
+
+            EventQueue::GetInstance()->Publish(
+                EventQueue::InputXR, eventRightAimPose);
         }
 
         {   // Locate hand grips
+            XrSpaceLocation lGripPoseLocation;
+            xrLocateSpace(
+                lGripPoseSpace, localSpace,
+                frameState.predictedDisplayTime, &lGripPoseLocation
+            );
 
+            EventLeftGripPose* eventLeftGripPose = new EventLeftGripPose();
+            math::XrToTransform(
+                eventLeftGripPose->transform,
+                reinterpret_cast<glm::vec4*>(&lGripPoseLocation.pose.orientation),
+                reinterpret_cast<glm::vec3*>(&lGripPoseLocation.pose.position)
+            );
+
+            EventQueue::GetInstance()->Publish(
+                EventQueue::InputXR, eventLeftGripPose);
+
+            XrSpaceLocation rGripPoseLocation;
+            xrLocateSpace(
+                rGripPoseSpace, localSpace,
+                frameState.predictedDisplayTime, &rGripPoseLocation
+            );
+
+            EventRightGripPose* eventRightGripPose = new EventRightGripPose();
+            math::XrToTransform(
+                eventRightGripPose->transform,
+                reinterpret_cast<glm::vec4*>(&rGripPoseLocation.pose.orientation),
+                reinterpret_cast<glm::vec3*>(&rGripPoseLocation.pose.position)
+            );
+
+            EventQueue::GetInstance()->Publish(
+                EventQueue::InputXR, eventRightGripPose);
         }
     }
 }

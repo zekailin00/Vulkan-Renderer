@@ -39,20 +39,7 @@ void Input::AddXRViews(Event* event)
 
 void Input::AddXRPoses(Event* event)
 {
-    if (event->type == Event::Type::InputPoses)
-    {
-        Input* input = Input::GetInstance();
-        EventInputPoses* e = dynamic_cast<EventInputPoses*>(event);
-    
-        input->xr_left_grip_quat = e->xr_left_grip_quat;
-        input->xr_right_grip_quat = e->xr_right_grip_quat;
-        input->xr_left_grip_pos = e->xr_left_grip_pos;
-        input->xr_right_grip_pos = e->xr_right_grip_pos;
-        input->xr_left_aim_quat = e->xr_left_aim_quat;
-        input->xr_right_aim_quat = e->xr_right_aim_quat;
-        input->xr_left_aim_pos = e->xr_left_aim_pos;
-        input->xr_right_aim_pos = e->xr_right_aim_pos;
-    }
+    throw;
 }
 
 void Input::AddXRFloats(Event* event)

@@ -6,6 +6,7 @@
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 
 
 #define EVENT_TYPE(eType) Event##eType() \
@@ -20,15 +21,32 @@ struct EventInputViews: public Event
     glm::vec3 xr_left_eye_pos,  xr_right_eye_pos;
 };
 
-struct EventInputPoses: public Event
+struct EventLeftAimPose: public Event
 {
-    EVENT_TYPE(InputPoses);
+    EVENT_TYPE(LeftAimPose);
 
-    glm::vec4 xr_left_grip_quat, xr_right_grip_quat;
-    glm::vec3 xr_left_grip_pos,  xr_right_grip_pos;
+    glm::mat4 transform;
+};
 
-    glm::vec4 xr_left_aim_quat, xr_right_aim_quat;
-    glm::vec3 xr_left_aim_pos,  xr_right_aim_pos;
+struct EventRightAimPose: public Event
+{
+    EVENT_TYPE(RightAimPose);
+
+    glm::mat4 transform;
+};
+
+struct EventLeftGripPose: public Event
+{
+    EVENT_TYPE(LeftGripPose);
+
+    glm::mat4 transform;
+};
+
+struct EventRightGripPose: public Event
+{
+    EVENT_TYPE(RightGripPose);
+
+    glm::mat4 transform;
 };
 
 struct EventInputFloats: public Event

@@ -11,7 +11,10 @@ struct Event
     {
         /* OpenXR events */
         InputViews,
-        InputPoses,
+        LeftAimPose,
+        RightAimPose,
+        LeftGripPose,
+        RightGripPose,
         InputFloats,
 
         /* GLFW events */
