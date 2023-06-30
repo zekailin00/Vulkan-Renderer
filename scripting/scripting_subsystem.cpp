@@ -81,7 +81,7 @@ ScriptContext* ScriptingSystem::NewContext()
             localSystemTemplate->NewInstance(context).ToLocalChecked();
 
         v8::Local<v8::String> systemStr =
-            v8::String::NewFromUtf8Literal(isolate, "system");
+            v8::String::NewFromUtf8Literal(isolate, "System");
         
         context->Global()->Set(context, systemStr, systemObject).FromJust();
     }
@@ -105,12 +105,6 @@ void ScriptingSystem::BuildEnvironment()
     }
 
     {
-        v8::Local<v8::ObjectTemplate> temp;
-        temp = MakeSystemTemplate(isolate);
-        systemTemplate.Reset(isolate, temp);
-    }
-
-    {
         v8::Local<v8::FunctionTemplate> temp;
         temp = MakeEntityTemplate(isolate);
         entityTemplate.Reset(isolate, temp);
@@ -120,6 +114,26 @@ void ScriptingSystem::BuildEnvironment()
         v8::Local<v8::FunctionTemplate> temp;
         temp = MakeSceneTemplate(isolate);
         sceneTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeMathTemplate(isolate);
+        mathTemplate.Reset(isolate, temp);
+    }
+    
+    {
+        v8::Local<v8::ObjectTemplate> localSystemTemp =
+            v8::ObjectTemplate::New(isolate);
+        
+        localSystemTemp->Set(isolate, "Print",
+            v8::FunctionTemplate::New(isolate, print));
+
+        v8::Local<v8::ObjectTemplate> localMathTemp =
+            v8::Local<v8::ObjectTemplate>::New(isolate, mathTemplate);
+        localSystemTemp->Set(isolate, "Math", localMathTemp);
+
+        systemTemplate.Reset(isolate, localSystemTemp);
     }
 }
 

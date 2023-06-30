@@ -32,4 +32,21 @@ bool toCpp(glm::vec4& vec4, v8::Local<v8::Object> v8Vec4,
 bool toCpp(glm::mat4& mat4, v8::Local<v8::Object> v8Mat4,
     const v8::FunctionCallbackInfo<v8::Value> &info);
 
+namespace math
+{
+
+void Mat4Add(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Mat4Multiply(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Mat4Subtract(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Mat4Identity(const v8::FunctionCallbackInfo<v8::Value> &info);
+
+/* EulerAngleXYZ */
+void Mat4Rotation(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Mat4Translate(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Mat4Scale(const v8::FunctionCallbackInfo<v8::Value> &info);
+
+
+} // namespace math
+
 } // namespace scripting

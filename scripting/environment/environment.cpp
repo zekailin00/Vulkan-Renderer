@@ -2,22 +2,11 @@
 
 #include "environment/entity_callbacks.h"
 #include "environment/scene_callbacks.h"
+#include "environment/script_math.h"
 #include "logger.h"
 
 namespace scripting
 {
-
-static void print(const v8::FunctionCallbackInfo<v8::Value>& args);
-
-
-v8::Local<v8::ObjectTemplate> MakeSystemTemplate(v8::Isolate* isolate)
-{
-    v8::EscapableHandleScope handleScope(isolate);
-    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
-    temp->Set(isolate, "print", v8::FunctionTemplate::New(isolate, print));
-
-    return handleScope.Escape(temp);
-}
 
 v8::Local<v8::FunctionTemplate> MakeEntityTemplate(v8::Isolate* isolate)
 {
@@ -87,6 +76,40 @@ v8::Local<v8::FunctionTemplate> MakeSceneTemplate(v8::Isolate* isolate)
         v8::FunctionTemplate::New(isolate, GetEntitiesWithComponent));
     prototype->Set(isolate, "GetRootEntity",
         v8::FunctionTemplate::New(isolate, GetRootEntity));
+
+    return handleScope.Escape(temp);
+}
+
+v8::Local<v8::ObjectTemplate> MakeMathTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+
+    temp->Set(isolate, "Mat4Add",
+        v8::FunctionTemplate::New(isolate, math::Mat4Add));
+    temp->Set(isolate, "Mat4Multiply",
+        v8::FunctionTemplate::New(isolate, math::Mat4Multiply));
+    temp->Set(isolate, "Mat4Subtract",
+        v8::FunctionTemplate::New(isolate, math::Mat4Subtract));
+    temp->Set(isolate, "Mat4Inverse",
+        v8::FunctionTemplate::New(isolate, math::Mat4Inverse));
+    temp->Set(isolate, "Mat4Identity",
+        v8::FunctionTemplate::New(isolate, math::Mat4Identity));
+    temp->Set(isolate, "Mat4Rotation",
+        v8::FunctionTemplate::New(isolate, math::Mat4Rotation));
+    temp->Set(isolate, "Mat4Translate",
+        v8::FunctionTemplate::New(isolate, math::Mat4Translate));
+    temp->Set(isolate, "Mat4Scale",
+        v8::FunctionTemplate::New(isolate, math::Mat4Scale));
+
+    return handleScope.Escape(temp);
+}
+
+v8::Local<v8::FunctionTemplate> MakeInputTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(isolate);
+    v8::Local<v8::ObjectTemplate> prototype = temp->PrototypeTemplate();
 
     return handleScope.Escape(temp);
 }

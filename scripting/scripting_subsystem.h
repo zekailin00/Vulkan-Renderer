@@ -51,7 +51,7 @@ public:
         return entityTemplate;
     }
 
-    const v8::Global<v8::ObjectTemplate>& GetComponentTemplate()
+    const v8::Global<v8::FunctionTemplate>& GetComponentTemplate()
     {
         return componentTemplate;
     }
@@ -78,11 +78,11 @@ private:
 
     v8::Global<v8::ObjectTemplate> globalTemplate;
     v8::Global<v8::ObjectTemplate> systemTemplate;
+    v8::Global<v8::ObjectTemplate> mathTemplate;
+
     v8::Global<v8::FunctionTemplate> entityTemplate;
-    v8::Global<v8::ObjectTemplate> componentTemplate;
-
+    v8::Global<v8::FunctionTemplate> componentTemplate;
     v8::Global<v8::FunctionTemplate> sceneTemplate;
-
 };
 
 } // namespace scripting

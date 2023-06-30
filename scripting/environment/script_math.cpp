@@ -4,7 +4,10 @@
 #include <v8-context.h>
 #include <v8-isolate.h>
 
+#include <glm/gtx/euler_angles.hpp>
+
 #include "logger.h"
+#include "validation.h"
 
 
 namespace scripting
@@ -335,5 +338,230 @@ bool toCpp(glm::mat4& mat4, v8::Local<v8::Object> v8Mat4,
         return false;
     }
 }
+
+namespace math
+{
+
+bool GetBinaryMat4Operants(
+    const v8::FunctionCallbackInfo<v8::Value> &info,
+    glm::mat4& lhs, glm::mat4& rhs
+)
+{
+    if (info.Length() != 2 ||
+        !info[0]->IsObject() || !info[1]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Mat4 operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        
+        return false;
+    }
+
+    bool result = true;
+    result = result && toCpp(lhs, info[0].As<v8::Object>(), info);
+    result = result && toCpp(rhs, info[1].As<v8::Object>(), info);
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Mat4 operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return false;
+    }
+
+    return true;
+}
+
+void Mat4Add(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    glm::mat4 lhs, rhs, retval;
+    v8::Local<v8::Object> v8Retval;
+    
+    if (!GetBinaryMat4Operants(info, lhs, rhs))
+    {
+        return;
+    }
+
+    retval = lhs + rhs;
+    v8Retval = toV8(retval, info);
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Mat4Multiply(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    glm::mat4 lhs, rhs, retval;
+    v8::Local<v8::Object> v8Retval;
+    
+    if (!GetBinaryMat4Operants(info, lhs, rhs))
+    {
+        return;
+    }
+
+    retval = lhs * rhs;
+    v8Retval = toV8(retval, info);
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Mat4Subtract(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    glm::mat4 lhs, rhs, retval;
+    v8::Local<v8::Object> v8Retval;
+    
+    if (!GetBinaryMat4Operants(info, lhs, rhs))
+    {
+        return;
+    }
+
+    retval = lhs - rhs;
+    v8Retval = toV8(retval, info);
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Mat4Inverse parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::mat4 operant;
+    bool result = toCpp(operant, info[0].As<v8::Object>(), info);
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Mat4Inverse parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    operant = glm::inverse(operant);
+    v8::Local<v8::Object> v8Retval = toV8(operant, info);
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Mat4Identity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    glm::mat4 retval(1.0);
+    v8::Local<v8::Object> v8Retval = toV8(retval, info);
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+/* EulerAngleXYZ */
+void Mat4Rotation(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Mat4Rotation parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 rotation;
+    bool result = toCpp(rotation, info[0].As<v8::Object>(), info);
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Mat4Rotation parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    glm::mat4 rotationMat =
+        glm::eulerAngleXYZ(rotation[0], rotation[1], rotation[2]);
+    
+    v8::Local<v8::Object> v8Retval = toV8(rotationMat, info);
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Mat4Translate(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Mat4Translate parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 translate;
+    bool result = toCpp(translate, info[0].As<v8::Object>(), info);
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Mat4Translate parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    glm::mat4 translateMat = glm::translate(glm::mat4(1.0f), translate);
+    
+    v8::Local<v8::Object> v8Retval = toV8(translateMat, info);
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Mat4Scale(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Mat4Scale parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 scale;
+    bool result = toCpp(scale, info[0].As<v8::Object>(), info);
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Mat4Scale parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), scale);
+    
+    v8::Local<v8::Object> v8Retval = toV8(scaleMat, info);
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+
+} // namespace math
 
 } // namespace scripting
