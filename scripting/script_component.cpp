@@ -3,9 +3,12 @@
 #include "scene.h"
 #include "entity.h"
 #include "script_context.h"
+#include "scripting_subsystem.h"
 #include "script_asset_manager.h"
 
 #include "validation.h"
+
+#include <memory>
 
 
 namespace scripting
@@ -19,8 +22,17 @@ Component* ScriptInitializer::operator()(Entity* entity)
 
     Scene* scene = entity->GetScene();
 
-    ScriptContext* context = dynamic_cast<ScriptContext*>(
-        scene->GetSceneContext(Component::Type::Script));
+    std::shared_ptr<ScriptContext> context =
+        std::dynamic_pointer_cast<ScriptContext>(
+            scene->GetSceneContext(Component::Type::Script));
+
+    if (context == nullptr)
+    {
+        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+        context.reset(scriptingSystem->NewContext());
+        scene->SetSceneContext(Component::Type::Script, context);
+    }
+
     IScriptAssetManager* assetManaget = 
         dynamic_cast<IScriptAssetManager*>(scene->GetAssetManager());
 
@@ -36,8 +48,17 @@ Component* ScriptDeserializer::operator()(Entity* entity, Json::Value& json)
 
     Scene* scene = entity->GetScene();
 
-    ScriptContext* context = dynamic_cast<ScriptContext*>(
-        scene->GetSceneContext(Component::Type::Script));
+    std::shared_ptr<ScriptContext> context =
+        std::dynamic_pointer_cast<ScriptContext>(
+            scene->GetSceneContext(Component::Type::Script));
+
+    if (context == nullptr)
+    {
+        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+        context.reset(scriptingSystem->NewContext());
+        scene->SetSceneContext(Component::Type::Script, context);
+    }
+
     IScriptAssetManager* assetManaget = 
         dynamic_cast<IScriptAssetManager*>(scene->GetAssetManager());
 
@@ -50,7 +71,7 @@ Component* ScriptDeserializer::operator()(Entity* entity, Json::Value& json)
         return component;
     }
 
-    bool result = component->script->LoadSource(resourcePath);
+    bool result = component->script->LoadSource(resourcePath, entity);
     ASSERT(result == true);
     return component;
 }

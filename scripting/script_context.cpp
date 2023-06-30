@@ -19,20 +19,6 @@
 namespace scripting
 {
 
-Script* ScriptContext::NewScript(
-    std::string resourcePath,
-    IScriptAssetManager* assetManager)
-{
-    Script* script = new Script();
-    script->assetManager = assetManager;
-    script->isolate = isolate;
-    script->scriptContext = this;
-
-    script->LoadSource(resourcePath);
-
-    return script;
-}
-
 Script* ScriptContext::NewScript(IScriptAssetManager* assetManager)
 {
     Script* script = new Script();
@@ -43,25 +29,24 @@ Script* ScriptContext::NewScript(IScriptAssetManager* assetManager)
     return script;
 }
 
-void ScriptContext::ExecuteFromPath(std::string fullPath)
+void ScriptContext::ExecuteFromPath(std::string path)
 {
     std::string source;
 
-    std::filesystem::path fsPath = fullPath;
+    // std::filesystem::path fsPath = path;
 
-    if (!fsPath.is_absolute() ||
-        !Filesystem::IsRegularFile(fullPath))
-    {
-        Logger::Write(
-            "[Scripting] Invalid path.",
-            Logger::Level::Warning, Logger::MsgType::Scripting);
+    // if (!Filesystem::IsRegularFile(path))
+    // {
+    //     Logger::Write(
+    //         "[Scripting] Invalid path.",
+    //         Logger::Level::Warning, Logger::MsgType::Scripting);
 
-        return;
-    }
+    //     return;
+    // }
     
     std::string buffer;
     std::ifstream file;
-    file.open(fullPath);
+    file.open(path);
     if (file.good())
     {
         while(std::getline(file, buffer))
@@ -70,6 +55,15 @@ void ScriptContext::ExecuteFromPath(std::string fullPath)
 
         this->Execute(source);
     }
+    else
+    {
+        Logger::Write(
+            "[Scripting] Invalid path.",
+            Logger::Level::Warning, Logger::MsgType::Scripting);
+
+        return;
+    }
+    
 }
 
 void ScriptContext::Execute(std::string source)

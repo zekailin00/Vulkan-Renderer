@@ -37,8 +37,8 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> vec2List[2] = {
-        v8::Int32::New(info.GetIsolate(), vec2[0]),
-        v8::Int32::New(info.GetIsolate(), vec2[1]),
+        v8::Number::New(info.GetIsolate(), vec2[0]),
+        v8::Number::New(info.GetIsolate(), vec2[1]),
     };
 
     v8::Local<v8::Object> v8Vec2 = vec2Function->NewInstance(
@@ -74,9 +74,9 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> vec3List[3] = {
-        v8::Int32::New(info.GetIsolate(), vec3.x),
-        v8::Int32::New(info.GetIsolate(), vec3.y),
-        v8::Int32::New(info.GetIsolate(), vec3.z)
+        v8::Number::New(info.GetIsolate(), vec3.x),
+        v8::Number::New(info.GetIsolate(), vec3.y),
+        v8::Number::New(info.GetIsolate(), vec3.z)
     };
 
     v8::Local<v8::Object> v8Vec3 = vec3Function->NewInstance(
@@ -112,10 +112,10 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> vec4List[4] = {
-        v8::Int32::New(info.GetIsolate(), vec4[0]),
-        v8::Int32::New(info.GetIsolate(), vec4[1]),
-        v8::Int32::New(info.GetIsolate(), vec4[2]),
-        v8::Int32::New(info.GetIsolate(), vec4[3])
+        v8::Number::New(info.GetIsolate(), vec4[0]),
+        v8::Number::New(info.GetIsolate(), vec4[1]),
+        v8::Number::New(info.GetIsolate(), vec4[2]),
+        v8::Number::New(info.GetIsolate(), vec4[3])
     };
 
     v8::Local<v8::Object> v8Vec4 = vec4Function->NewInstance(
@@ -181,10 +181,10 @@ bool toCpp(glm::vec2& vec2, v8::Local<v8::Object> v8Vec2,
 
     if (v8Vec2->Get(context, v8X).ToLocal(&v8XValue) &&
         v8Vec2->Get(context, v8Y).ToLocal(&v8YValue) &&
-        v8XValue->IsInt32() && v8YValue->IsInt32())
+        v8XValue->IsNumber() && v8YValue->IsNumber())
     {
-        vec2[0] = v8XValue->ToInt32(context).ToLocalChecked()->Value();
-        vec2[1] = v8YValue->ToInt32(context).ToLocalChecked()->Value();
+        vec2[0] = v8XValue->ToNumber(context).ToLocalChecked()->Value();
+        vec2[1] = v8YValue->ToNumber(context).ToLocalChecked()->Value();
 
         return true;
     }
@@ -218,11 +218,11 @@ bool toCpp(glm::vec3& vec3, v8::Local<v8::Object> v8Vec3,
     if (v8Vec3->Get(context, v8X).ToLocal(&v8XValue) &&
         v8Vec3->Get(context, v8Y).ToLocal(&v8YValue) &&
         v8Vec3->Get(context, v8Z).ToLocal(&v8ZValue) &&
-        v8XValue->IsInt32() && v8YValue->IsInt32() && v8ZValue->IsInt32())
+        v8XValue->IsNumber() && v8YValue->IsNumber() && v8ZValue->IsNumber())
     {
-        vec3[0] = v8XValue->ToInt32(context).ToLocalChecked()->Value();
-        vec3[1] = v8YValue->ToInt32(context).ToLocalChecked()->Value();
-        vec3[2] = v8ZValue->ToInt32(context).ToLocalChecked()->Value();
+        vec3[0] = v8XValue->ToNumber(context).ToLocalChecked()->Value();
+        vec3[1] = v8YValue->ToNumber(context).ToLocalChecked()->Value();
+        vec3[2] = v8ZValue->ToNumber(context).ToLocalChecked()->Value();
 
         return true;
     }
@@ -262,13 +262,13 @@ bool toCpp(glm::vec4& vec4, v8::Local<v8::Object> v8Vec4,
         v8Vec4->Get(context, v8Y).ToLocal(&v8YValue) &&
         v8Vec4->Get(context, v8Z).ToLocal(&v8ZValue) &&
         v8Vec4->Get(context, v8W).ToLocal(&v8WValue) &&
-        v8XValue->IsInt32() && v8YValue->IsInt32() &&
-        v8ZValue->IsInt32() && v8WValue->IsInt32())
+        v8XValue->IsNumber() && v8YValue->IsNumber() &&
+        v8ZValue->IsNumber() && v8WValue->IsNumber())
     {
-        vec4[0] = v8XValue->ToInt32(context).ToLocalChecked()->Value();
-        vec4[1] = v8YValue->ToInt32(context).ToLocalChecked()->Value();
-        vec4[2] = v8ZValue->ToInt32(context).ToLocalChecked()->Value();
-        vec4[3] = v8WValue->ToInt32(context).ToLocalChecked()->Value();
+        vec4[0] = v8XValue->ToNumber(context).ToLocalChecked()->Value();
+        vec4[1] = v8YValue->ToNumber(context).ToLocalChecked()->Value();
+        vec4[2] = v8ZValue->ToNumber(context).ToLocalChecked()->Value();
+        vec4[3] = v8WValue->ToNumber(context).ToLocalChecked()->Value();
 
         return true;
     }
@@ -317,11 +317,11 @@ bool toCpp(glm::mat4& mat4, v8::Local<v8::Object> v8Mat4,
         result = result && toCpp(matrix[0],
             v8C0Value->ToObject(context).ToLocalChecked(), info);
         result = result && toCpp(matrix[1],
-            v8C0Value->ToObject(context).ToLocalChecked(), info);
+            v8C1Value->ToObject(context).ToLocalChecked(), info);
         result = result && toCpp(matrix[2],
-            v8C0Value->ToObject(context).ToLocalChecked(), info);
+            v8C2Value->ToObject(context).ToLocalChecked(), info);
         result = result && toCpp(matrix[3],
-            v8C0Value->ToObject(context).ToLocalChecked(), info);
+            v8C3Value->ToObject(context).ToLocalChecked(), info);
 
         if (result)
         {

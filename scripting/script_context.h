@@ -18,15 +18,13 @@ namespace scripting
 
 class ScriptingSystem;
 
-class ScriptContext: SceneContext
+class ScriptContext: public SceneContext
 {
 public:
-    Script* NewScript(std::string resourcePath,
-        IScriptAssetManager* assetManager);
     Script* NewScript(IScriptAssetManager* assetManager);
 
     void Execute(std::string source);
-    void ExecuteFromPath(std::string fullPath);
+    void ExecuteFromPath(std::string path);
     
     const v8::Persistent<v8::Context>& GetContext() {return context;}
 
@@ -38,13 +36,13 @@ public:
     ScriptContext(const ScriptContext&) = delete;
     void operator=(const ScriptContext&) = delete;
 
-private:
-    ScriptContext() = default;
     ~ScriptContext()
     {
         context.Reset();
     }
-    
+
+private:
+    ScriptContext() = default;
     friend ScriptingSystem;
 
 private:
