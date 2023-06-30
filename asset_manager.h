@@ -22,7 +22,7 @@
 #define MATERIAL_PATH   "resources/materials"
 #define MODEL_PATH      "resources/models"
 #define SCENE_PATH      "resources/scenes"
-#define SCRIPT_PATH     "resource/scripts"
+#define SCRIPT_PATH     "resources/scripts"
 
 #define MATERIAL_EXTENSION      ".slmat"
 #define TEXTURE_EXTENSION       ".sltex"
@@ -121,6 +121,8 @@ public:
      */
     bool GetSourceCode(std::string resourcePath, std::string& source) override;
 
+    bool NewSourceCode(std::string fileName) override;
+
     bool IsWorkspaceInitialized() override {return initialized;}
     std::string GetWorkspacePath() override {return workspacePath;}
     
@@ -128,11 +130,13 @@ public:
     void GetAvailableMaterials(std::vector<const char*>& materialPaths);
     void GetAvailableTextures(std::vector<const char*>& texturePaths);
     void GetAvailableScenes(std::vector<std::string>& scenePaths);
+    void GetAvailableScripts(std::vector<std::string>& scriptPaths);
 
     std::string GetScenePath(std::string sceneName) override;
     std::string GetTexturePath(std::string textureName) override;
     std::string GetMaterialPath(std::string materialName) override;
     std::string GetMeshPath(std::string meshName) override;
+    std::string GetScriptPath(std::string scriptName) override;
 
     ~AssetManager()
     {

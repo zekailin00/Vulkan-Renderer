@@ -70,13 +70,13 @@ Scene* Scene::Replicate(Scene::State state)
 }
 
 
-SceneContext* Scene::GetSceneContext(Component::Type type)
+std::shared_ptr<SceneContext> Scene::GetSceneContext(Component::Type type)
 {
-    ASSERT(contexts[(int)type] != nullptr);
     return contexts[(int)type];
 }
 
-void Scene::SetSceneContext(Component::Type type, SceneContext* context)
+void Scene::SetSceneContext(
+    Component::Type type, std::shared_ptr<SceneContext> context)
 {
     contexts[(int)type] = context;
 }

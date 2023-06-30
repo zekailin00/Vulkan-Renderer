@@ -18,6 +18,8 @@
 #include "ui_component.h"
 #include "wireframe_component.h"
 
+#include "scripting_subsystem.h"
+
 #include <tracy/Tracy.hpp>
 #include <map>
 
@@ -58,6 +60,7 @@ private:
     GlfwWindow* window = nullptr;
     XrPlatform* openxr = nullptr;
     Input* input = nullptr;
+    scripting::ScriptingSystem* scripting = nullptr;
 
     std::map<int, Scene*> activeScenes;
     int activeSceneHandleCount = 0;

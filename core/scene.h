@@ -6,6 +6,7 @@
 #include "core_asset_manager.h"
 
 #include <string>
+#include <memory>
 
 
 class Entity;
@@ -30,8 +31,8 @@ public:
     bool SaveToFile(std::string path);
     Scene* Replicate(State state);
 
-    SceneContext* GetSceneContext(Component::Type type);
-    void SetSceneContext(Component::Type type, SceneContext* context);
+    std::shared_ptr<SceneContext> GetSceneContext(Component::Type type);
+    void SetSceneContext(Component::Type type, std::shared_ptr<SceneContext> context);
 
     const std::string& GetSceneName() {return sceneName;}
     ICoreAssetManager* GetAssetManager() {return assetManager;}
@@ -61,5 +62,5 @@ private:
     Entity* rootEntity = nullptr;
     unsigned int entityCounter = 0;
     ICoreAssetManager* assetManager = nullptr;
-    SceneContext* contexts[(int)Component::Type::Size] = {};
+    std::shared_ptr<SceneContext> contexts[(int)Component::Type::Size] = {};
 };

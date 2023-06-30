@@ -108,6 +108,7 @@ Application::Application()
     this->input = Input::GetInstance();
     this->openxr = OpenxrPlatform::Initialize();
     this->eventQueue = EventQueue::GetInstance();
+    this->scripting = scripting::ScriptingSystem::GetInstance();
 
     window->InitializeWindow();
     renderer->InitializeDevice(
@@ -115,6 +116,7 @@ Application::Application()
         MergeExtensions(window->GetVkDeviceExt(), openxr->GetVkDeviceExt()));
     window->InitializeSurface();
     renderer->AllocateResources(window->GetSwapchain());
+    scripting->Initialize();
 }
 
 Application::~Application()

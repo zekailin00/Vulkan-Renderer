@@ -12,6 +12,8 @@
 
 #include "mesh_component.h"
 
+#include "scripting_subsystem.h"
+
 #include <string>
 #include <stb/stb_image.h>
 
@@ -109,6 +111,7 @@ void AssetManager::CreateWorkspace()
     Filesystem::CreateDirectory(workspacePath + "/" + MATERIAL_PATH);
     Filesystem::CreateDirectory(workspacePath + "/" + MODEL_PATH);
     Filesystem::CreateDirectory(workspacePath + "/" + SCENE_PATH);
+    Filesystem::CreateDirectory(workspacePath + "/" + SCRIPT_PATH);
 
     std::ofstream out;
     out.open(workspacePath + "/" + PROJECT_FILE);
@@ -474,6 +477,22 @@ bool AssetManager::GetSourceCode(
     return false;
 }
 
+bool AssetManager::NewSourceCode(std::string fileName)
+{
+    std::string fullPath = GetScriptPath(fileName);
+    std::fstream file;
+
+    {   
+        file.open(fullPath, std::fstream::out);
+        std::string& src = scripting::ScriptingSystem::scriptResource;
+
+        file << (fileName + src);
+        file.close();
+
+        return true;
+    }
+}
+
 std::shared_ptr<renderer::Material> AssetManager::LoadMaterial(
     std::filesystem::path path)
 {
@@ -643,7 +662,29 @@ void AssetManager::GetAvailableScenes(
             e.string(),
             GetWorkspacePath()
         );
+        Filesystem::ToUnixPath(path);
         scenePaths.push_back(path);
+    }
+}
+
+void AssetManager::GetAvailableScripts(
+    std::vector<std::string>& scriptPaths)
+{
+    scriptPaths.clear();
+
+    std::string path = GetWorkspacePath();
+    path = path + "/" + SCRIPT_PATH;
+    std::vector<std::filesystem::path> entries;
+    Filesystem::GetDirectoryEntries(path, entries);
+
+    for (auto& e: entries)
+    {
+        std::string path = Filesystem::RemoveParentPath(
+            e.string(),
+            GetWorkspacePath()
+        );
+        Filesystem::ToUnixPath(path);
+        scriptPaths.push_back(path);
     }
 }
 
@@ -672,6 +713,13 @@ std::string AssetManager::GetMeshPath(std::string meshName)
 {
     std::string path = GetWorkspacePath();
     path = path + "/" + MESH_PATH + "/" + meshName + MESH_EXTENSION;
+    return path;
+}
+
+std::string AssetManager::GetScriptPath(std::string scriptName)
+{
+    std::string path = GetWorkspacePath();
+    path = path + "/" + SCRIPT_PATH + "/" + scriptName + SCRIPT_EXTENSION;
     return path;
 }
 

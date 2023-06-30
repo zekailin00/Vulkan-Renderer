@@ -10,6 +10,7 @@ public:
     virtual std::string GetTexturePath(std::string textureName) = 0;
     virtual std::string GetMaterialPath(std::string materialName) = 0;
     virtual std::string GetMeshPath(std::string meshName) = 0;
+    virtual std::string GetScriptPath(std::string scriptName) = 0;
     virtual std::string GetWorkspacePath() = 0;
     virtual ~ICoreAssetManager() {}
 };
