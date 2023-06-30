@@ -7,6 +7,7 @@
 
 #include "asset_manager.h"
 #include "validation.h"
+#include "logger.h"
 
 
 EntityProperties::EntityProperties()
@@ -38,6 +39,8 @@ EntityProperties::EntityProperties()
                 this->availableMaterialCached = false;
                 this->availableMeshes.clear();
                 this->availableMeshCached = false;
+                this->availableScripts.clear();
+                this->availableScriptCached = false;
                 this->assetManager = nullptr;
             }
             else if (event->type == Event::Type::SceneOpen)
@@ -54,6 +57,8 @@ EntityProperties::EntityProperties()
                 this->availableMaterialCached = false;
                 this->availableMeshes.clear();
                 this->availableMeshCached = false;
+                this->availableScripts.clear();
+                this->availableScriptCached = false;
             }
             else if (event->type == Event::Type::SimStart)
             {
@@ -502,12 +507,60 @@ void EntityProperties::ShowScriptComponent()
 
         ImGui::SeparatorText("Script");
         
-        std::string resourcePath = component->script->GetResourcePath();
+        if (!availableScriptCached)
+        {
+            assetManager->GetAvailableScripts(availableScripts);
+            availableScriptCached = true;
+        }
+
+        std::string currentScriptStr = component->script->GetResourcePath();
+
+        const char* currentScriptPath = currentScriptStr.c_str();
+        if (ImGui::BeginCombo("Script Path", currentScriptPath))
+        {
+            for (int n = 0; n < availableScripts.size(); n++)
+            {
+                const bool isSelected =
+                    strcmp(availableScripts[n].c_str(), currentScriptPath) == 0;
+                if (ImGui::Selectable(availableScripts[n].c_str(), isSelected))
+                {
+                    component->script->LoadSource(
+                        availableScripts[n], selectedEntity);
+                }
+
+                // Set the initial focus to the selected mesh
+                // when opening the combo
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
 
         if (ImGui::Button("Open in VS Code"))
         {
-
+            std::string cmd = "code " + assetManager->GetWorkspacePath();
+            if (system(cmd.c_str()))
+            {
+                Logger::Write(
+                    "Failed to open VS Code.",
+                    Logger::Warning, Logger::MsgType::Editor
+                );
+            }
         }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Compile"))
+        {
+            if (component->script->HasScript())
+            {
+                component->script->LoadSource(
+                    component->script->GetResourcePath(),
+                    selectedEntity
+                );
+            }
+        }
+
         ImGui::Separator();
     }
 }

@@ -269,11 +269,15 @@ void Editor::DrawPopups()
             ImGui::EndCombo();
         }
 
+        std::string sceneFullPath =
+            assetManager->GetWorkspacePath() + "/" + currenScenePath;
+        if (!Filesystem::IsRegularFile(sceneFullPath))
+            ImGui::BeginDisabled();
+
         if (ImGui::Button("OK", ImVec2(120, 0)))
         {
             Scene* scene = Scene::LoadFromFile(
-                assetManager->GetWorkspacePath() + "/" + currenScenePath,
-                assetManager, Scene::State::Editor
+                sceneFullPath, assetManager, Scene::State::Editor
             );
 
             EventSceneOpen* event = new EventSceneOpen();
@@ -284,6 +288,10 @@ void Editor::DrawPopups()
             currenScenePath = "None";
             ImGui::CloseCurrentPopup();
         }
+
+        if (!Filesystem::IsRegularFile(sceneFullPath))
+            ImGui::EndDisabled();
+
         ImGui::SetItemDefaultFocus();
         ImGui::SameLine();
         if (ImGui::Button("Cancel", ImVec2(120, 0)))

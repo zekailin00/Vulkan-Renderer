@@ -36,5 +36,8 @@ private:
     bool availableMaterialCached = false;
     std::vector<const char*> availableMaterials;
 
+    bool availableScriptCached = false;
+    std::vector<std::string> availableScripts;
+
     AssetManager* assetManager;
 };

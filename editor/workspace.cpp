@@ -6,6 +6,8 @@
 #include "event_queue.h"
 #include "events.h"
 
+#include "scripting_subsystem.h"
+
 enum class WorkspacePopup
 {
     None,
@@ -139,9 +141,17 @@ void Workspace::DrawButtons()
             EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
         }
 
-        if (ImGui::MenuItem("New Script (TODO:)"))
+        if (ImGui::MenuItem("New Script"))
         {
+            std::filesystem::path path = Filesystem::GetUnusedFilePath(
+                assetManager->GetScriptPath("source")
+            );
 
+            std::string fileName = path.stem().string();
+            assetManager->NewSourceCode(fileName);
+
+            EventWorkspaceChanged* event = new EventWorkspaceChanged();
+            EventQueue::GetInstance()->Publish(EventQueue::Editor, event);
         }
 
         ImGui::EndPopup();
