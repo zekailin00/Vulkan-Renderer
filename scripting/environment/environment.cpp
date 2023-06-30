@@ -25,7 +25,7 @@ v8::Local<v8::FunctionTemplate> MakeEntityTemplate(v8::Isolate* isolate)
     v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(isolate);
     v8::Local<v8::ObjectTemplate> prototype = temp->PrototypeTemplate();
 
-    prototype->SetInternalFieldCount(1);
+    temp->InstanceTemplate()->SetInternalFieldCount(1);
 
     prototype->Set(isolate, "AddComponent",
         v8::FunctionTemplate::New(isolate, AddComponent));

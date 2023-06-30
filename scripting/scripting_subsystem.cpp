@@ -42,7 +42,8 @@ void ScriptingSystem::Initialize(char* argv[])
 
     ComponentLocator::SetInitializer(
         Component::Type::Script, ScriptInitializer());
-    
+    ComponentLocator::SetDeserializer(
+        Component::Type::Script, ScriptDeserializer());
     this->initialized = true;
 }
 
@@ -88,6 +89,8 @@ ScriptContext* ScriptingSystem::NewContext()
     scriptContext->context.Reset(isolate, context);
     scriptContext->isolate = isolate;
 
+    scriptContext->ExecuteFromPath("resources/javascript/math.js");
+
     return scriptContext;
 }
 
@@ -122,7 +125,7 @@ void ScriptingSystem::BuildEnvironment()
 
 
 std::string ScriptingSystem::scriptResource =
-" = function()\n"
+" = function(entity)\n"
 "{\n"
 "    this.OnCreated = function(){\n\n"
 "    }\n\n"

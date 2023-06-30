@@ -9,6 +9,7 @@
 #include <v8-exception.h>
 #include <v8-persistent-handle.h>
 
+#include "entity.h"
 #include "timestep.h"
 #include "script_asset_manager.h"
 
@@ -30,12 +31,14 @@ public:
      * @param resourcePath path to the source code 
      * relative to the workspace directory.
      * @return True if source code is found at the 
-     * specified path and compiled successfully.
+     * specified path. Compilation failure still returns true.
      */
-    bool LoadSource(std::string resourcePath);
+    bool LoadSource(std::string resourcePath, Entity* entity);
 
-    bool LoadSource(std::string resourcePath, std::string source);
+    bool LoadSource(std::string resourcePath, std::string source, Entity* entity);
     std::string GetResourcePath() {return resourcePath;}
+
+    bool HasScript() {return !(resourcePath == "None");}
 
     /**
      * @brief Run callback "OnUpdated",
@@ -54,7 +57,7 @@ public:
 private:
     Script() = default;
 
-    bool Compile();
+    bool Compile(Entity* entity);
     void RunCallback(std::string callbackName, Timestep ts);
 
     friend ScriptContext;

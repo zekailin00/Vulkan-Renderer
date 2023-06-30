@@ -4,10 +4,12 @@
 #include <v8-local-handle.h>
 #include <v8-function.h>
 #include <v8-value.h>
+#include <v8-external.h>
 #include <filesystem>
 
 #include "script_context.h"
 #include "script_exception.h"
+#include "scripting_subsystem.h"
 
 #include "validation.h"
 #include "logger.h"
@@ -16,7 +18,7 @@
 namespace scripting
 {
 
-bool Script::LoadSource(std::string resourcePath)
+bool Script::LoadSource(std::string resourcePath, Entity* entity)
 {
     bool result;
 
@@ -35,18 +37,20 @@ bool Script::LoadSource(std::string resourcePath)
         return false;
     }
     
-    return Compile();
+    Compile(entity);
+    return true;
 }
 
-bool Script::LoadSource(std::string resourcePath, std::string source)
+bool Script::LoadSource(
+    std::string resourcePath, std::string source, Entity* entity)
 {
     this->resourcePath = resourcePath;
     this->source = source;
 
-    return Compile();
+    return Compile(entity);
 }
 
-bool Script::Compile()
+bool Script::Compile(Entity* entity)
 {
     scriptInstance.Reset();
     OnCreatedCalled = false;
@@ -114,8 +118,25 @@ bool Script::Compile()
         prototype = value.As<v8::Function>();
     }
 
+    v8::Local<v8::String> v8EntityKey =
+        v8::String::NewFromUtf8Literal(isolate, "entity");
+    
+    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+    v8::Local<v8::FunctionTemplate> entityTemplate =
+        v8::Local<v8::FunctionTemplate>::New(isolate,
+        scriptingSystem->GetEntityTemplate());
+
+    v8::Local<v8::Function> entityFunction =
+        entityTemplate->GetFunction(localContext).ToLocalChecked();
+    v8::Local<v8::Object> v8Entity = 
+        entityFunction->NewInstance(localContext).ToLocalChecked();
+    
+    v8Entity->SetInternalField(0, v8::External::New(isolate, entity));
+    v8::Local<v8::Value> v8EntityValue = v8Entity.As<v8::Value>();
+
     v8::Local<v8::Object> localScriptInstance;
-    if (!prototype->NewInstance(localContext).ToLocal(&localScriptInstance))
+    if (!prototype->NewInstance(localContext, 1, &v8EntityValue)
+        .ToLocal(&localScriptInstance))
     {
         Logger::Write(
             "[Scripting] Cannot create an instance.",
@@ -196,7 +217,7 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
             v8::Number::New(isolate, ts).As<v8::Value>();
         
         if (!v8Callback->Call(
-            localContext, localContext->Global(), 1, &v8Timestep)
+            localContext, localScriptInstance, 1, &v8Timestep)
             .ToLocal(&result))
         {
             ASSERT(tryCatch.HasCaught());
@@ -208,7 +229,7 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
     else if (callbackName == "OnCreated" || callbackName == "OnDestroyed")
     {
         if (!v8Callback->Call(
-            localContext, localContext->Global(), 0, nullptr)
+            localContext, localScriptInstance, 0, nullptr)
             .ToLocal(&result))
         {
             ASSERT(tryCatch.HasCaught());
