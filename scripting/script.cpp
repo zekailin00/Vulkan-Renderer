@@ -265,25 +265,32 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
     }
 }
 
-int Script::AddEventSubscriber(std::function<void (Event *)> callback)
+int Script::AddEventSubscriber(
+    SubscriberContext* subscriberContext,
+    std::function<void (Event *)> callback)
 {
-    int handle = EventQueue::GetInstance()->Subscribe(
+    subscriberContext->isolate = isolate;
+    subscriberContext->scriptContext = scriptContext;
+
+    subscriberContext->handle = EventQueue::GetInstance()->Subscribe(
         EventQueue::InputXR,
         callback
     );
 
-    subscriberHandles.push_back(handle);
-    return handle;
+    subscriberContexts.push_back(subscriberContext);
+    return subscriberContext->handle;
 }
 
 void Script::UnSubscribeAll()
 {
-    for (int handle: subscriberHandles)
+    for (auto* context: subscriberContexts)
     {
-        EventQueue::GetInstance()->Unsubscribe(handle);
+        EventQueue::GetInstance()->Unsubscribe(context->handle);
+        context->function.Reset();
+        delete context;
     }
 
-    subscriberHandles.clear();
+    subscriberContexts.clear();
 }
 
 Script::~Script()

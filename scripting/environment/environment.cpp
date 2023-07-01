@@ -115,6 +115,13 @@ v8::Local<v8::ObjectTemplate> MakeInputTemplate(v8::Isolate* isolate)
 
     temp->Set(isolate, "LeftAimEvent",
         v8::FunctionTemplate::New(isolate, LeftAimEvent));
+    temp->Set(isolate, "RightAimEvent",
+        v8::FunctionTemplate::New(isolate, RightAimEvent));
+    temp->Set(isolate, "LeftGripEvent",
+        v8::FunctionTemplate::New(isolate, LeftGripEvent));
+    temp->Set(isolate, "RightGripEvent",
+        v8::FunctionTemplate::New(isolate, RightGripEvent));
+    
 
 
     return handleScope.Escape(temp);

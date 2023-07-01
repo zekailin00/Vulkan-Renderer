@@ -14,16 +14,16 @@ namespace scripting
 {
 
 v8::Local<v8::Object> toV8(
-    const glm::vec2& vec2, const v8::FunctionCallbackInfo<v8::Value> &info)
+    const glm::vec2& vec2, v8::Isolate* isolate)
 {
-    v8::EscapableHandleScope handleScope(info.GetIsolate());
+    v8::EscapableHandleScope handleScope(isolate);
 
     v8::Local<v8::String> prototypeName =
-        v8::String::NewFromUtf8(info.GetIsolate(), "Vec2").ToLocalChecked();
+        v8::String::NewFromUtf8(isolate, "Vec2").ToLocalChecked();
     v8::Local<v8::Value> value;
     v8::Local<v8::Function> vec2Function;
 
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     if (!context->Global()
         ->Get(context, prototypeName).ToLocal(&value) ||
         !value->IsObject())
@@ -40,8 +40,8 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> vec2List[2] = {
-        v8::Number::New(info.GetIsolate(), vec2[0]),
-        v8::Number::New(info.GetIsolate(), vec2[1]),
+        v8::Number::New(isolate, vec2[0]),
+        v8::Number::New(isolate, vec2[1]),
     };
 
     v8::Local<v8::Object> v8Vec2 = vec2Function->NewInstance(
@@ -51,16 +51,16 @@ v8::Local<v8::Object> toV8(
 }
 
 v8::Local<v8::Object> toV8(
-    const glm::vec3& vec3, const v8::FunctionCallbackInfo<v8::Value> &info)
+    const glm::vec3& vec3, v8::Isolate* isolate)
 {
-    v8::EscapableHandleScope handleScope(info.GetIsolate());
+    v8::EscapableHandleScope handleScope(isolate);
 
     v8::Local<v8::String> prototypeName =
-        v8::String::NewFromUtf8(info.GetIsolate(), "Vec3").ToLocalChecked();
+        v8::String::NewFromUtf8(isolate, "Vec3").ToLocalChecked();
     v8::Local<v8::Value> value;
     v8::Local<v8::Function> vec3Function;
 
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     if (!context->Global()
         ->Get(context, prototypeName).ToLocal(&value) ||
         !value->IsObject())
@@ -77,9 +77,9 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> vec3List[3] = {
-        v8::Number::New(info.GetIsolate(), vec3.x),
-        v8::Number::New(info.GetIsolate(), vec3.y),
-        v8::Number::New(info.GetIsolate(), vec3.z)
+        v8::Number::New(isolate, vec3.x),
+        v8::Number::New(isolate, vec3.y),
+        v8::Number::New(isolate, vec3.z)
     };
 
     v8::Local<v8::Object> v8Vec3 = vec3Function->NewInstance(
@@ -89,16 +89,16 @@ v8::Local<v8::Object> toV8(
 }
 
 v8::Local<v8::Object> toV8(
-    const glm::vec4& vec4, const v8::FunctionCallbackInfo<v8::Value> &info)
+    const glm::vec4& vec4, v8::Isolate* isolate)
 {
-    v8::EscapableHandleScope handleScope(info.GetIsolate());
+    v8::EscapableHandleScope handleScope(isolate);
 
     v8::Local<v8::String> prototypeName =
-        v8::String::NewFromUtf8(info.GetIsolate(), "Vec4").ToLocalChecked();
+        v8::String::NewFromUtf8(isolate, "Vec4").ToLocalChecked();
     v8::Local<v8::Value> value;
     v8::Local<v8::Function> vec4Function;
 
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     if (!context->Global()
         ->Get(context, prototypeName).ToLocal(&value) ||
         !value->IsObject())
@@ -115,10 +115,10 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> vec4List[4] = {
-        v8::Number::New(info.GetIsolate(), vec4[0]),
-        v8::Number::New(info.GetIsolate(), vec4[1]),
-        v8::Number::New(info.GetIsolate(), vec4[2]),
-        v8::Number::New(info.GetIsolate(), vec4[3])
+        v8::Number::New(isolate, vec4[0]),
+        v8::Number::New(isolate, vec4[1]),
+        v8::Number::New(isolate, vec4[2]),
+        v8::Number::New(isolate, vec4[3])
     };
 
     v8::Local<v8::Object> v8Vec4 = vec4Function->NewInstance(
@@ -128,16 +128,16 @@ v8::Local<v8::Object> toV8(
 }
 
 v8::Local<v8::Object> toV8(
-    const glm::mat4& mat4, const v8::FunctionCallbackInfo<v8::Value> &info)
+    const glm::mat4& mat4, v8::Isolate* isolate)
 {
-    v8::EscapableHandleScope handleScope(info.GetIsolate());
+    v8::EscapableHandleScope handleScope(isolate);
 
     v8::Local<v8::String> prototypeName =
-        v8::String::NewFromUtf8(info.GetIsolate(), "Mat4").ToLocalChecked();
+        v8::String::NewFromUtf8(isolate, "Mat4").ToLocalChecked();
     v8::Local<v8::Value> value;
     v8::Local<v8::Function> mat4Function;
 
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
     if (!context->Global()
         ->Get(context, prototypeName).ToLocal(&value) ||
         !value->IsObject())
@@ -154,10 +154,10 @@ v8::Local<v8::Object> toV8(
     }
 
     v8::Local<v8::Value> mat4List[4] = {
-        toV8(glm::vec4(mat4[0]), info),
-        toV8(glm::vec4(mat4[1]), info),
-        toV8(glm::vec4(mat4[2]), info),
-        toV8(glm::vec4(mat4[3]), info),
+        toV8(glm::vec4(mat4[0]), isolate),
+        toV8(glm::vec4(mat4[1]), isolate),
+        toV8(glm::vec4(mat4[2]), isolate),
+        toV8(glm::vec4(mat4[3]), isolate),
     };
 
     v8::Local<v8::Object> v8Mat4 = mat4Function->NewInstance(
@@ -167,16 +167,16 @@ v8::Local<v8::Object> toV8(
 }
 
 bool toCpp(glm::vec2& vec2, v8::Local<v8::Object> v8Vec2,
-    const v8::FunctionCallbackInfo<v8::Value> &info)
+    v8::Isolate* isolate)
 {
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::String> v8X =
-        v8::String::NewFromUtf8(info.GetIsolate(), "x")
+        v8::String::NewFromUtf8(isolate, "x")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8Y =
-        v8::String::NewFromUtf8(info.GetIsolate(), "y")
+        v8::String::NewFromUtf8(isolate, "y")
         .ToLocalChecked();
 
     v8::Local<v8::Value> v8XValue;
@@ -198,20 +198,20 @@ bool toCpp(glm::vec2& vec2, v8::Local<v8::Object> v8Vec2,
 }
 
 bool toCpp(glm::vec3& vec3, v8::Local<v8::Object> v8Vec3,
-    const v8::FunctionCallbackInfo<v8::Value> &info)
+    v8::Isolate* isolate)
 {
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::String> v8X =
-        v8::String::NewFromUtf8(info.GetIsolate(), "x")
+        v8::String::NewFromUtf8(isolate, "x")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8Y =
-        v8::String::NewFromUtf8(info.GetIsolate(), "y")
+        v8::String::NewFromUtf8(isolate, "y")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8Z =
-        v8::String::NewFromUtf8(info.GetIsolate(), "z")
+        v8::String::NewFromUtf8(isolate, "z")
         .ToLocalChecked();
 
     v8::Local<v8::Value> v8XValue;
@@ -236,24 +236,24 @@ bool toCpp(glm::vec3& vec3, v8::Local<v8::Object> v8Vec3,
 }
 
 bool toCpp(glm::vec4& vec4, v8::Local<v8::Object> v8Vec4,
-    const v8::FunctionCallbackInfo<v8::Value> &info)
+    v8::Isolate* isolate)
 {
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::String> v8X =
-        v8::String::NewFromUtf8(info.GetIsolate(), "x")
+        v8::String::NewFromUtf8(isolate, "x")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8Y =
-        v8::String::NewFromUtf8(info.GetIsolate(), "y")
+        v8::String::NewFromUtf8(isolate, "y")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8Z =
-        v8::String::NewFromUtf8(info.GetIsolate(), "z")
+        v8::String::NewFromUtf8(isolate, "z")
         .ToLocalChecked();
     
     v8::Local<v8::String> v8W =
-        v8::String::NewFromUtf8(info.GetIsolate(), "w")
+        v8::String::NewFromUtf8(isolate, "w")
         .ToLocalChecked();
 
     v8::Local<v8::Value> v8XValue;
@@ -282,24 +282,24 @@ bool toCpp(glm::vec4& vec4, v8::Local<v8::Object> v8Vec4,
 }
 
 bool toCpp(glm::mat4& mat4, v8::Local<v8::Object> v8Mat4,
-    const v8::FunctionCallbackInfo<v8::Value> &info)
+    v8::Isolate* isolate)
 {
-    v8::Local<v8::Context> context = info.GetIsolate()->GetCurrentContext();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::String> v8C0 =
-        v8::String::NewFromUtf8(info.GetIsolate(), "c0")
+        v8::String::NewFromUtf8(isolate, "c0")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8C1 =
-        v8::String::NewFromUtf8(info.GetIsolate(), "c1")
+        v8::String::NewFromUtf8(isolate, "c1")
         .ToLocalChecked();
 
     v8::Local<v8::String> v8C2 =
-        v8::String::NewFromUtf8(info.GetIsolate(), "c2")
+        v8::String::NewFromUtf8(isolate, "c2")
         .ToLocalChecked();
     
     v8::Local<v8::String> v8C3 =
-        v8::String::NewFromUtf8(info.GetIsolate(), "c3")
+        v8::String::NewFromUtf8(isolate, "c3")
         .ToLocalChecked();
 
     v8::Local<v8::Value> v8C0Value;
@@ -318,13 +318,13 @@ bool toCpp(glm::mat4& mat4, v8::Local<v8::Object> v8Mat4,
         glm::mat4 matrix;
 
         result = result && toCpp(matrix[0],
-            v8C0Value->ToObject(context).ToLocalChecked(), info);
+            v8C0Value->ToObject(context).ToLocalChecked(), isolate);
         result = result && toCpp(matrix[1],
-            v8C1Value->ToObject(context).ToLocalChecked(), info);
+            v8C1Value->ToObject(context).ToLocalChecked(), isolate);
         result = result && toCpp(matrix[2],
-            v8C2Value->ToObject(context).ToLocalChecked(), info);
+            v8C2Value->ToObject(context).ToLocalChecked(), isolate);
         result = result && toCpp(matrix[3],
-            v8C3Value->ToObject(context).ToLocalChecked(), info);
+            v8C3Value->ToObject(context).ToLocalChecked(), isolate);
 
         if (result)
         {
@@ -359,8 +359,8 @@ bool GetBinaryMat4Operants(
     }
 
     bool result = true;
-    result = result && toCpp(lhs, info[0].As<v8::Object>(), info);
-    result = result && toCpp(rhs, info[1].As<v8::Object>(), info);
+    result = result && toCpp(lhs, info[0].As<v8::Object>(), info.GetIsolate());
+    result = result && toCpp(rhs, info[1].As<v8::Object>(), info.GetIsolate());
 
     if (!result)
     {
@@ -386,7 +386,7 @@ void Mat4Add(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     retval = lhs + rhs;
-    v8Retval = toV8(retval, info);
+    v8Retval = toV8(retval, info.GetIsolate());
 
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
@@ -403,7 +403,7 @@ void Mat4Multiply(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     retval = lhs * rhs;
-    v8Retval = toV8(retval, info);
+    v8Retval = toV8(retval, info.GetIsolate());
 
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
@@ -420,7 +420,7 @@ void Mat4Subtract(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     retval = lhs - rhs;
-    v8Retval = toV8(retval, info);
+    v8Retval = toV8(retval, info.GetIsolate());
 
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
@@ -438,7 +438,7 @@ void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     glm::mat4 operant;
-    bool result = toCpp(operant, info[0].As<v8::Object>(), info);
+    bool result = toCpp(operant, info[0].As<v8::Object>(), info.GetIsolate());
 
     if (!result)
     {
@@ -451,7 +451,7 @@ void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     operant = glm::inverse(operant);
-    v8::Local<v8::Object> v8Retval = toV8(operant, info);
+    v8::Local<v8::Object> v8Retval = toV8(operant, info.GetIsolate());
 
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
@@ -460,7 +460,7 @@ void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
 void Mat4Identity(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     glm::mat4 retval(1.0);
-    v8::Local<v8::Object> v8Retval = toV8(retval, info);
+    v8::Local<v8::Object> v8Retval = toV8(retval, info.GetIsolate());
 
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
@@ -479,7 +479,7 @@ void Mat4Rotation(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     glm::vec3 rotation;
-    bool result = toCpp(rotation, info[0].As<v8::Object>(), info);
+    bool result = toCpp(rotation, info[0].As<v8::Object>(), info.GetIsolate());
 
     if (!result)
     {
@@ -494,7 +494,7 @@ void Mat4Rotation(const v8::FunctionCallbackInfo<v8::Value> &info)
     glm::mat4 rotationMat =
         glm::eulerAngleXYZ(rotation[0], rotation[1], rotation[2]);
     
-    v8::Local<v8::Object> v8Retval = toV8(rotationMat, info);
+    v8::Local<v8::Object> v8Retval = toV8(rotationMat, info.GetIsolate());
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
 }
@@ -511,7 +511,7 @@ void Mat4Translate(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     glm::vec3 translate;
-    bool result = toCpp(translate, info[0].As<v8::Object>(), info);
+    bool result = toCpp(translate, info[0].As<v8::Object>(), info.GetIsolate());
 
     if (!result)
     {
@@ -525,7 +525,7 @@ void Mat4Translate(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     glm::mat4 translateMat = glm::translate(glm::mat4(1.0f), translate);
     
-    v8::Local<v8::Object> v8Retval = toV8(translateMat, info);
+    v8::Local<v8::Object> v8Retval = toV8(translateMat, info.GetIsolate());
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
 }
@@ -542,7 +542,7 @@ void Mat4Scale(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
 
     glm::vec3 scale;
-    bool result = toCpp(scale, info[0].As<v8::Object>(), info);
+    bool result = toCpp(scale, info[0].As<v8::Object>(), info.GetIsolate());
 
     if (!result)
     {
@@ -556,7 +556,7 @@ void Mat4Scale(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), scale);
     
-    v8::Local<v8::Object> v8Retval = toV8(scaleMat, info);
+    v8::Local<v8::Object> v8Retval = toV8(scaleMat, info.GetIsolate());
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
 }

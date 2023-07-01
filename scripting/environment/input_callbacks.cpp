@@ -11,6 +11,7 @@
 #include "validation.h"
 
 #include "script.h"
+#include "script_context.h"
 #include "script_exception.h"
 #include "script_math.h"
 
@@ -38,13 +39,19 @@ void LeftAimEvent(const v8::FunctionCallbackInfo<v8::Value> &info)
         holder->GetInternalField(0).As<v8::External>();
     Script* script = static_cast<Script*>(field->Value());
     ASSERT(script != nullptr);
+
+    Script::SubscriberContext* subscriberContext = new Script::SubscriberContext();
+    subscriberContext->function.Reset(isolate, info[0].As<v8::Function>());
     
-    int handle = script->AddEventSubscriber(
-        [&info] (Event* event)
+    int handle = script->AddEventSubscriber(subscriberContext,
+        [subscriberContext] (Event* event)
         {
-            v8::Isolate* isolate = info.GetIsolate();
-            v8::HandleScope handleScope(isolate);
-            v8::Local<v8::Context> context = isolate->GetCurrentContext();
+            v8::HandleScope handleScope(subscriberContext->isolate);
+            v8::Local<v8::Context> localContext = v8::Local<v8::Context>::New(
+                subscriberContext->isolate,
+                subscriberContext->scriptContext->GetContext()
+            );
+            v8::Context::Scope contextScope(localContext);
 
             if (event->type == Event::Type::LeftAimPose)
             {
@@ -52,18 +59,22 @@ void LeftAimEvent(const v8::FunctionCallbackInfo<v8::Value> &info)
                     dynamic_cast<EventLeftAimPose*>(event);
                 
                 v8::Local<v8::Value> v8Transfrom;
-                v8Transfrom = toV8(e->transform, info).As<v8::Value>();
+                v8Transfrom = toV8(
+                    e->transform, subscriberContext->isolate).As<v8::Value>();
 
-                v8::Local<v8::Function> callback = info[0].As<v8::Function>();
+                v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(
+                    subscriberContext->isolate,
+                    subscriberContext->function
+                );
 
-                v8::TryCatch tryCatch(isolate);
+                v8::TryCatch tryCatch(subscriberContext->isolate);
                 v8::Local<v8::Value> result;
 
-                if (!callback->Call(context, context->Global(), 1,&v8Transfrom)
+                if (!callback->Call(localContext, localContext->Global(), 1,&v8Transfrom)
                     .ToLocal(&result))
                 {
                     ASSERT(tryCatch.HasCaught());
-                    ExceptionHandler(&tryCatch, isolate);
+                    ExceptionHandler(&tryCatch, subscriberContext->isolate);
                 }
             }
         }
@@ -74,17 +85,194 @@ void LeftAimEvent(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 void RightAimEvent(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+if (info.Length() != 1 || !info[0]->IsFunction())
+    {
+        Logger::Write(
+            "[Scripting] RightAimEvent parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
 
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(isolate);
+
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+    Script* script = static_cast<Script*>(field->Value());
+    ASSERT(script != nullptr);
+
+    Script::SubscriberContext* subscriberContext = new Script::SubscriberContext();
+    subscriberContext->function.Reset(isolate, info[0].As<v8::Function>());
+    
+    int handle = script->AddEventSubscriber(subscriberContext,
+        [subscriberContext] (Event* event)
+        {
+            v8::HandleScope handleScope(subscriberContext->isolate);
+            v8::Local<v8::Context> localContext = v8::Local<v8::Context>::New(
+                subscriberContext->isolate,
+                subscriberContext->scriptContext->GetContext()
+            );
+            v8::Context::Scope contextScope(localContext);
+
+            if (event->type == Event::Type::RightAimPose)
+            {
+                EventRightAimPose* e =
+                    dynamic_cast<EventRightAimPose*>(event);
+                
+                v8::Local<v8::Value> v8Transfrom;
+                v8Transfrom = toV8(
+                    e->transform, subscriberContext->isolate).As<v8::Value>();
+
+                v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(
+                    subscriberContext->isolate,
+                    subscriberContext->function
+                );
+
+                v8::TryCatch tryCatch(subscriberContext->isolate);
+                v8::Local<v8::Value> result;
+
+                if (!callback->Call(localContext, localContext->Global(), 1,&v8Transfrom)
+                    .ToLocal(&result))
+                {
+                    ASSERT(tryCatch.HasCaught());
+                    ExceptionHandler(&tryCatch, subscriberContext->isolate);
+                }
+            }
+        }
+    );
+
+    info.GetReturnValue().Set(handle);
 }
 
 void LeftGripEvent(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+if (info.Length() != 1 || !info[0]->IsFunction())
+    {
+        Logger::Write(
+            "[Scripting] LeftGripEvent parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
 
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(isolate);
+
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+    Script* script = static_cast<Script*>(field->Value());
+    ASSERT(script != nullptr);
+
+    Script::SubscriberContext* subscriberContext = new Script::SubscriberContext();
+    subscriberContext->function.Reset(isolate, info[0].As<v8::Function>());
+    
+    int handle = script->AddEventSubscriber(subscriberContext,
+        [subscriberContext] (Event* event)
+        {
+            v8::HandleScope handleScope(subscriberContext->isolate);
+            v8::Local<v8::Context> localContext = v8::Local<v8::Context>::New(
+                subscriberContext->isolate,
+                subscriberContext->scriptContext->GetContext()
+            );
+            v8::Context::Scope contextScope(localContext);
+
+            if (event->type == Event::Type::LeftGripPose)
+            {
+                EventLeftGripPose* e =
+                    dynamic_cast<EventLeftGripPose*>(event);
+                
+                v8::Local<v8::Value> v8Transfrom;
+                v8Transfrom = toV8(
+                    e->transform, subscriberContext->isolate).As<v8::Value>();
+
+                v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(
+                    subscriberContext->isolate,
+                    subscriberContext->function
+                );
+
+                v8::TryCatch tryCatch(subscriberContext->isolate);
+                v8::Local<v8::Value> result;
+
+                if (!callback->Call(localContext, localContext->Global(), 1,&v8Transfrom)
+                    .ToLocal(&result))
+                {
+                    ASSERT(tryCatch.HasCaught());
+                    ExceptionHandler(&tryCatch, subscriberContext->isolate);
+                }
+            }
+        }
+    );
+
+    info.GetReturnValue().Set(handle);
 }
 
 void RightGripEvent(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+if (info.Length() != 1 || !info[0]->IsFunction())
+    {
+        Logger::Write(
+            "[Scripting] RightGripEvent parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
 
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(isolate);
+
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+    Script* script = static_cast<Script*>(field->Value());
+    ASSERT(script != nullptr);
+
+    Script::SubscriberContext* subscriberContext = new Script::SubscriberContext();
+    subscriberContext->function.Reset(isolate, info[0].As<v8::Function>());
+    
+    int handle = script->AddEventSubscriber(subscriberContext,
+        [subscriberContext] (Event* event)
+        {
+            v8::HandleScope handleScope(subscriberContext->isolate);
+            v8::Local<v8::Context> localContext = v8::Local<v8::Context>::New(
+                subscriberContext->isolate,
+                subscriberContext->scriptContext->GetContext()
+            );
+            v8::Context::Scope contextScope(localContext);
+
+            if (event->type == Event::Type::RightGripPose)
+            {
+                EventRightGripPose* e =
+                    dynamic_cast<EventRightGripPose*>(event);
+                
+                v8::Local<v8::Value> v8Transfrom;
+                v8Transfrom = toV8(
+                    e->transform, subscriberContext->isolate).As<v8::Value>();
+
+                v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(
+                    subscriberContext->isolate,
+                    subscriberContext->function
+                );
+
+                v8::TryCatch tryCatch(subscriberContext->isolate);
+                v8::Local<v8::Value> result;
+
+                if (!callback->Call(localContext, localContext->Global(), 1,&v8Transfrom)
+                    .ToLocal(&result))
+                {
+                    ASSERT(tryCatch.HasCaught());
+                    ExceptionHandler(&tryCatch, subscriberContext->isolate);
+                }
+            }
+        }
+    );
+
+    info.GetReturnValue().Set(handle);
 }
 
 } // namespace scripting

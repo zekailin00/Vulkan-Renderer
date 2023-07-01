@@ -25,6 +25,15 @@ class Script
 {
 
 public:
+    struct SubscriberContext
+    {
+        v8::Persistent<v8::Function> function;
+        v8::Isolate* isolate;
+        ScriptContext* scriptContext;
+        int handle;
+    };
+
+public:
     /**
      * @brief Load the source code at the resource path
      * in the workspace directory. If file is not found,
@@ -44,7 +53,10 @@ public:
 
     bool HasScript() {return !(resourcePath == "None");}
 
-    int AddEventSubscriber(std::function<void (Event *)> callback);
+    int AddEventSubscriber(
+        SubscriberContext* subscriberContext,
+        std::function<void (Event *)> callback
+    );
 
     /**
      * @brief Run callback "OnUpdated",
@@ -73,7 +85,7 @@ private:
     std::string resourcePath = "None";
     std::string source = "";
     v8::Persistent<v8::Object> scriptInstance;
-    std::list<int> subscriberHandles;
+    std::list<SubscriberContext*> subscriberContexts;
     bool OnCreatedCalled = false;
 
     ScriptContext* scriptContext = nullptr;

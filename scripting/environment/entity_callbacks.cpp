@@ -206,7 +206,7 @@ void GetGlobalTransform(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     const glm::mat4& transform = entity->GetGlobalTransform();
 
-    v8::Local<v8::Object> v8Mat4 = toV8(transform, info);
+    v8::Local<v8::Object> v8Mat4 = toV8(transform, info.GetIsolate());
     info.GetReturnValue().Set(v8Mat4);
 }
 
@@ -223,7 +223,7 @@ void GetLocalTransform(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     const glm::mat4& transform = entity->GetLocalTransform();
 
-    v8::Local<v8::Object> v8Mat4 = toV8(transform, info);
+    v8::Local<v8::Object> v8Mat4 = toV8(transform, info.GetIsolate());
     info.GetReturnValue().Set(v8Mat4);
 }
 
@@ -253,7 +253,7 @@ void SetLocalTransform1(const v8::FunctionCallbackInfo<v8::Value> &info)
     glm::mat4 transform;
 
     bool result = toCpp(transform, 
-        info[0]->ToObject(context).ToLocalChecked(), info);
+        info[0]->ToObject(context).ToLocalChecked(), info.GetIsolate());
     
     if (result)
     {
@@ -299,11 +299,11 @@ void SetLocalTransform2(const v8::FunctionCallbackInfo<v8::Value> &info)
     bool result = true;
 
     result = result && toCpp(postion,
-        info[0]->ToObject(context).ToLocalChecked(), info);
+        info[0]->ToObject(context).ToLocalChecked(), info.GetIsolate());
     result = result && toCpp(rotation,
-        info[1]->ToObject(context).ToLocalChecked(), info);
+        info[1]->ToObject(context).ToLocalChecked(), info.GetIsolate());
     result = result && toCpp(scale,
-        info[2]->ToObject(context).ToLocalChecked(), info);
+        info[2]->ToObject(context).ToLocalChecked(), info.GetIsolate());
 
     if (result)
     {
@@ -331,7 +331,7 @@ void GetLocalTranslation(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     glm::vec3 translation = entity->GetLocalTranslation();
 
-    v8::Local<v8::Object> v8Translation = toV8(translation, info);
+    v8::Local<v8::Object> v8Translation = toV8(translation, info.GetIsolate());
     info.GetReturnValue().Set(v8Translation);
 }
 
@@ -348,7 +348,7 @@ void GetLocalRotation(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     glm::vec3 rotation = entity->GetLocalRotation();
 
-    v8::Local<v8::Object> v8Rotation = toV8(rotation, info);
+    v8::Local<v8::Object> v8Rotation = toV8(rotation, info.GetIsolate());
     info.GetReturnValue().Set(v8Rotation);
 }
 
@@ -365,7 +365,7 @@ void GetLocalScale(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     glm::vec3 scale = entity->GetLocalScale();
 
-    v8::Local<v8::Object> v8Scale = toV8(scale, info);
+    v8::Local<v8::Object> v8Scale = toV8(scale, info.GetIsolate());
     info.GetReturnValue().Set(v8Scale);
 }
 
