@@ -80,9 +80,6 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/core")
 # Renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")
 
-# Scripting subsystem
-add_subdirectory("${CMAKE_SOURCE_DIR}/scripting")
-
 # platform library
 add_library(platform
     ${PLT_HEADERS}
@@ -99,6 +96,8 @@ target_link_libraries(platform
     glfw
 )
 
+# Scripting subsystem
+add_subdirectory("${CMAKE_SOURCE_DIR}/scripting")
 
 # Target settings
 add_library(engine

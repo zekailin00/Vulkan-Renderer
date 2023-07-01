@@ -126,11 +126,11 @@ public:
     bool IsWorkspaceInitialized() override {return initialized;}
     std::string GetWorkspacePath() override {return workspacePath;}
     
-    void GetAvailableMeshes(std::vector<const char*>& meshPaths);
-    void GetAvailableMaterials(std::vector<const char*>& materialPaths);
-    void GetAvailableTextures(std::vector<const char*>& texturePaths);
-    void GetAvailableScenes(std::vector<std::string>& scenePaths);
-    void GetAvailableScripts(std::vector<std::string>& scriptPaths);
+    void GetAvailableMeshes(std::vector<const char*>& meshPaths) override;
+    void GetAvailableMaterials(std::vector<const char*>& materialPaths) override;
+    void GetAvailableTextures(std::vector<const char*>& texturePaths) override;
+    void GetAvailableScenes(std::vector<std::string>& scenePaths) override;
+    void GetAvailableScripts(std::vector<std::string>& scriptPaths) override;
 
     std::string GetScenePath(std::string sceneName) override;
     std::string GetTexturePath(std::string textureName) override;

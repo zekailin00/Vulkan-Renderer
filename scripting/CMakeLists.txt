@@ -14,11 +14,14 @@ add_library(scripting_subsystem
     environment/entity_callbacks.cpp
     environment/scene_callbacks.cpp
     environment/input_callbacks.cpp
+    environment/component_callbacks.cpp
+    environment/asset_manager_callbacks.cpp
 )
 
 target_link_libraries(scripting_subsystem PUBLIC
     v8_engine
     engine_core
+    renderer
 )
 
 target_include_directories(scripting_subsystem PUBLIC
