@@ -27,6 +27,11 @@ public:
     void ExecuteFromPath(std::string path);
     
     const v8::Persistent<v8::Context>& GetContext() {return context;}
+    const v8::Persistent<v8::Object>& GetSystemObject()
+    {
+        return systemObject;
+    }
+
 
     Component::Type GetSceneContextType() override
     {
@@ -47,6 +52,7 @@ private:
 
 private:
     v8::Persistent<v8::Context> context;
+    v8::Persistent<v8::Object> systemObject;
 
     v8::Isolate* isolate = nullptr; // Owned by scripting system
 };

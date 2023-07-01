@@ -395,7 +395,7 @@ void OpenxrSession::BeginFrame()
         }
 
         {   // Locate hand aims
-            XrSpaceLocation lAimPoseLocation;
+            XrSpaceLocation lAimPoseLocation{XR_TYPE_SPACE_LOCATION};
             xrLocateSpace(
                 lAimPoseSpace, localSpace,
                 frameState.predictedDisplayTime, &lAimPoseLocation
@@ -411,7 +411,7 @@ void OpenxrSession::BeginFrame()
             EventQueue::GetInstance()->Publish(
                 EventQueue::InputXR, eventLeftAimPose);
 
-            XrSpaceLocation rAimPoseLocation;
+            XrSpaceLocation rAimPoseLocation{XR_TYPE_SPACE_LOCATION};
             xrLocateSpace(
                 rAimPoseSpace, localSpace,
                 frameState.predictedDisplayTime, &rAimPoseLocation
@@ -429,7 +429,7 @@ void OpenxrSession::BeginFrame()
         }
 
         {   // Locate hand grips
-            XrSpaceLocation lGripPoseLocation;
+            XrSpaceLocation lGripPoseLocation{XR_TYPE_SPACE_LOCATION};
             xrLocateSpace(
                 lGripPoseSpace, localSpace,
                 frameState.predictedDisplayTime, &lGripPoseLocation
@@ -445,7 +445,7 @@ void OpenxrSession::BeginFrame()
             EventQueue::GetInstance()->Publish(
                 EventQueue::InputXR, eventLeftGripPose);
 
-            XrSpaceLocation rGripPoseLocation;
+            XrSpaceLocation rGripPoseLocation{XR_TYPE_SPACE_LOCATION};
             xrLocateSpace(
                 rGripPoseSpace, localSpace,
                 frameState.predictedDisplayTime, &rGripPoseLocation

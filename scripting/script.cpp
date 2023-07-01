@@ -53,6 +53,7 @@ bool Script::LoadSource(
 bool Script::Compile(Entity* entity)
 {
     scriptInstance.Reset();
+    UnSubscribeAll();
     OnCreatedCalled = false;
 
     // isolate -> handle -> context scopes
@@ -64,6 +65,17 @@ bool Script::Compile(Entity* entity)
     v8::Local<v8::String> v8Script =
         v8::String::NewFromUtf8(isolate, source.c_str())
         .ToLocalChecked();
+    
+    // For input event callbacks that record callback handles back
+    // to the script object
+    v8::Local<v8::String> v8InputKey =
+        v8::String::NewFromUtf8Literal(isolate, "Input");
+    v8::Local<v8::Object> systemObject = 
+        v8::Local<v8::Object>::New(isolate, scriptContext->GetSystemObject());
+    v8::Local<v8::Object> inputObject = 
+        systemObject->Get(localContext, v8InputKey)
+        .ToLocalChecked().As<v8::Object>();
+    inputObject->SetInternalField(0, v8::External::New(isolate, this));
 
     // Catch exceptions from compiling the script
     v8::TryCatch tryCatch(isolate);
@@ -117,9 +129,6 @@ bool Script::Compile(Entity* entity)
     {
         prototype = value.As<v8::Function>();
     }
-
-    v8::Local<v8::String> v8EntityKey =
-        v8::String::NewFromUtf8Literal(isolate, "entity");
     
     ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> entityTemplate =
@@ -207,6 +216,18 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
         return;
     }
 
+    // For input event callbacks that record callback handles back
+    // to the script object
+    v8::Local<v8::String> v8InputKey =
+        v8::String::NewFromUtf8Literal(isolate, "Input");
+    v8::Local<v8::Object> systemObject = 
+        v8::Local<v8::Object>::New(isolate, scriptContext->GetSystemObject());
+    v8::Local<v8::Object> inputObject = 
+        systemObject->Get(localContext, v8InputKey)
+        .ToLocalChecked().As<v8::Object>();
+    inputObject->SetInternalField(0, v8::External::New(isolate, this));
+
+
     v8::Local<v8::Function> v8Callback = v8Value.As<v8::Function>();
 
     v8::TryCatch tryCatch(isolate);
@@ -244,9 +265,31 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
     }
 }
 
+int Script::AddEventSubscriber(std::function<void (Event *)> callback)
+{
+    int handle = EventQueue::GetInstance()->Subscribe(
+        EventQueue::InputXR,
+        callback
+    );
+
+    subscriberHandles.push_back(handle);
+    return handle;
+}
+
+void Script::UnSubscribeAll()
+{
+    for (int handle: subscriberHandles)
+    {
+        EventQueue::GetInstance()->Unsubscribe(handle);
+    }
+
+    subscriberHandles.clear();
+}
+
 Script::~Script()
 {
     scriptInstance.Reset();
+    UnSubscribeAll();
 
     scriptContext = nullptr;
     assetManager = nullptr;

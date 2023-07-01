@@ -53,8 +53,12 @@ ScriptingSystem::~ScriptingSystem()
     {
         globalTemplate.Reset();
         systemTemplate.Reset();
+        mathTemplate.Reset();
+        inputTemplate.Reset();
+
         entityTemplate.Reset();
         componentTemplate.Reset();
+        sceneTemplate.Reset();
 
         isolate->Dispose();
         v8::V8::Dispose();
@@ -73,21 +77,22 @@ ScriptContext* ScriptingSystem::NewContext()
         v8::Local<v8::ObjectTemplate>::New(GetIsolate(), globalTemplate);
     v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, globalTemp);
 
-    {
-        v8::Local<v8::ObjectTemplate> localSystemTemplate =
-            v8::Local<v8::ObjectTemplate>::New(GetIsolate(), systemTemplate);
+    
+    v8::Local<v8::ObjectTemplate> localSystemTemplate =
+        v8::Local<v8::ObjectTemplate>::New(GetIsolate(), systemTemplate);
 
-        v8::Local<v8::Object> systemObject =
-            localSystemTemplate->NewInstance(context).ToLocalChecked();
+    v8::Local<v8::Object> systemObject =
+        localSystemTemplate->NewInstance(context).ToLocalChecked();
 
-        v8::Local<v8::String> systemStr =
-            v8::String::NewFromUtf8Literal(isolate, "System");
-        
-        context->Global()->Set(context, systemStr, systemObject).FromJust();
-    }
+    v8::Local<v8::String> systemStr =
+        v8::String::NewFromUtf8Literal(isolate, "System");
+    
+    context->Global()->Set(context, systemStr, systemObject).FromJust();
+
 
     scriptContext->context.Reset(isolate, context);
     scriptContext->isolate = isolate;
+    scriptContext->systemObject.Reset(isolate, systemObject);
 
     scriptContext->ExecuteFromPath("resources/javascript/math.js");
 
@@ -121,6 +126,12 @@ void ScriptingSystem::BuildEnvironment()
         temp = MakeMathTemplate(isolate);
         mathTemplate.Reset(isolate, temp);
     }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeInputTemplate(isolate);
+        inputTemplate.Reset(isolate, temp);
+    }
     
     {
         v8::Local<v8::ObjectTemplate> localSystemTemp =
@@ -132,6 +143,10 @@ void ScriptingSystem::BuildEnvironment()
         v8::Local<v8::ObjectTemplate> localMathTemp =
             v8::Local<v8::ObjectTemplate>::New(isolate, mathTemplate);
         localSystemTemp->Set(isolate, "Math", localMathTemp);
+
+        v8::Local<v8::ObjectTemplate> localInputTemp =
+            v8::Local<v8::ObjectTemplate>::New(isolate, inputTemplate);
+        localSystemTemp->Set(isolate, "Input", localInputTemp);
 
         systemTemplate.Reset(isolate, localSystemTemp);
     }

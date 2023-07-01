@@ -3,6 +3,7 @@
 #include "environment/entity_callbacks.h"
 #include "environment/scene_callbacks.h"
 #include "environment/script_math.h"
+#include "environment/input_callbacks.h"
 #include "logger.h"
 
 namespace scripting
@@ -105,11 +106,16 @@ v8::Local<v8::ObjectTemplate> MakeMathTemplate(v8::Isolate* isolate)
     return handleScope.Escape(temp);
 }
 
-v8::Local<v8::FunctionTemplate> MakeInputTemplate(v8::Isolate* isolate)
+v8::Local<v8::ObjectTemplate> MakeInputTemplate(v8::Isolate* isolate)
 {
     v8::EscapableHandleScope handleScope(isolate);
-    v8::Local<v8::FunctionTemplate> temp = v8::FunctionTemplate::New(isolate);
-    v8::Local<v8::ObjectTemplate> prototype = temp->PrototypeTemplate();
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+    
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "LeftAimEvent",
+        v8::FunctionTemplate::New(isolate, LeftAimEvent));
+
 
     return handleScope.Escape(temp);
 }

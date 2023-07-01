@@ -9,9 +9,13 @@
 #include <v8-exception.h>
 #include <v8-persistent-handle.h>
 
+#include "event_queue.h"
+#include "events.h"
+
 #include "entity.h"
 #include "timestep.h"
 #include "script_asset_manager.h"
+#include <list>
 
 namespace scripting
 {
@@ -40,6 +44,8 @@ public:
 
     bool HasScript() {return !(resourcePath == "None");}
 
+    int AddEventSubscriber(std::function<void (Event *)> callback);
+
     /**
      * @brief Run callback "OnUpdated",
      * or "OnCreated" if called the first time
@@ -59,6 +65,7 @@ private:
 
     bool Compile(Entity* entity);
     void RunCallback(std::string callbackName, Timestep ts);
+    void UnSubscribeAll();
 
     friend ScriptContext;
 
@@ -66,6 +73,7 @@ private:
     std::string resourcePath = "None";
     std::string source = "";
     v8::Persistent<v8::Object> scriptInstance;
+    std::list<int> subscriberHandles;
     bool OnCreatedCalled = false;
 
     ScriptContext* scriptContext = nullptr;
