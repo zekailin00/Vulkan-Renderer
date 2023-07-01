@@ -1,6 +1,8 @@
 #include "openxr_platform.h"
 
 #include "openxr_swapchain.h"
+#include "event_queue.h"
+#include "events.h"
 #include "logger.h"
 
 #include <vector>
@@ -298,15 +300,220 @@ void OpenxrPlatform::BeginFrame()
 
     session->BeginFrame();
 
-    XrActionStateFloat lSqueezeValueState{XR_TYPE_ACTION_STATE_FLOAT};
+
+    XrActionStateFloat floatActionState{XR_TYPE_ACTION_STATE_FLOAT};
+    XrActionStateBoolean boolActionState{XR_TYPE_ACTION_STATE_BOOLEAN};
     XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+
     getInfo.action = lSqueezeValueAction;
     CHK_XRCMD(xrGetActionStateFloat(
-        session->GetSession(), &getInfo, &lSqueezeValueState));
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_SQUEEZE;
+        event->floatValue = floatActionState.currentState;
 
-    lSqueezeValueState.currentState;
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
 
-    //TODO: poll actions
+    getInfo.action = rSqueezeValueAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_SQUEEZE;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lTriggerValueAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_TRIGGER;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = rTriggerValueAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_TRIGGER;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lThumbstickXAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_THUMBSTICK_X;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = rThumbstickXAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_THUMBSTICK_X;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lThumbstickYAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_THUMBSTICK_Y;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = rThumbstickYAction;
+    CHK_XRCMD(xrGetActionStateFloat(
+        session->GetSession(), &getInfo, &floatActionState));
+    if (floatActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_THUMBSTICK_Y;
+        event->floatValue = floatActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lThumbstickClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_THUMBSTICK_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = rThumbstickClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_THUMBSTICK_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lXClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_X_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lYClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_Y_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = lMenuClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::LEFT_MENU_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = rAClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_A_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
+
+    getInfo.action = rBClickAction;
+    CHK_XRCMD(xrGetActionStateBoolean(
+        session->GetSession(), &getInfo, &boolActionState));
+    if (boolActionState.isActive)
+    {
+        EventControllerInput* event = new EventControllerInput();
+        event->keycode = KeyCode::RIGHT_B_CLICK;
+        event->boolValue = boolActionState.currentState;
+
+        EventQueue::GetInstance()->Publish(
+            EventQueue::InputXR, event
+        );
+    }
 }
 
 void OpenxrPlatform::EndFrame()

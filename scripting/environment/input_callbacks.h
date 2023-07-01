@@ -18,6 +18,6 @@ void LeftAimEvent(const v8::FunctionCallbackInfo<v8::Value> &info);
 void RightAimEvent(const v8::FunctionCallbackInfo<v8::Value> &info);
 void LeftGripEvent(const v8::FunctionCallbackInfo<v8::Value> &info);
 void RightGripEvent(const v8::FunctionCallbackInfo<v8::Value> &info);
-
+void ControllerEvent(const v8::FunctionCallbackInfo<v8::Value> &info);
 
 } // namespace scripting

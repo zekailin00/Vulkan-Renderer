@@ -38,21 +38,5 @@ void Input::AddXRPoses(Event* event)
 
 void Input::AddXRFloats(Event* event)
 {
-    if (event->type == Event::Type::InputFloats)
-    {
-        Input* input = Input::GetInstance();
-        EventInputFloats* e = dynamic_cast<EventInputFloats*>(event);
     
-        input->l_squeeze_value = e->l_squeeze_value;
-        input->r_squeeze_value = e->r_squeeze_value;
-
-        input->l_trigger_value = e->l_trigger_value;
-        input->r_trigger_value = e->r_trigger_value;
-
-        input->l_thumbstick_x = e->l_thumbstick_x;
-        input->r_thumbstick_x = e->r_thumbstick_x;
-
-        input->l_thumbstick_y = e->l_thumbstick_y;
-        input->r_thumbstick_y = e->r_thumbstick_y;
-    }
 }

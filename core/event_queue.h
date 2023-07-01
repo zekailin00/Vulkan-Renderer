@@ -15,7 +15,7 @@ struct Event
         RightAimPose,
         LeftGripPose,
         RightGripPose,
-        InputFloats,
+        ControllerInput,
 
         /* GLFW events */
         Keyboard,

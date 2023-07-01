@@ -95,6 +95,7 @@ ScriptContext* ScriptingSystem::NewContext()
     scriptContext->systemObject.Reset(isolate, systemObject);
 
     scriptContext->ExecuteFromPath("resources/javascript/math.js");
+    scriptContext->ExecuteFromPath("resources/javascript/enums.js");
 
     return scriptContext;
 }

@@ -2,6 +2,7 @@
 
 #include "event_queue.h"
 #include "component.h"
+#include "input_keycode.h"
 
 #include <glm/vec4.hpp>
 #include <glm/vec3.hpp>
@@ -49,21 +50,18 @@ struct EventRightGripPose: public Event
     glm::mat4 transform;
 };
 
-struct EventInputFloats: public Event
+struct EventControllerInput: public Event
 {
-    EVENT_TYPE(InputFloats);
+    EVENT_TYPE(ControllerInput);
 
-    float l_squeeze_value;
-    float r_squeeze_value;
+    /**
+     * Depending on the keycode,
+     * either float or boolean value is valid
+     */
 
-    float l_trigger_value;
-    float r_trigger_value;
-
-    float l_thumbstick_x;
-    float r_thumbstick_x;
-
-    float l_thumbstick_y;
-    float r_thumbstick_y;
+    KeyCode keycode;
+    float floatValue;
+    bool boolValue;
 };
 
 struct EventKeyboard: public Event
