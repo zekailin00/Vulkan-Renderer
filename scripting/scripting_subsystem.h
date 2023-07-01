@@ -80,6 +80,9 @@ private:
     v8::Global<v8::ObjectTemplate> systemTemplate;
     v8::Global<v8::ObjectTemplate> mathTemplate;
     v8::Global<v8::ObjectTemplate> inputTemplate;
+    v8::Global<v8::ObjectTemplate> assetManagerTemplate;
+
+    v8::Global<v8::ObjectTemplate> meshCompTemplate;
 
     v8::Global<v8::FunctionTemplate> entityTemplate;
     v8::Global<v8::FunctionTemplate> componentTemplate;

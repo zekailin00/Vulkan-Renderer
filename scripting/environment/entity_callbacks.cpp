@@ -149,10 +149,10 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         return;
     }
     
-    v8::Local<v8::Int32> componentType = info[0].As<v8::Int32>();
-    uint32_t id = componentType->Value();
+    v8::Local<v8::Int32> v8CompType = info[0].As<v8::Int32>();
+    Component::Type compType = (Component::Type )v8CompType->Value();
 
-    if(id >= (uint32_t)Component::Type::Size)
+    if(compType >= Component::Type::Size)
     {
         Logger::Write(
             "[Scripting] GetComponent parameters are invalid",
@@ -161,7 +161,18 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         return;
     }
 
-    // TODO: 
+    if (compType == Component::Type::Mesh)
+    {
+        //TODO: return mesh comp
+    }
+    else
+    {
+        Logger::Write(
+            "[Scripting] GetComponent does not support the given type yet!",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
 }
 
 void ReparentTo(const v8::FunctionCallbackInfo<v8::Value> &info)

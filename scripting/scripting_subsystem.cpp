@@ -56,6 +56,8 @@ ScriptingSystem::~ScriptingSystem()
         mathTemplate.Reset();
         inputTemplate.Reset();
 
+        meshCompTemplate.Reset();
+
         entityTemplate.Reset();
         componentTemplate.Reset();
         sceneTemplate.Reset();
@@ -133,6 +135,18 @@ void ScriptingSystem::BuildEnvironment()
         temp = MakeInputTemplate(isolate);
         inputTemplate.Reset(isolate, temp);
     }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeMeshCompTemplate(isolate);
+        meshCompTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeAssetManagerTemplate(isolate);
+        assetManagerTemplate.Reset(isolate, temp);
+    }
     
     {
         v8::Local<v8::ObjectTemplate> localSystemTemp =
@@ -148,6 +162,10 @@ void ScriptingSystem::BuildEnvironment()
         v8::Local<v8::ObjectTemplate> localInputTemp =
             v8::Local<v8::ObjectTemplate>::New(isolate, inputTemplate);
         localSystemTemp->Set(isolate, "Input", localInputTemp);
+
+        v8::Local<v8::ObjectTemplate> localAssetManagerTemp =
+            v8::Local<v8::ObjectTemplate>::New(isolate, assetManagerTemplate);
+        localSystemTemp->Set(isolate, "AssetManager", localAssetManagerTemp);
 
         systemTemplate.Reset(isolate, localSystemTemp);
     }

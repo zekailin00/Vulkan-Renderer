@@ -4,6 +4,8 @@
 #include "environment/scene_callbacks.h"
 #include "environment/script_math.h"
 #include "environment/input_callbacks.h"
+#include "environment/component_callbacks.h"
+#include "environment/asset_manager_callbacks.h"
 #include "logger.h"
 
 namespace scripting
@@ -123,6 +125,38 @@ v8::Local<v8::ObjectTemplate> MakeInputTemplate(v8::Isolate* isolate)
         v8::FunctionTemplate::New(isolate, RightGripEvent));
     temp->Set(isolate, "ControllerEvent",
         v8::FunctionTemplate::New(isolate, ControllerEvent));
+
+    return handleScope.Escape(temp);
+}
+
+v8::Local<v8::ObjectTemplate> MakeMeshCompTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+    
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "GetEntity",
+        v8::FunctionTemplate::New(isolate, GetEntity));
+    temp->Set(isolate, "GetComponentType",
+        v8::FunctionTemplate::New(isolate, GetComponentType));
+    temp->Set(isolate, "SetMeshResoucePath",
+        v8::FunctionTemplate::New(isolate, SetMeshResoucePath));
+    temp->Set(isolate, "GetMeshResourcePath",
+        v8::FunctionTemplate::New(isolate, GetMeshResourcePath));
+
+    return handleScope.Escape(temp);
+}
+
+v8::Local<v8::ObjectTemplate> MakeAssetManagerTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+    
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "GetMeshResourcePaths",
+        v8::FunctionTemplate::New(isolate, GetMeshResourcePaths));
 
     return handleScope.Escape(temp);
 }

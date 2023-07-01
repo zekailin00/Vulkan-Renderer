@@ -13,6 +13,11 @@ typedef std::function<Component*(Entity*, Json::Value&)> CompDeserializer;
 
 struct Component
 {
+    /**
+     * IMPORTANT: when type enum is changed,
+     * the corresponding enum in JS environment
+     * needs to be changed as well.
+    */
     enum class Type
     {
         Camera,
