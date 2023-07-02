@@ -35,10 +35,23 @@ bool toCpp(glm::mat4& mat4, v8::Local<v8::Object> v8Mat4,
 namespace math
 {
 
-void Mat4Add(const v8::FunctionCallbackInfo<v8::Value> &info);
-void Mat4Multiply(const v8::FunctionCallbackInfo<v8::Value> &info);
-void Mat4Subtract(const v8::FunctionCallbackInfo<v8::Value> &info);
-void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info);
+enum class MathType
+{
+    Vec2 = 1,
+    Vec3 = 2,
+    Vec4 = 3,
+    Mat3 = 4,
+    Mat4 = 5,
+    Size
+};
+
+void Add(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Multiply(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Subtract(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Inverse(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Cross(const v8::FunctionCallbackInfo<v8::Value> &info);
+void Normalize(const v8::FunctionCallbackInfo<v8::Value> &info);
+
 void Mat4Identity(const v8::FunctionCallbackInfo<v8::Value> &info);
 
 /* EulerAngleXYZ */

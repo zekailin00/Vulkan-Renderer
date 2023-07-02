@@ -113,10 +113,10 @@ void GetEntityByName(const v8::FunctionCallbackInfo<v8::Value> &info)
     Scene* scene = static_cast<Scene*>(field->Value());
     ASSERT(scene != nullptr);
 
-    if (info.Length() != 1 || !info[0]->IsObject())
+    if (info.Length() != 1 || !info[0]->IsString())
     {
         Logger::Write(
-            "[Scripting] RemoveEntity parameters are invalid",
+            "[Scripting] GetEntityByName parameters are invalid",
             Logger::Level::Warning, Logger::Scripting
         );
         return;

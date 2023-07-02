@@ -88,14 +88,18 @@ v8::Local<v8::ObjectTemplate> MakeMathTemplate(v8::Isolate* isolate)
     v8::EscapableHandleScope handleScope(isolate);
     v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
 
-    temp->Set(isolate, "Mat4Add",
-        v8::FunctionTemplate::New(isolate, math::Mat4Add));
-    temp->Set(isolate, "Mat4Multiply",
-        v8::FunctionTemplate::New(isolate, math::Mat4Multiply));
-    temp->Set(isolate, "Mat4Subtract",
-        v8::FunctionTemplate::New(isolate, math::Mat4Subtract));
-    temp->Set(isolate, "Mat4Inverse",
-        v8::FunctionTemplate::New(isolate, math::Mat4Inverse));
+    temp->Set(isolate, "Add",
+        v8::FunctionTemplate::New(isolate, math::Add));
+    temp->Set(isolate, "Multiply",
+        v8::FunctionTemplate::New(isolate, math::Multiply));
+    temp->Set(isolate, "Subtract",
+        v8::FunctionTemplate::New(isolate, math::Subtract));
+    temp->Set(isolate, "Inverse",
+        v8::FunctionTemplate::New(isolate, math::Inverse));
+    temp->Set(isolate, "Cross",
+        v8::FunctionTemplate::New(isolate, math::Cross));
+    temp->Set(isolate, "Normalize",
+        v8::FunctionTemplate::New(isolate, math::Normalize));
     temp->Set(isolate, "Mat4Identity",
         v8::FunctionTemplate::New(isolate, math::Mat4Identity));
     temp->Set(isolate, "Mat4Rotation",
@@ -188,7 +192,7 @@ void print(const v8::FunctionCallbackInfo<v8::Value>& args)
         if (first)
         {
             first = false;
-            output = "[scripting] ";
+            output = "[Scripting] ";
         }
         else
         {

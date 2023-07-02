@@ -101,16 +101,20 @@ bool Script::Compile(Entity* entity)
     if (!v8::Script::Compile(localContext, v8Script, &origin)
         .ToLocal(&script))
     {
-        ASSERT(tryCatch.HasCaught());
-        ExceptionHandler(&tryCatch, isolate);
+        if(tryCatch.HasCaught())
+        {
+            ExceptionHandler(&tryCatch, isolate);
+        }
 
         scriptInstance.Reset();
         return false;
     }
     else if (!script->Run(localContext).ToLocal(&result))
     {
-        ASSERT(tryCatch.HasCaught());
-        ExceptionHandler(&tryCatch, isolate);
+        if(tryCatch.HasCaught())
+        {
+            ExceptionHandler(&tryCatch, isolate);
+        }
 
         scriptInstance.Reset();
         return false;
@@ -132,6 +136,11 @@ bool Script::Compile(Entity* entity)
         Logger::Write(
             "[Scripting] Prototype cannot be found",
             Logger::Level::Warning, Logger::MsgType::Scripting);
+
+        if(tryCatch.HasCaught())
+        {
+            ExceptionHandler(&tryCatch, isolate);
+        }
 
         scriptInstance.Reset();
         return false;
@@ -161,6 +170,11 @@ bool Script::Compile(Entity* entity)
         Logger::Write(
             "[Scripting] Cannot create an instance.",
             Logger::Level::Warning, Logger::MsgType::Scripting);
+        
+        if(tryCatch.HasCaught())
+        {
+            ExceptionHandler(&tryCatch, isolate);
+        }
         
         scriptInstance.Reset();
         return false;

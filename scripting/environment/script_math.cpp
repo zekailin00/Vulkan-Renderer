@@ -8,7 +8,7 @@
 
 #include "logger.h"
 #include "validation.h"
-
+#include "script_exception.h"
 
 namespace scripting
 {
@@ -375,7 +375,73 @@ bool GetBinaryMat4Operants(
     return true;
 }
 
-void Mat4Add(const v8::FunctionCallbackInfo<v8::Value> &info)
+bool GetBinaryVec3Operants(
+    const v8::FunctionCallbackInfo<v8::Value> &info,
+    glm::vec3& lhs, glm::vec3& rhs
+)
+{
+    if (info.Length() != 2 ||
+        !info[0]->IsObject() || !info[1]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Vec3 operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        
+        return false;
+    }
+
+    bool result = true;
+    result = result && toCpp(lhs, info[0].As<v8::Object>(), info.GetIsolate());
+    result = result && toCpp(rhs, info[1].As<v8::Object>(), info.GetIsolate());
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Vec3 operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return false;
+    }
+
+    return true;
+}
+
+bool GetBinaryVec4Operants(
+    const v8::FunctionCallbackInfo<v8::Value> &info,
+    glm::vec4& lhs, glm::vec4& rhs
+)
+{
+    if (info.Length() != 2 ||
+        !info[0]->IsObject() || !info[1]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Vec3 operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        
+        return false;
+    }
+
+    bool result = true;
+    result = result && toCpp(lhs, info[0].As<v8::Object>(), info.GetIsolate());
+    result = result && toCpp(rhs, info[1].As<v8::Object>(), info.GetIsolate());
+
+    if (!result)
+    {
+        Logger::Write(
+            "[Scripting] Vec4 operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return false;
+    }
+
+    return true;
+}
+
+void Add(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     glm::mat4 lhs, rhs, retval;
     v8::Local<v8::Object> v8Retval;
@@ -392,24 +458,100 @@ void Mat4Add(const v8::FunctionCallbackInfo<v8::Value> &info)
     info.GetReturnValue().Set(v8Retval);
 }
 
-void Mat4Multiply(const v8::FunctionCallbackInfo<v8::Value> &info)
+void Multiply(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-    glm::mat4 lhs, rhs, retval;
-    v8::Local<v8::Object> v8Retval;
-    
-    if (!GetBinaryMat4Operants(info, lhs, rhs))
+
+    if (info.Length() != 2 ||
+        !info[0]->IsObject() || !info[1]->IsObject())
     {
+        Logger::Write(
+            "[Scripting] Multiply operants are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        
         return;
     }
 
-    retval = lhs * rhs;
-    v8Retval = toV8(retval, info.GetIsolate());
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::String> v8TypeName =
+        v8::String::NewFromUtf8Literal(isolate, "type");
 
-    ASSERT(!v8Retval.IsEmpty());
-    info.GetReturnValue().Set(v8Retval);
+    v8::Local<v8::Value> v8TypeValueLeft;
+    v8::Local<v8::Value> v8TypeValueRight;
+    if (!info[0].As<v8::Object>()
+        ->Get(context, v8TypeName).ToLocal(&v8TypeValueLeft) ||
+        !info[1].As<v8::Object>()
+        ->Get(context, v8TypeName).ToLocal(&v8TypeValueRight) ||
+        !v8TypeValueLeft->IsInt32() || !v8TypeValueRight->IsInt32())
+    {
+        Logger::Write(
+            "[Scripting] Multiply failed because object type cannot be found",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    math::MathType typeLeft =
+        (math::MathType)v8TypeValueLeft.As<v8::Int32>()->Value();
+    math::MathType typeRight =
+        (math::MathType)v8TypeValueRight.As<v8::Int32>()->Value();
+
+    if (typeLeft == math::MathType::Mat4 && typeRight == math::MathType::Mat4)
+    {
+        glm::mat4 lhs, rhs, retval;
+        v8::Local<v8::Object> v8Retval;
+        
+        if (!GetBinaryMat4Operants(info, lhs, rhs))
+        {
+            return;
+        }
+
+        retval = lhs * rhs;
+        v8Retval = toV8(retval, info.GetIsolate());
+
+        ASSERT(!v8Retval.IsEmpty());
+        info.GetReturnValue().Set(v8Retval);
+    }
+    else if (typeLeft == math::MathType::Mat4 && typeRight == math::MathType::Vec4)
+    {
+        glm::mat4 lhs;
+        glm::vec4 rhs, retval;
+        v8::Local<v8::Object> v8Retval;
+
+        bool result = true;
+        result = result && toCpp(lhs, info[0].As<v8::Object>(), info.GetIsolate());
+        result = result && toCpp(rhs, info[1].As<v8::Object>(), info.GetIsolate());
+
+        if (!result)
+        {
+            Logger::Write(
+                "[Scripting] Multiply failed because operants are invalid",
+                Logger::Level::Warning, Logger::Scripting
+            );
+
+            return;
+        }
+
+        retval = lhs * rhs;
+        v8Retval = toV8(retval, info.GetIsolate());
+
+        ASSERT(!v8Retval.IsEmpty());
+        info.GetReturnValue().Set(v8Retval);
+    }
+    else
+    {
+        Logger::Write(
+            "[Scripting] Multiply failed due to type mismatch",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
 }
 
-void Mat4Subtract(const v8::FunctionCallbackInfo<v8::Value> &info)
+void Subtract(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     glm::mat4 lhs, rhs, retval;
     v8::Local<v8::Object> v8Retval;
@@ -426,7 +568,7 @@ void Mat4Subtract(const v8::FunctionCallbackInfo<v8::Value> &info)
     info.GetReturnValue().Set(v8Retval);
 }
 
-void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
+void Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     if (info.Length() != 1 || !info[0]->IsObject())
     {
@@ -452,6 +594,114 @@ void Mat4Inverse(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     operant = glm::inverse(operant);
     v8::Local<v8::Object> v8Retval = toV8(operant, info.GetIsolate());
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Cross(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 2 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Mat4Inverse parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::String> v8TypeName =
+        v8::String::NewFromUtf8Literal(isolate, "type");
+
+    v8::Local<v8::Value> v8TypeValue;
+    if (!info[0].As<v8::Object>()->Get(context, v8TypeName)
+        .ToLocal(&v8TypeValue) ||
+        !v8TypeValue->IsInt32())
+    {
+        Logger::Write(
+            "[Scripting] Cross failed because object type cannot be found",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    math::MathType type = (math::MathType)v8TypeValue.As<v8::Int32>()->Value();
+
+    if (type != math::MathType::Vec3)
+    {
+        Logger::Write(
+            "[Scripting] Cross failed because object type is not Vec3",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    glm::vec3 lhs, rhs, retval;
+    v8::Local<v8::Object> v8Retval;
+    
+    if (!GetBinaryVec3Operants(info, lhs, rhs))
+    {
+        return;
+    }
+
+    retval = glm::cross(lhs, rhs);
+    v8Retval = toV8(retval, info.GetIsolate());
+
+    ASSERT(!v8Retval.IsEmpty());
+    info.GetReturnValue().Set(v8Retval);
+}
+
+void Normalize(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+  if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] Normalize parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::String> v8TypeName =
+        v8::String::NewFromUtf8Literal(isolate, "type");
+
+    v8::Local<v8::Value> v8TypeValue;
+    if (!info[0].As<v8::Object>()->Get(context, v8TypeName)
+        .ToLocal(&v8TypeValue) ||
+        !v8TypeValue->IsInt32())
+    {
+        Logger::Write(
+            "[Scripting] Normalize failed because object type cannot be found",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    math::MathType type = (math::MathType)v8TypeValue.As<v8::Int32>()->Value();
+
+    if (type != math::MathType::Vec3)
+    {
+        Logger::Write(
+            "[Scripting] Normalize failed because object type is not Vec3",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    glm::vec3 operant, retval;
+    v8::Local<v8::Object> v8Retval;
+    toCpp(operant, info[0].As<v8::Object>(), isolate);
+
+    retval = glm::normalize(operant);
+    v8Retval = toV8(retval, info.GetIsolate());
 
     ASSERT(!v8Retval.IsEmpty());
     info.GetReturnValue().Set(v8Retval);
