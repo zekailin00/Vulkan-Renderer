@@ -57,7 +57,7 @@ private:
     void LoadBuffers();
     void LoadTextures();
     void LoadMaterials();
-    void LoadMeshes(Entity* parentEntity, int meshIndex);
+    void LoadMeshes(Entity* parentEntity, int meshIndex, std::string nodeName);
     void ProcessNode(Entity* parentEntity, int nodeIndex);
 
 private:

@@ -80,6 +80,21 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         info.GetReturnValue().Set(v8MeshComp);
         return;
     }
+    else if (compType == Component::Type::Light)
+    {
+        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+        v8::Local<v8::ObjectTemplate> compTemplate =
+            v8::Local<v8::ObjectTemplate>::New(isolate,
+                scriptingSystem->GetLightCompTemplate());
+        v8::Local<v8::Object> v8LightComp =
+            compTemplate->NewInstance(context).ToLocalChecked();
+        
+        Component* component = entity->AddComponent(compType);
+        
+        v8LightComp->SetInternalField(0, v8::External::New(isolate, component));
+        info.GetReturnValue().Set(v8LightComp);
+        return;
+    }
     else
     {
         Logger::Write(
@@ -220,6 +235,21 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         
         v8MeshComp->SetInternalField(0, v8::External::New(isolate, component));
         info.GetReturnValue().Set(v8MeshComp);
+        return;
+    }
+    else if (compType == Component::Type::Light)
+    {
+        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+        v8::Local<v8::ObjectTemplate> compTemplate =
+            v8::Local<v8::ObjectTemplate>::New(isolate,
+                scriptingSystem->GetLightCompTemplate());
+        v8::Local<v8::Object> v8LightComp =
+            compTemplate->NewInstance(context).ToLocalChecked();
+        
+        Component* component = entity->GetComponent(compType);
+        
+        v8LightComp->SetInternalField(0, v8::External::New(isolate, component));
+        info.GetReturnValue().Set(v8LightComp);
         return;
     }
     else

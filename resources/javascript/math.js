@@ -1,4 +1,4 @@
-Vec3 = function(x, y, z)
+Vec2 = function(x, y)
 {
     this.x = x? x:0;
     this.y = y? y:0;

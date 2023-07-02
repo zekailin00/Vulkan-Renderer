@@ -66,6 +66,11 @@ public:
         return meshCompTemplate;
     }
 
+    const v8::Global<v8::ObjectTemplate>& GetLightCompTemplate()
+    {
+        return lightCompTemplate;
+    }
+
     ScriptingSystem(ScriptingSystem const&) = delete;
     void operator=(ScriptingSystem const&) = delete;
 
@@ -88,6 +93,7 @@ private:
     v8::Global<v8::ObjectTemplate> assetManagerTemplate;
 
     v8::Global<v8::ObjectTemplate> meshCompTemplate;
+    v8::Global<v8::ObjectTemplate> lightCompTemplate;
 
     v8::Global<v8::FunctionTemplate> entityTemplate;
     v8::Global<v8::FunctionTemplate> componentTemplate;

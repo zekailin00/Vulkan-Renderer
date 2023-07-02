@@ -55,8 +55,10 @@ ScriptingSystem::~ScriptingSystem()
         systemTemplate.Reset();
         mathTemplate.Reset();
         inputTemplate.Reset();
+        assetManagerTemplate.Reset();
 
         meshCompTemplate.Reset();
+        lightCompTemplate.Reset();
 
         entityTemplate.Reset();
         componentTemplate.Reset();
@@ -140,6 +142,12 @@ void ScriptingSystem::BuildEnvironment()
         v8::Local<v8::ObjectTemplate> temp;
         temp = MakeMeshCompTemplate(isolate);
         meshCompTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeLightCompTemplate(isolate);
+        lightCompTemplate.Reset(isolate, temp);
     }
 
     {

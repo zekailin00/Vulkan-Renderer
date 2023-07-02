@@ -129,6 +129,19 @@ v8::Local<v8::ObjectTemplate> MakeInputTemplate(v8::Isolate* isolate)
     return handleScope.Escape(temp);
 }
 
+v8::Local<v8::ObjectTemplate> MakeAssetManagerTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+    
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "GetMeshResourcePaths",
+        v8::FunctionTemplate::New(isolate, GetMeshResourcePaths));
+
+    return handleScope.Escape(temp);
+}
+
 v8::Local<v8::ObjectTemplate> MakeMeshCompTemplate(v8::Isolate* isolate)
 {
     v8::EscapableHandleScope handleScope(isolate);
@@ -148,15 +161,19 @@ v8::Local<v8::ObjectTemplate> MakeMeshCompTemplate(v8::Isolate* isolate)
     return handleScope.Escape(temp);
 }
 
-v8::Local<v8::ObjectTemplate> MakeAssetManagerTemplate(v8::Isolate* isolate)
+v8::Local<v8::ObjectTemplate> MakeLightCompTemplate(v8::Isolate* isolate)
 {
     v8::EscapableHandleScope handleScope(isolate);
     v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
     
     temp->SetInternalFieldCount(1);
 
-    temp->Set(isolate, "GetMeshResourcePaths",
-        v8::FunctionTemplate::New(isolate, GetMeshResourcePaths));
+    temp->Set(isolate, "GetEntity",
+        v8::FunctionTemplate::New(isolate, GetEntity));
+    temp->Set(isolate, "GetComponentType",
+        v8::FunctionTemplate::New(isolate, GetComponentType));
+    temp->Set(isolate, "SetLightColor",
+        v8::FunctionTemplate::New(isolate, SetLightColor));
 
     return handleScope.Escape(temp);
 }

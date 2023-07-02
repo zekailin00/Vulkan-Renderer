@@ -475,7 +475,11 @@ void GltfModel::ProcessNode(Entity* parentEntity, int nodeIndex)
 
     if (!gltfNode["mesh"].isNull())
     {
-        LoadMeshes(entity, gltfNode["mesh"].asInt());
+        LoadMeshes(
+            entity,
+            gltfNode["mesh"].asInt(),
+            gltfNode["name"].asString()
+        );
     }
 
     if (!gltfNode["children"].isNull())
@@ -485,7 +489,8 @@ void GltfModel::ProcessNode(Entity* parentEntity, int nodeIndex)
     }
 }
 
-void GltfModel::LoadMeshes(Entity* parentEntity, int meshIndex)
+void GltfModel::LoadMeshes(
+    Entity* parentEntity, int meshIndex, std::string nodeName)
 {
     ZoneScopedN("GltfModel::LoadMeshes");
 
@@ -680,7 +685,7 @@ void GltfModel::LoadMeshes(Entity* parentEntity, int meshIndex)
             }
         }
 
-        std::string filename = "mesh_" + std::to_string(meshIndex);
+        std::string filename = nodeName + "_" + std::to_string(meshIndex);
         if (namePool.find(filename) != namePool.cend())
         {
             int num = namePool[filename];
