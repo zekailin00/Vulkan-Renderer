@@ -7,6 +7,9 @@
 #include <v8-external.h>
 #include <filesystem>
 
+#include "entity.h"
+#include "scene.h"
+
 #include "script_context.h"
 #include "script_exception.h"
 #include "scripting_subsystem.h"
@@ -65,17 +68,25 @@ bool Script::Compile(Entity* entity)
     v8::Local<v8::String> v8Script =
         v8::String::NewFromUtf8(isolate, source.c_str())
         .ToLocalChecked();
-    
-    // For input event callbacks that record callback handles back
-    // to the script object
-    v8::Local<v8::String> v8InputKey =
-        v8::String::NewFromUtf8Literal(isolate, "Input");
+
+
+    // Input objects needs to store callback handles back to script object
+    // Assetmanager needs to have reference to the manager entity's scene points to.
     v8::Local<v8::Object> systemObject = 
         v8::Local<v8::Object>::New(isolate, scriptContext->GetSystemObject());
+
     v8::Local<v8::Object> inputObject = 
-        systemObject->Get(localContext, v8InputKey)
+        systemObject->Get(localContext,
+            v8::String::NewFromUtf8Literal(isolate, "Input"))
         .ToLocalChecked().As<v8::Object>();
     inputObject->SetInternalField(0, v8::External::New(isolate, this));
+
+    v8::Local<v8::Object> assetManagerObject = 
+        systemObject->Get(localContext,
+            v8::String::NewFromUtf8Literal(isolate, "AssetManager"))
+        .ToLocalChecked().As<v8::Object>();
+    assetManagerObject->SetInternalField(0, v8::External::New(isolate, assetManager));
+
 
     // Catch exceptions from compiling the script
     v8::TryCatch tryCatch(isolate);
@@ -216,16 +227,22 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
         return;
     }
 
-    // For input event callbacks that record callback handles back
-    // to the script object
-    v8::Local<v8::String> v8InputKey =
-        v8::String::NewFromUtf8Literal(isolate, "Input");
+    // Input objects needs to store callback handles back to script object
+    // Assetmanager needs to have reference to the manager entity's scene points to.
     v8::Local<v8::Object> systemObject = 
         v8::Local<v8::Object>::New(isolate, scriptContext->GetSystemObject());
+
     v8::Local<v8::Object> inputObject = 
-        systemObject->Get(localContext, v8InputKey)
+        systemObject->Get(localContext,
+            v8::String::NewFromUtf8Literal(isolate, "Input"))
         .ToLocalChecked().As<v8::Object>();
     inputObject->SetInternalField(0, v8::External::New(isolate, this));
+
+    v8::Local<v8::Object> assetManagerObject = 
+        systemObject->Get(localContext,
+            v8::String::NewFromUtf8Literal(isolate, "AssetManager"))
+        .ToLocalChecked().As<v8::Object>();
+    assetManagerObject->SetInternalField(0, v8::External::New(isolate, assetManager));
 
 
     v8::Local<v8::Function> v8Callback = v8Value.As<v8::Function>();

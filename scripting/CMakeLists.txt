@@ -3,6 +3,9 @@
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
+file(GLOB ASSET_MANAGER_HEADERS "../asset_manager/*.h")
+file(GLOB ASSET_MANAGER_SOURCE "../asset_manager/*.cpp")
+
 add_library(scripting_subsystem
 
     script.cpp
@@ -16,6 +19,9 @@ add_library(scripting_subsystem
     environment/input_callbacks.cpp
     environment/component_callbacks.cpp
     environment/asset_manager_callbacks.cpp
+
+    ${ASSET_MANAGER_SOURCE}
+    ${ASSET_MANAGER_SOURCE}
 )
 
 target_link_libraries(scripting_subsystem PUBLIC
@@ -26,6 +32,7 @@ target_link_libraries(scripting_subsystem PUBLIC
 
 target_include_directories(scripting_subsystem PUBLIC
     .
+    ../asset_manager
 )
 
 add_subdirectory(

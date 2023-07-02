@@ -22,7 +22,9 @@ namespace scripting
 
 void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+    v8::Isolate* isolate = info.GetIsolate();
     v8::HandleScope handleScope(info.GetIsolate());
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Object> holder = info.Holder();
 
@@ -41,9 +43,9 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
     
     v8::Local<v8::Int32> componentType = info[0].As<v8::Int32>();
-    uint32_t id = componentType->Value();
+    Component::Type compType = (Component::Type)componentType->Value();
 
-    if(id >= (uint32_t)Component::Type::Size)
+    if(compType >= Component::Type::Size)
     {
         Logger::Write(
             "[Scripting] AddComponent parameters are invalid",
@@ -52,9 +54,40 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         return;
     }
 
-    entity->AddComponent((Component::Type)id);
+    if (entity->HasComponent(compType))
+    {
+        Logger::Write(
+            "[Scripting] AddComponent failed because component is already added",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
 
-    //TODO: return component
+    //TODO: components
+
+    if (compType == Component::Type::Mesh)
+    {
+        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+        v8::Local<v8::ObjectTemplate> compTemplate =
+            v8::Local<v8::ObjectTemplate>::New(isolate,
+                scriptingSystem->GetMeshCompTemplate());
+        v8::Local<v8::Object> v8MeshComp =
+            compTemplate->NewInstance(context).ToLocalChecked();
+        
+        Component* component = entity->AddComponent(compType);
+        
+        v8MeshComp->SetInternalField(0, v8::External::New(isolate, component));
+        info.GetReturnValue().Set(v8MeshComp);
+        return;
+    }
+    else
+    {
+        Logger::Write(
+            "[Scripting] GetComponent does not support the given type yet!",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
 }
 
 void RemoveComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -131,7 +164,9 @@ void HasComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
-    v8::HandleScope handleScope(info.GetIsolate());
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
     v8::Local<v8::Object> holder = info.Holder();
 
@@ -150,7 +185,7 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
     
     v8::Local<v8::Int32> v8CompType = info[0].As<v8::Int32>();
-    Component::Type compType = (Component::Type )v8CompType->Value();
+    Component::Type compType = (Component::Type)v8CompType->Value();
 
     if(compType >= Component::Type::Size)
     {
@@ -161,9 +196,31 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         return;
     }
 
+    if (!entity->HasComponent(compType))
+    {
+        Logger::Write(
+            "[Scripting] Entity has no component",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    //TODO: return components
+
     if (compType == Component::Type::Mesh)
     {
-        //TODO: return mesh comp
+        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
+        v8::Local<v8::ObjectTemplate> compTemplate =
+            v8::Local<v8::ObjectTemplate>::New(isolate,
+                scriptingSystem->GetMeshCompTemplate());
+        v8::Local<v8::Object> v8MeshComp =
+            compTemplate->NewInstance(context).ToLocalChecked();
+        
+        Component* component = entity->GetComponent(compType);
+        
+        v8MeshComp->SetInternalField(0, v8::External::New(isolate, component));
+        info.GetReturnValue().Set(v8MeshComp);
+        return;
     }
     else
     {

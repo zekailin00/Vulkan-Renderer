@@ -7,6 +7,7 @@
 #include "script_asset_manager.h"
 
 #include "validation.h"
+#include "asset_manager.h"
 
 #include <memory>
 
@@ -60,7 +61,8 @@ Component* ScriptDeserializer::operator()(Entity* entity, Json::Value& json)
     }
 
     IScriptAssetManager* assetManaget = 
-        dynamic_cast<IScriptAssetManager*>(scene->GetAssetManager());
+        dynamic_cast<IScriptAssetManager*>(
+            dynamic_cast<AssetManager*>(scene->GetAssetManager()));
 
     component->script = context->NewScript(assetManaget);
 

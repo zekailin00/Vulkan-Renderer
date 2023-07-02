@@ -16,6 +16,7 @@
 #include "validation.h"
 
 #include "renderer_asset_manager.h"
+#include "asset_manager.h"
 
 
 namespace scripting
@@ -30,8 +31,11 @@ void GetMeshResourcePaths(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     v8::Local<v8::External> field =
         holder->GetInternalField(0).As<v8::External>();
+    //??? FIXME: need to redesign asset manager system!!
     renderer::IRendererAssetManager* assetManager =
-        static_cast<renderer::IRendererAssetManager*>(field->Value());
+        dynamic_cast<renderer::IRendererAssetManager*>(
+            dynamic_cast<ICoreAssetManager*>(
+                static_cast<IScriptAssetManager*>(field->Value())));
     ASSERT(assetManager != nullptr);
 
     std::vector<const char *> meshPaths{};

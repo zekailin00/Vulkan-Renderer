@@ -61,6 +61,11 @@ public:
         return sceneTemplate;
     }
 
+    const v8::Global<v8::ObjectTemplate>& GetMeshCompTemplate()
+    {
+        return meshCompTemplate;
+    }
+
     ScriptingSystem(ScriptingSystem const&) = delete;
     void operator=(ScriptingSystem const&) = delete;
 

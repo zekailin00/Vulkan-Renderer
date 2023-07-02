@@ -17,9 +17,6 @@ file(GLOB LOCAL_SOURCE "*.cpp")
 file(GLOB PLT_HEADERS "platform/*.h")
 file(GLOB PLT_SOURCE "platform/*.cpp")
 
-file(GLOB MODEL_LOADERS_HEADERS "model_loaders/*.h")
-file(GLOB MODEL_LOADERS_SOURCE "model_loaders/*.cpp")
-
 #v8 engine
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/v8-library")
 
@@ -101,15 +98,11 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/scripting")
 
 # Target settings
 add_library(engine
-    ${LOCAL_HEADERS}
-    ${LOCAL_SOURCE}
-    ${MODEL_LOADERS_HEADERS}
-    ${MODEL_LOADERS_SOURCE}
+    application.cpp
 )
 
 # Target settings
 target_include_directories(engine PUBLIC
-    model_loaders
     .
 )
 

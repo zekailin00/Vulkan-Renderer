@@ -11,6 +11,7 @@
 
 Component* Entity::AddComponent(Component::Type type)
 {
+    ASSERT(componentList[(int)type] == nullptr);
     Component* component = ComponentLocator::GetInitializer(type)(this);
     componentList[(int)type] = component;
 
