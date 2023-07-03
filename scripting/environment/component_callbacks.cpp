@@ -71,7 +71,7 @@ void GetComponentType(const v8::FunctionCallbackInfo<v8::Value> &info)
     info.GetReturnValue().Set(componentType);
 }
 
-void SetMeshResoucePath(const v8::FunctionCallbackInfo<v8::Value> &info)
+void SetMeshResourcePath(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
     v8::Isolate* isolate = info.GetIsolate();
     v8::HandleScope handleScope(info.GetIsolate());
@@ -87,7 +87,7 @@ void SetMeshResoucePath(const v8::FunctionCallbackInfo<v8::Value> &info)
     if (info.Length() != 1 || !info[0]->IsString())
     {
         Logger::Write(
-            "[Scripting] SetMeshResoucePath parameters are invalid",
+            "[Scripting] SetMeshResourcePath parameters are invalid",
             Logger::Level::Warning, Logger::Scripting
         );
         return;
@@ -116,6 +116,15 @@ void GetMeshResourcePath(const v8::FunctionCallbackInfo<v8::Value> &info)
     renderer::MeshComponent* component =
         static_cast<renderer::MeshComponent*>(field->Value());
     ASSERT(component != nullptr);
+
+    if (component->mesh == nullptr)
+    {
+        Logger::Write(
+            "[Scripting] GetMeshResourcePath failed beacuse component has no mesh",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
 
     std::string pathStr = component->mesh->GetResourcePath();
 

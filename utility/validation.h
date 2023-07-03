@@ -8,6 +8,6 @@
         throw;}                                                                   
 
 #define ASSERT(result)                                                              \
-    if (result != true) {                                                           \
+    if ((result) != true) {                                                           \
         std::cerr << "[Vulkan Renderer] Evaluated to false.";                       \
         throw;}                                                                   

@@ -343,10 +343,10 @@ if (info.Length() != 2 || !info[0]->IsInt32() || !info[1]->IsFunction())
                 }
                 else
                 {
-                    ASSERT((keyCode >= KeyCode::LEFT_X_CLICK && 
+                    ASSERT(((keyCode >= KeyCode::LEFT_X_CLICK && 
                             keyCode <= KeyCode::LEFT_MENU_CLICK) ||
                            (keyCode >= KeyCode::RIGHT_THUMBSTICK_CLICK && 
-                            keyCode <= KeyCode::RIGHT_B_CLICK));
+                            keyCode <= KeyCode::RIGHT_B_CLICK)));
                     arg = v8::Boolean::New(subscriberContext->isolate, e->boolValue);
                 }
 

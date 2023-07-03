@@ -9,7 +9,7 @@ namespace scripting
 void GetEntity(const v8::FunctionCallbackInfo<v8::Value> &info);
 void GetComponentType(const v8::FunctionCallbackInfo<v8::Value> &info);
 
-void SetMeshResoucePath(const v8::FunctionCallbackInfo<v8::Value> &info);
+void SetMeshResourcePath(const v8::FunctionCallbackInfo<v8::Value> &info);
 void GetMeshResourcePath(const v8::FunctionCallbackInfo<v8::Value> &info);
 
 void SetLightColor(const v8::FunctionCallbackInfo<v8::Value> &info);

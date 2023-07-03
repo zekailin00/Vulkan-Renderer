@@ -420,7 +420,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = lThumbstickClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::LEFT_THUMBSTICK_CLICK;
@@ -434,7 +434,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = rThumbstickClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::RIGHT_THUMBSTICK_CLICK;
@@ -448,7 +448,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = lXClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::LEFT_X_CLICK;
@@ -462,7 +462,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = lYClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::LEFT_Y_CLICK;
@@ -476,7 +476,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = lMenuClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::LEFT_MENU_CLICK;
@@ -490,7 +490,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = rAClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::RIGHT_A_CLICK;
@@ -504,7 +504,7 @@ void OpenxrPlatform::BeginFrame()
     getInfo.action = rBClickAction;
     CHK_XRCMD(xrGetActionStateBoolean(
         session->GetSession(), &getInfo, &boolActionState));
-    if (boolActionState.isActive)
+    if (boolActionState.isActive && boolActionState.changedSinceLastSync)
     {
         EventControllerInput* event = new EventControllerInput();
         event->keycode = KeyCode::RIGHT_B_CLICK;

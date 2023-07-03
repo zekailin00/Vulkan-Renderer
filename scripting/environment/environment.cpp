@@ -157,8 +157,8 @@ v8::Local<v8::ObjectTemplate> MakeMeshCompTemplate(v8::Isolate* isolate)
         v8::FunctionTemplate::New(isolate, GetEntity));
     temp->Set(isolate, "GetComponentType",
         v8::FunctionTemplate::New(isolate, GetComponentType));
-    temp->Set(isolate, "SetMeshResoucePath",
-        v8::FunctionTemplate::New(isolate, SetMeshResoucePath));
+    temp->Set(isolate, "SetMeshResourcePath",
+        v8::FunctionTemplate::New(isolate, SetMeshResourcePath));
     temp->Set(isolate, "GetMeshResourcePath",
         v8::FunctionTemplate::New(isolate, GetMeshResourcePath));
 
