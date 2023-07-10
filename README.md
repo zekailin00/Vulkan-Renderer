@@ -7,11 +7,19 @@
 - right: +x
 - default camera looks at -z
 
-## Vulkan fragment shader stage range
+## Vulkan Coordinates
 
+1. NDC space (after vertex shader stage)
 - x: [-1, 1] from left to right
 - y: [-1, 1] from top to bottom
 - z: [ 0, 1] from front to back
+
+2. Screen Space 
+- x: [0, w] width of framebuffer
+- y: [0, h] height of framebuffer
+- z: [0, 1] depth buffer range
+
+https://johannesugb.github.io/gpu-programming/setting-up-a-proper-vulkan-projection-matrix/
 
 ## Build setting
 - The engine MUST be compiled by a 64 bit compiler. 
