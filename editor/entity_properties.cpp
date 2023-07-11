@@ -113,7 +113,7 @@ void EntityProperties::ShowEntityProperties()
             ImGui::PushItemWidth(-0.1);
             std::string entityName = selectedEntity->GetName();
             strncpy(nameBuffer, entityName.c_str(), entityName.size());
-            nameBuffer[entityName.size()] = NULL;
+            nameBuffer[entityName.size()] = '\0';
             if (ImGui::InputText(
                 "##identifier", nameBuffer, IM_ARRAYSIZE(nameBuffer),
                 ImGuiInputTextFlags_EnterReturnsTrue))
