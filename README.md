@@ -15,9 +15,9 @@
 - z: [ 0, 1] from front to back
 
 2. Screen Space 
-- x: [0, w] width of framebuffer
-- y: [0, h] height of framebuffer
-- z: [0, 1] depth buffer range
+- x: [0, w] width of framebuffer from left tot right
+- y: [0, h] height of framebuffer from top to bottom
+- z: [0, 1] depth buffer range from front to back
 
 https://johannesugb.github.io/gpu-programming/setting-up-a-proper-vulkan-projection-matrix/
 

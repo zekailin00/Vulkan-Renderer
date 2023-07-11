@@ -187,12 +187,12 @@ public:
 
     void SetWidth(float width)
     {
-        lineInfo.width = width;
+        lineProperties.width = width;
     }
 
     float GetWidth()
     {
-        return lineInfo.width;
+        return lineProperties.width;
     }
     
     VulkanBuffer<LineData>* GetLineData()
@@ -206,13 +206,19 @@ public:
     LineRenderer(const LineRenderer&) = delete;
     void operator=(const LineRenderer&) = delete;
 
-private:
-    struct LineInfo
+public:
+    struct LineProperties // Sent to GPU, has alignment requirements
     {
-        float width = 0.1; /* Meter */
-        bool useGlobalTransform = true;
+        glm::vec3 color = {1.0f, 1.0f, 1.0f};
+        float _0;
 
-    } lineInfo{};
+        float width = 0.1; /* Meter */
+        int useGlobalTransform = 1;
+        glm::vec2 resolution;
+    };
+
+private:
+    LineProperties lineProperties{};
     std::shared_ptr<VulkanInstanceMesh<LineData>> lineInstance = nullptr;
 };
 

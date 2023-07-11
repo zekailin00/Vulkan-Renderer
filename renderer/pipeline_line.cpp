@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <array>
+#include <vector>
 #include <tracy/Tracy.hpp>
 
 namespace renderer
@@ -22,7 +23,7 @@ PipelineLine::PipelineLine(VulkanDevice& vulkanDevice,
     std::unique_ptr<VulkanPipelineLayout> wireLayout;
 
     wirePipeline->LoadShader("resources/vulkan_shaders/wire/vert.spv",
-                            "resources/vulkan_shaders/wire/frag.spv");
+                             "resources/vulkan_shaders/wire/frag.spv");
     
     layoutBuilder.PushDescriptorSetLayout("camera",
     {
@@ -49,15 +50,33 @@ PipelineLine::PipelineLine(VulkanDevice& vulkanDevice,
 
     wirePipeline->rasterState.cullMode = VK_CULL_MODE_NONE;
 
+    std::vector<VkVertexInputBindingDescription> bindingDesc =
+    {
+        {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX},
+        {1, sizeof(LineData), VK_VERTEX_INPUT_RATE_INSTANCE},
+    };
+
+    std::vector<VkVertexInputAttributeDescription> attributeDesc =
+    {
+        {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, Position)},
+        {1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, Normal)},
+        {2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, TexCoords)},
+        {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(LineData, beginPoint)},
+        {1, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(LineData, endPoint)},
+    };
+
+
     VkPipelineVertexInputStateCreateInfo info{};
     info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    info.vertexAttributeDescriptionCount = 0;
-    info.vertexBindingDescriptionCount = 0;
+    info.vertexBindingDescriptionCount = bindingDesc.size();
+    info.pVertexBindingDescriptions = bindingDesc.data();
+    info.vertexAttributeDescriptionCount = attributeDesc.size();
+    info.pVertexAttributeDescriptions = attributeDesc.data();
 
     wirePipeline->BuildPipeline(
         &info,
         std::move(wireLayout),
-        vkRenderPass.defaultCamera
+        renderpass
     );
 
     pipelines["wire"] = std::move(wirePipeline);
