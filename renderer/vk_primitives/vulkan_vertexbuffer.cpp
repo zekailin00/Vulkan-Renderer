@@ -101,10 +101,9 @@ void VulkanVertexbuffer::Destroy()
     if (vulkanDevice == nullptr)
         return;
     
-    //FIXME: may need to pause GPU before deallocation
-    
     VkDevice& vkDevice = vulkanDevice->vkDevice;
-
+    vkDeviceWaitIdle(vulkanDevice->vkDevice);
+    
     vkUnmapMemory(vulkanDevice->vkDevice, indexMemory);
     vkUnmapMemory(vulkanDevice->vkDevice, vertexMemory);
 
