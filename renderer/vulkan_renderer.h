@@ -10,6 +10,7 @@
 #include "vulkan_swapchain.h"
 #include "render_technique.h"
 #include "pipeline_imgui.h"
+#include "pipeline_line.h"
 
 #include <vulkan/vulkan.h>
 #include <string>
@@ -106,6 +107,7 @@ private:
 
     std::map<std::string, std::unique_ptr<VulkanPipeline>> pipelines;
     std::unique_ptr<PipelineImgui> pipelineImgui;
+    std::unique_ptr<PipelineLine> pipelineLine;
 
     // Owned by glfw
     IVulkanSwapchain* swapchain = nullptr;

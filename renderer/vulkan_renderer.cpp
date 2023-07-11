@@ -631,7 +631,11 @@ void VulkanRenderer::CreatePipelines()
     }
 
     pipelineImgui = std::make_unique<PipelineImgui>(
-        vulkanDevice, vkDescriptorPool, vkRenderPass.imgui);
+        vulkanDevice, vkDescriptorPool, vkRenderPass.imgui
+    );
+    pipelineLine = std::make_unique<PipelineLine>(
+        vulkanDevice, vkDescriptorPool, vkRenderPass.defaultCamera
+    );
 }
 
 void VulkanRenderer::BeginFrame()
