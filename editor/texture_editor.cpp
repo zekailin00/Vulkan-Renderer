@@ -191,11 +191,11 @@ void TextureEditor::ShowTexturePropertiesSection()
         }
 
         ImGui::Text("Address mode:");
-        ImGui::SameLine(150); ImGui::Text(addressMode.c_str());
+        ImGui::SameLine(150); ImGui::Text("%s", addressMode.c_str());
         ImGui::Text("Min filter:");
-        ImGui::SameLine(150); ImGui::Text(minFilter.c_str());
+        ImGui::SameLine(150); ImGui::Text("%s",minFilter.c_str());
         ImGui::Text("Max filter:");
-        ImGui::SameLine(150); ImGui::Text(maxFilter.c_str());
+        ImGui::SameLine(150); ImGui::Text("%s",maxFilter.c_str());
     }
 }
 

@@ -11,19 +11,20 @@ template<typename T>
 class VulkanBuffer
 {
 public:
-    void Initialize(VkBufferUsageFlags usageFlags, unsigned int capacity)
+    void Initialize(
+        VulkanDevice* vulkanDevice, VkBufferUsageFlags usageFlags, unsigned int capacity)
     {
         if (initialized)
             Destroy();
 
-        T* data = AllocateVulkanBuffer(
+        this->vulkanDevice = vulkanDevice;
+        this->usageFlags = usageFlags;
+        this->capacity = capacity;
+        this->size = 0;
+        this->data = AllocateVulkanBuffer(
             usageFlags, capacity,
             this->vkBuffer, this->vkMemory
         );
-
-        this->capacity = capacity;
-        this->size = 0;
-        this->data = data;
 
         this->initialized = true;
     }
@@ -49,7 +50,7 @@ public:
         initialized = false;
     }
 
-    T* Data()
+    const T* Data()
     {
         return data;
     }
@@ -62,22 +63,29 @@ public:
      */
     T& operator[](unsigned int index)
     {
-        ASSERT(index < currentLength)
+        ASSERT(index < size)
         return data[index];
     }
     
     void PushBack(const T& element)
     {
-        //TODO: resizable
-        ASSERT(size < capacity);
+        
+        if(size == capacity)
+        {
+            Expand();
+        }
+
         data[size++] = element;
     }
 
     void Insert(unsigned int index, const T& element)
     {
-        //TODO: resizable
         ASSERT(index <= size);
-        ASSERT(size < capacity);
+
+        if(size == capacity)
+        {
+            Expand();
+        }
 
         int nextIndex = size - 1;
         while (nextIndex != index)
@@ -105,6 +113,21 @@ public:
         size = newSize;
     }
 
+    void Copy(const T* srcData, unsigned int srcSize)
+    {
+        while(capacity < srcSize)
+        {
+            Expand();
+        }
+
+        for(int i = 0; i < srcSize; i++)
+        {
+            data[i] = srcData[i];
+        }
+
+        size = srcSize;
+    }
+
     void Clear()
     {
         size = 0;
@@ -120,8 +143,8 @@ public:
         return capacity;
     }
 
-    VulkanBuffer(VulkanDevice* vulkanDevice, bool resizable):
-        vulkanDevice(vulkanDevice), resizable(resizable) {}
+    VulkanBuffer() = default;
+    ~VulkanBuffer() = default;
 
 private:
     T* AllocateVulkanBuffer(
@@ -155,12 +178,36 @@ private:
         return static_cast<T*>(data);
     }
 
+    void Expand()
+    {
+        VkBuffer vkBuffer;
+        VkDeviceMemory vkMemory;
+        unsigned int size = this->size;
+        unsigned int newCapacity = this->capacity * 2;
+
+        T* data = AllocateVulkanBuffer(
+            usageFlags, newCapacity, vkBuffer, vkMemory
+        );
+
+        for(int i = 0; i < size; i++)
+        {
+            data[i] = this->data[i];
+        }
+
+        Destroy();
+        this->size = size;
+        this->capacity = newCapacity;
+        this->data = data;
+        this->vkBuffer = vkBuffer;
+        this->vkMemory = vkMemory;
+    }
+
     void operator=(const VulkanBuffer<T>&) = delete;
     VulkanBuffer(const VulkanBuffer<T>&) = delete;
 
 private:
-    VulkanDevice *const vulkanDevice;
-    const bool resizable;
+    VulkanDevice* vulkanDevice;
+    VkBufferUsageFlags usageFlags;
 
     bool initialized = false;
     VkBuffer vkBuffer{VK_NULL_HANDLE};

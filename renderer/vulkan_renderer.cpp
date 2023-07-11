@@ -215,9 +215,9 @@ void VulkanRenderer::AllocateResources(
        UIDeserializer(&defaultTechnique));
        
     ComponentLocator::SetInitializer(Component::Type::Wireframe,
-       WireframeInitializer(&defaultTechnique));
+       LineInitializer(&defaultTechnique, &vulkanDevice));
     ComponentLocator::SetDeserializer(Component::Type::Wireframe,
-       WireframeDeserializer(&defaultTechnique));
+       LineDeserializer(&defaultTechnique, &vulkanDevice));
 
     ComponentLocator::SetInitializer(Component::Type::VrDisplay,
        VrDisplayInitializer(&defaultTechnique));

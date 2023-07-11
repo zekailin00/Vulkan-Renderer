@@ -334,7 +334,7 @@ void RenderTechnique::PushRendererData(const MeshPacket& meshPacket)
     renderMesh.push_back(meshPacket);
 }
 
-void RenderTechnique::PushRendererData(const std::shared_ptr<VulkanUI>& ui)
+void RenderTechnique::PushRendererData(const std::shared_ptr<VulkanUI> ui)
 {
     uiList.push_back(ui);
 }
@@ -348,7 +348,7 @@ void RenderTechnique::PushRendererData(
     }
 }
 
-void RenderTechnique::PushRendererData(const std::shared_ptr<BaseCamera>& camera)
+void RenderTechnique::PushRendererData(const std::shared_ptr<BaseCamera> camera)
 {
     if (camera->cameraType == CameraType::CAMERA)
     {
@@ -362,5 +362,12 @@ void RenderTechnique::PushRendererData(const std::shared_ptr<BaseCamera>& camera
         throw;//TODO:
     }
 }
+
+void RenderTechnique::PushRendererData(
+    const std::shared_ptr<LineRenderer> lineRenderer)
+{
+    lineList.push_back(lineRenderer);
+}
+
 
 } // namespace renderer

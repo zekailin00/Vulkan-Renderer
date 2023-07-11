@@ -8,9 +8,6 @@
 
 #include "serialization.h"
 
-#include <memory>
-#include <tracy/Tracy.hpp>
-
 
 namespace renderer
 {
@@ -34,24 +31,6 @@ std::shared_ptr<Mesh> VulkanMesh::BuildMesh(BuildMeshInfo& info)
         sizeof(VertexIndex) * info.indices.size());
     memcpy(vertexData, info.vertices.data(),
         sizeof(Vertex) * info.vertices.size());
-
-    // mesh->uniform.Initialize(vulkanDevice, sizeof(glm::mat4));
-    // mesh->map = static_cast<glm::mat4*>(mesh->uniform.Map());
-
-    // VulkanPipelineLayout& layout = vkr.GetPipelineLayout("render");
-    // layout.AllocateDescriptorSet("mesh", vkr.FRAME_IN_FLIGHT, &mesh->descSet);
-
-    // VkWriteDescriptorSet descriptorWrite{};
-    // descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    // descriptorWrite.dstSet = mesh->descSet;
-    // descriptorWrite.dstBinding = 0;
-    // descriptorWrite.dstArrayElement = 0;
-    // descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    // descriptorWrite.descriptorCount = 1;
-    // descriptorWrite.pBufferInfo = mesh->uniform.GetDescriptor();
-
-    // vkUpdateDescriptorSets(
-    //     vulkanDevice->vkDevice, 1, &descriptorWrite, 0, nullptr);
 
     mesh->material = VulkanMaterial::GetDefaultMaterial();
 
@@ -111,17 +90,5 @@ VulkanMesh::~VulkanMesh()
 
     vertexbuffer.Destroy();
 }
-
- std::shared_ptr<Mesh> VulkanInstanceMesh::BuildMesh(BuildMeshInfo& info)
- {
-    VulkanRenderer& vkr = VulkanRenderer::GetInstance();
-    VulkanDevice* vulkanDevice = &vkr.vulkanDevice;
-
-    std::shared_ptr<VulkanInstanceMesh> mesh =
-        std::make_shared<VulkanInstanceMesh>();
-    
-    mesh->transformBuffer = new VulkanBuffer<glm::mat4>(vulkanDevice, true);
-    mesh->transformBuffer->Initialize(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 0);
- }
 
 } // namespace renderer

@@ -42,9 +42,10 @@ public:
 
     void PushRendererData(const DirLight& dirLight);
     void PushRendererData(const MeshPacket& meshPacket);
-    void PushRendererData(const std::shared_ptr<VulkanUI>& ui);
+    void PushRendererData(const std::shared_ptr<VulkanUI> ui);
     void PushRendererData(const std::vector<renderer::WirePushConst>& wireList);
-    void PushRendererData(const std::shared_ptr<BaseCamera>& camera);
+    void PushRendererData(const std::shared_ptr<BaseCamera> camera);
+    void PushRendererData(const std::shared_ptr<LineRenderer> lineRenderer);
 
 private:
 
@@ -62,6 +63,7 @@ private:
     std::vector<std::shared_ptr<VulkanCamera>> cameraList{};
     std::vector<WirePushConst> wireList{};
     std::vector<std::shared_ptr<VulkanUI>> uiList{};
+    std::vector<std::shared_ptr<LineRenderer>> lineList{};
 
 
     VulkanUniform sceneUniform{};

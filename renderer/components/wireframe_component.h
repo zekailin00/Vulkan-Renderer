@@ -4,6 +4,7 @@
 
 #include "vulkan_wireframe.h"
 #include "render_technique.h"
+#include "vk_primitives/vulkan_device.h"
 
 #include <string>
 
@@ -11,39 +12,41 @@
 namespace renderer
 {
 
-class WireframeInitializer
+class LineInitializer
 {
     RenderTechnique* technique;
+    VulkanDevice* vulkanDevice;
 
 public:
-    WireframeInitializer(RenderTechnique* technique)
-    :technique(technique){}
+    LineInitializer(RenderTechnique* technique, VulkanDevice* vulkanDevice)
+    :technique(technique), vulkanDevice(vulkanDevice) {}
 
     Component* operator()(Entity* entity);
 };
 
-class WireframeDeserializer
+class LineDeserializer
 {
     RenderTechnique* technique;
+    VulkanDevice* vulkanDevice;
 
 public:
-    WireframeDeserializer(RenderTechnique* technique)
-    :technique(technique){}
+    LineDeserializer(RenderTechnique* technique, VulkanDevice* vulkanDevice)
+    :technique(technique), vulkanDevice(vulkanDevice) {}
 
     Component* operator()(Entity* entity, Json::Value& json);
 };
 
-struct WireframeComponent: public Component
+struct LineComponent: public Component
 {
-    std::shared_ptr<VulkanWireframe> wireframe;
+    std::shared_ptr<LineRenderer> lineRenderer;
     
     void Update(Timestep ts) override;
     void Serialize(Json::Value& json) override;
-    ~WireframeComponent() override;
+    ~LineComponent() override;
 
 private:
-    friend WireframeInitializer;
-    friend WireframeDeserializer;
+    friend LineInitializer;
+    friend LineDeserializer;
 
     RenderTechnique* technique;
 };
