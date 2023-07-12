@@ -239,7 +239,31 @@ LineRenderer::LineRenderer(VulkanDevice* vulkanDevice)
     lineInstance = VulkanInstanceMesh<LineData>::BuildMesh(
         info, vulkanDevice
     );
+
+    linePropUniform.Initialize(vulkanDevice, sizeof(lineProperties));
+    this->lineProperties = static_cast<LineProperties*>(
+        linePropUniform.Map());
+    
+    LineProperties defaultProp{};
+    *(this->lineProperties) = defaultProp;
+
+    {
+        std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
+
+        descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite[0].dstSet = this->linePropDescSet;
+        descriptorWrite[0].dstBinding = 0;
+        descriptorWrite[0].dstArrayElement = 0;
+        descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite[0].descriptorCount = 1;
+        descriptorWrite[0].pBufferInfo = linePropUniform.GetDescriptor();
+
+        vkUpdateDescriptorSets(vulkanDevice->vkDevice,
+            descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
+    }
 }
+
+//FIXME destructor
 
 void LineRenderer::AddLine(LineData data)
 {

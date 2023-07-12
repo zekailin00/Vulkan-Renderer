@@ -4,6 +4,7 @@
 
 #include "vulkan_mesh.h"
 #include "vk_primitives/vulkan_device.h"
+#include "vk_primitives/vulkan_uniform.h"
 
 #include <glm/gtc/constants.hpp>
 #include <glm/vec3.hpp>
@@ -185,19 +186,24 @@ public:
     void AddLines(std::vector<LineData>& data);
     void ClearAllLines();
 
-    void SetWidth(float width)
+    void SetLineWidth(float width)
     {
-        lineProperties.width = width;
+        lineProperties->width = width;
     }
 
-    float GetWidth()
+    float GetLineWidth()
     {
-        return lineProperties.width;
+        return lineProperties->width;
     }
     
     VulkanBuffer<LineData>* GetLineData()
     {
         return lineInstance->GetInstanceBuffer();
+    }
+    
+    VkDescriptorSet* GetLinePropDescSet()
+    {
+        return &linePropDescSet;
     }
 
     LineRenderer(VulkanDevice* vulkanDevice);
@@ -209,6 +215,8 @@ public:
 public:
     struct LineProperties // Sent to GPU, has alignment requirements
     {
+        glm::mat4 model;
+
         glm::vec3 color = {1.0f, 1.0f, 1.0f};
         float _0;
 
@@ -218,8 +226,11 @@ public:
     };
 
 private:
-    LineProperties lineProperties{};
+    VulkanUniform linePropUniform;
     std::shared_ptr<VulkanInstanceMesh<LineData>> lineInstance = nullptr;
+
+    LineProperties* lineProperties = nullptr;
+    VkDescriptorSet linePropDescSet = VK_NULL_HANDLE;
 };
 
 } // namespace renderer

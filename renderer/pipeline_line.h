@@ -24,8 +24,13 @@ public:
     PipelineLine(const PipelineLine&) = delete;
     void operator=(const PipelineLine&) = delete;
 
-    void Render(std::vector<std::shared_ptr<LineRenderer>> lineList,
-        VkBuffer vertexBuffer, VkBuffer indexBuffer, VkCommandBuffer commandbuffer);
+    void Render(std::vector<std::shared_ptr<LineRenderer>>& lineList,
+        VkDescriptorSet* cameraDescSet, glm::vec2 extent,
+        VkCommandBuffer commandbuffer);
+public:
+    VulkanDevice* vulkanDevice;
+    VkDescriptorPool vkDescriptorPool;
+    std::unique_ptr<VulkanPipeline> linePipeline;
 };
 
 } // namespace renderer

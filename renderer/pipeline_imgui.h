@@ -36,7 +36,7 @@ private:
     VkDescriptorSet fontTextureDescSet;
 
     // Cached data
-    VulkanDevice vulkanDevice;
+    VulkanDevice* vulkanDevice;
     VkDescriptorPool vkDescriptorPool;
 
     struct ImguiPushConst

@@ -32,7 +32,7 @@ PipelineImgui::PipelineImgui(
 {
     ZoneScopedN("PipelineImgui::PipelineImgui");
 
-    this->vulkanDevice = vulkanDevice;
+    this->vulkanDevice = &vulkanDevice;
     this->vkDescriptorPool = vkDescriptorPool;
 
     IMGUI_CHECKVERSION();
@@ -159,10 +159,10 @@ PipelineImgui::~PipelineImgui()
 {
     ZoneScopedN("PipelineImgui::~PipelineImgui");
 
-    vkDeviceWaitIdle(vulkanDevice.vkDevice);
+    vkDeviceWaitIdle(vulkanDevice->vkDevice);
     ImGuiIO& io = ImGui::GetIO();
 
-    vkFreeDescriptorSets(vulkanDevice.vkDevice, vkDescriptorPool, 1, &fontTextureDescSet);
+    vkFreeDescriptorSets(vulkanDevice->vkDevice, vkDescriptorPool, 1, &fontTextureDescSet);
     fontTexture->Destroy();
     imguiPipeline = nullptr;
 
