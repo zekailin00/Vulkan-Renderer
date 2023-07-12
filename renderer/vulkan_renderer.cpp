@@ -214,10 +214,10 @@ void VulkanRenderer::AllocateResources(
     ComponentLocator::SetDeserializer(Component::Type::UI,
        UIDeserializer(&defaultTechnique));
        
-    ComponentLocator::SetInitializer(Component::Type::Wireframe,
+    ComponentLocator::SetInitializer(Component::Type::Line,
        LineInitializer(&defaultTechnique, &vulkanDevice,
        pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
-    ComponentLocator::SetDeserializer(Component::Type::Wireframe,
+    ComponentLocator::SetDeserializer(Component::Type::Line,
        LineDeserializer(&defaultTechnique, &vulkanDevice));
 
     ComponentLocator::SetInitializer(Component::Type::VrDisplay,

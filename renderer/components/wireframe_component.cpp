@@ -11,7 +11,7 @@ Component* LineInitializer::operator()(Entity* entity)
 {
     LineComponent* component = new LineComponent();
     component->entity = entity;
-    component->type = Component::Type::Wireframe;
+    component->type = Component::Type::Line;
     component->technique = technique;
 
     component->lineRenderer = std::make_shared<LineRenderer>(
@@ -24,11 +24,8 @@ Component* LineDeserializer::operator()(Entity* entity, Json::Value& json)
 {
     LineComponent* component = new LineComponent();
     component->entity = entity;
-    component->type = Component::Type::Wireframe;
+    component->type = Component::Type::Line;
     component->technique = technique;
-
-    VulkanWireframe::WireframeType wireframeType =
-        (VulkanWireframe::WireframeType)json["type"].asInt();
 
     glm::vec3 color;
     DeserializeVec3(color, json["color"]);

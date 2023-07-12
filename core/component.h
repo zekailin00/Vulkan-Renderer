@@ -26,7 +26,7 @@ struct Component
         Light,
         Mesh,
         UI,
-        Wireframe,
+        Line,
         Script,
         Size
     };

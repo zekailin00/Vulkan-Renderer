@@ -34,7 +34,7 @@ void Scene1::OnCreated()
 
     renderer::LineComponent* lineComponent =
         reinterpret_cast<renderer::LineComponent*>(
-            lineEntity->AddComponent(Component::Type::Wireframe));
+            lineEntity->AddComponent(Component::Type::Line));
 
     lineComponent->lineRenderer->AddLine(
         {{0,0,0},{2,2,2}}

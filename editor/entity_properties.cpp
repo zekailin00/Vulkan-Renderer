@@ -225,7 +225,7 @@ void EntityProperties::ShowEntityProperties()
         ShowMeshComponent();
     }
 
-    if (selectedEntity->HasComponent(Component::Type::Wireframe))
+    if (selectedEntity->HasComponent(Component::Type::Line))
     {
         ShowWireframeComponent();
     }
@@ -481,16 +481,134 @@ void EntityProperties::ShowMeshComponent()
 
 void EntityProperties::ShowWireframeComponent()
 {
-    if (ImGui::CollapsingHeader("Wireframe Component"))
+    if (ImGui::CollapsingHeader("Line Component"))
     {
-        RemoveComponent(Component::Type::Wireframe);
+        RemoveComponent(Component::Type::Line);
 
-        // renderer::WireframeComponent* component =
-        //     dynamic_cast<renderer::WireframeComponent*>(
-        //         selectedEntity->GetComponent(Component::Type::Wireframe));
+        renderer::LineComponent* component =
+            dynamic_cast<renderer::LineComponent*>(
+                selectedEntity->GetComponent(Component::Type::Line));
 
-        ImGui::SeparatorText("Wireframe");
-        ImGui::Text("TODO:");
+        ImGui::SeparatorText("Line Properties");
+        {
+            renderer::LineRenderer::LineProperties* prop =
+                component->lineRenderer->GetLineProperties();
+
+            glm::vec3 color = prop->color;
+            if (ImGui::ColorEdit3("Color##1", &color[0],
+                ImGuiColorEditFlags_HDR | ImGuiColorEditFlags_DisplayRGB |
+                ImGuiColorEditFlags_Float | ImGuiColorEditFlags_InputRGB))
+            {
+                prop->color = color;
+            }
+
+            bool useTransform = prop->useGlobalTransform;
+            if (ImGui::Checkbox("Use Global Transform", &useTransform))
+            {
+                prop->useGlobalTransform = useTransform;
+            }
+
+            ImGui::SameLine();
+
+            int pixel = prop->width;
+            if (ImGui::DragInt("Width in pixel", &pixel, 1.0f, 1, 2049, "%d",
+                ImGuiSliderFlags_AlwaysClamp))
+            {
+                prop->width = pixel;
+            }
+        }
+
+        ImGui::SeparatorText("Line Data");
+        {
+            int action; 
+            int lineCount = component->lineRenderer->GetInstanceCount();
+            renderer::VulkanBuffer<renderer::LineData>* lineData =
+                component->lineRenderer->GetLineData();
+
+
+            ImGuiWindowFlags window_flags =
+                ImGuiWindowFlags_None | ImGuiWindowFlags_MenuBar;
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
+            ImGui::BeginChild("Line Data Window", ImVec2(0, 260), true, window_flags);
+            if (ImGui::BeginMenuBar())
+            {
+                ImGui::EndMenuBar();
+            }
+
+            ImGuiTableFlags flags =
+                ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY |
+                ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter |
+                ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable |
+                ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
+                ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
+
+            int freezeCols = 1;
+            int freezeRows = 1;
+
+            // When using ScrollX or ScrollY we need to specify a size for our table container!
+            // Otherwise by default the table will fit all available space, like a BeginChild() call.
+            ImVec2 outer_size = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 8);
+            if (ImGui::BeginTable("table_scrollx", 7, flags, outer_size))
+            {
+                ImGui::TableSetupScrollFreeze(freezeCols, freezeRows);
+                ImGui::TableSetupColumn("Pts", ImGuiTableColumnFlags_NoHide);
+                // Make the first column not hideable to match our use of TableSetupScrollFreeze()
+                ImGui::TableSetupColumn("Begin");
+                ImGui::TableSetupColumn("End");
+                ImGui::TableSetupColumn("Action");
+
+                ImGui::TableHeadersRow();
+
+                for (int row = 0; row < lineCount; row++)
+                {
+                    ImGui::TableNextRow();
+                    for (int column = 0; column < 4; column++)
+                    {
+                        // Both TableNextColumn() and TableSetColumnIndex() return true when a column is visible or performing width measurement.
+                        // Because here we know that:
+                        // - A) all our columns are contributing the same to row height
+                        // - B) column 0 is always visible,
+                        // We only always submit this one column and can skip others.
+                        // More advanced per-column clipping behaviors may benefit from polling the status flags via TableGetColumnFlags().
+                        if (!ImGui::TableSetColumnIndex(column) && column > 0)
+                            continue;
+
+                        renderer::LineData data = lineData[row];
+
+                        if (column == 0)
+                        {
+                            ImGui::Text("%d", row);
+                        }
+                        else if (column == 1)
+                        {
+
+                            if (ImGui::DragFloat3())
+                            {
+
+                            }
+                        }
+                        else if (column == 2)
+                        {
+                            ImGui::DragFloat3();
+                        }
+                        else
+                        {
+                           if (ImGui::SmallButton("Remove"))
+                           {
+                                action = 1;
+                           }
+                        }
+                    }
+                }
+
+                ImGui::EndTable();
+            }
+
+            ImGui::EndChild();
+            ImGui::PopStyleVar();
+        }
+
+
         ImGui::Separator();
     }
 }
@@ -574,6 +692,7 @@ void EntityProperties::AddComponent()
         "VR Display Component",
         "Mesh Component",
         "Script Component",
+        "Line Component"
     };
 
     std::string selectedComponent;
@@ -613,6 +732,11 @@ void EntityProperties::AddComponent()
         !selectedEntity->HasComponent(Component::Type::Script))
     {
         selectedEntity->AddComponent(Component::Type::Script);
+    }
+    else if (selectedComponent == "Line Component" &&
+        !selectedEntity->HasComponent(Component::Type::Line))
+    {
+        selectedEntity->AddComponent(Component::Type::Line);
     }
 }
 
