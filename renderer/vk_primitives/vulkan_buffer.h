@@ -50,6 +50,11 @@ public:
         initialized = false;
     }
 
+    VkBuffer* GetBuffer()
+    {
+        return &vkBuffer;
+    }
+
     const T* Data()
     {
         return data;

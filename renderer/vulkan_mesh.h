@@ -121,6 +121,11 @@ public:
         return std::static_pointer_cast<VulkanMaterial>(this->material);
     }
 
+    uint32_t GetInstanceCount()
+    {
+        return instanceBuffer->Size();
+    }
+
     VulkanBuffer<T>* GetInstanceBuffer()
     {
         return instanceBuffer;

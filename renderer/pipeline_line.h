@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vk_primitives/vulkan_device.h"
+#include "vk_primitives/vulkan_pipeline.h"
 
 #include "vulkan_wireframe.h"
 
@@ -26,7 +27,7 @@ public:
 
     void Render(std::vector<std::shared_ptr<LineRenderer>>& lineList,
         VkDescriptorSet* cameraDescSet, glm::vec2 extent,
-        VkCommandBuffer commandbuffer);
+        VkCommandBuffer commandBuffer);
 public:
     VulkanDevice* vulkanDevice;
     VkDescriptorPool vkDescriptorPool;

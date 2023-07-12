@@ -89,22 +89,34 @@ PipelineLine::~PipelineLine()
 void PipelineLine::Render(
     std::vector<std::shared_ptr<LineRenderer>>& lineList,
     VkDescriptorSet* cameraDescSet, glm::vec2 extent,
-    VkCommandBuffer commandbuffer)
+    VkCommandBuffer commandBuffer)
 {
-    vkCmdBindPipeline(commandbuffer,
+    vkCmdBindPipeline(commandBuffer,
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         linePipeline->pipeline
     );
 
     vkCmdBindDescriptorSets(
-        commandbuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+        commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
         linePipeline->pipelineLayout->layout,
-        2, 1, cameraDescSet, 0, nullptr
+        1, 1, cameraDescSet, 0, nullptr
     );
 
     for(const std::shared_ptr<LineRenderer> e: lineList)
     {
-        // e->GetLineData()->
+        e->GetLineProperties()->resolution = extent;
+
+        vkCmdBindDescriptorSets(
+            commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+            linePipeline->pipelineLayout->layout,
+            0, 1, e->GetLinePropDescSet(), 0, nullptr
+        );
+
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, e->GetVertexBuffer(), &offset);
+        vkCmdBindVertexBuffers(commandBuffer, 1, 1, e->GetInstanceBuffer(), &offset);
+        vkCmdBindIndexBuffer(commandBuffer, *e->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(commandBuffer, e->GetIndexCount(), e->GetInstanceCount(), 0, 0, 0);
     }
 
 }

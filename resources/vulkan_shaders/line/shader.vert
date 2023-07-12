@@ -9,19 +9,16 @@ layout (location = 4) in vec3 EndPoint;
 
 layout (location = 0) out vec3 VertColor;
 
-layout (set = 1, binding = 0) uniform MeshCoordinates
-{
-    mat4 model;
-} m;
-
-layout (set = 2, binding = 0) uniform ViewProjection 
+layout (set = 0, binding = 0) uniform ViewProjection 
 {
     mat4 view;
     mat4 projection;
 } vp;
 
-layout (set = 3, binding = 0) uniform LineProperties
+layout (set = 1, binding = 0) uniform LineProperties
 {
+    mat4 model;
+
     vec3  color;
     float _0;
 
@@ -38,8 +35,8 @@ void main()
 
     if (line.useGlobalTransform != 0)
     {
-        clip0 = vp.projection * vp.view * m.model * vec4(BeginPoint, 1.0);
-        clip1 = vp.projection * vp.view * m.model * vec4(EndPoint, 1.0);
+        clip0 = vp.projection * vp.view * line.model * vec4(BeginPoint, 1.0);
+        clip1 = vp.projection * vp.view * line.model * vec4(EndPoint, 1.0);
     }
     else
     {

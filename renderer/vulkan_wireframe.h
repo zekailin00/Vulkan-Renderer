@@ -182,6 +182,19 @@ public:
 class LineRenderer
 {
 public:
+    struct LineProperties // Sent to GPU, has alignment requirements
+    {
+        glm::mat4 model;
+
+        glm::vec3 color = {1.0f, 1.0f, 1.0f};
+        float _0;
+
+        float width = 0.1; /* Meter */
+        int useGlobalTransform = 1;
+        glm::vec2 resolution;
+    };
+
+public:
     void AddLine(LineData data);
     void AddLines(std::vector<LineData>& data);
     void ClearAllLines();
@@ -206,24 +219,41 @@ public:
         return &linePropDescSet;
     }
 
+    LineProperties* GetLineProperties()
+    {
+        return lineProperties;
+    }
+
+    VkBuffer* GetVertexBuffer()
+    {
+        return &lineInstance->GetVertexbuffer().vertexBuffer;
+    }
+
+    VkBuffer* GetIndexBuffer()
+    {
+        return &lineInstance->GetVertexbuffer().indexBuffer;
+    }
+
+    VkBuffer* GetInstanceBuffer()
+    {
+        return lineInstance->GetInstanceBuffer()->GetBuffer();
+    }
+
+    uint32_t GetIndexCount()
+    {
+        return lineInstance->GetVertexbuffer().GetIndexCount();
+    }
+
+    uint32_t GetInstanceCount()
+    {
+        return lineInstance->GetInstanceCount();
+    }
+
     LineRenderer(VulkanDevice* vulkanDevice);
     ~LineRenderer() = default;
 
     LineRenderer(const LineRenderer&) = delete;
     void operator=(const LineRenderer&) = delete;
-
-public:
-    struct LineProperties // Sent to GPU, has alignment requirements
-    {
-        glm::mat4 model;
-
-        glm::vec3 color = {1.0f, 1.0f, 1.0f};
-        float _0;
-
-        float width = 0.1; /* Meter */
-        int useGlobalTransform = 1;
-        glm::vec2 resolution;
-    };
 
 private:
     VulkanUniform linePropUniform;
