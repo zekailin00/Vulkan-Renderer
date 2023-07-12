@@ -20,6 +20,8 @@ void VulkanLineGenerator::GetSphere(std::vector<LineData>& lineData,
 {
     ZoneScopedN("VulkanLineGenerator::GetSphere");
 
+    lineData.clear();
+
     glm::vec3 v1 = glm::normalize(glm::vec3(1, 0, 0));
     glm::vec3 v2 = glm::normalize(glm::vec3(0.0, -v1.z, v1.y));
     glm::vec3 v3 = glm::normalize(glm::cross(v1, v2));
@@ -81,6 +83,8 @@ void VulkanLineGenerator::GetCircle(std::vector<LineData>& lineData,
 {
     ZoneScopedN("VulkanLineGenerator::GetCircle");
 
+    lineData.clear();
+
     glm::vec3 v1 = glm::normalize(normal);
     glm::vec3 v2 = glm::normalize(glm::vec3(0.0, -v1.z, v1.y));
     glm::vec3 v3 = glm::normalize(glm::cross(v1, v2));
@@ -115,6 +119,8 @@ void VulkanLineGenerator::GetAABB(std::vector<LineData>& lineData,
     glm::vec3 minCoordinates, glm::vec3 maxCoordinates)
 {
     ZoneScopedN("VulkanLineGenerator::GetAABB");
+
+    lineData.clear();
 
     glm::vec3 a = minCoordinates;
     glm::vec3 b = maxCoordinates;
@@ -174,6 +180,8 @@ void VulkanLineGenerator::GetOBB(std::vector<LineData>& lineData,
     glm::mat4 transform)
 {
     ZoneScopedN("VulkanLineGenerator::GetOBB");
+
+    lineData.clear();
 
     glm::vec3 a = transform * glm::vec4(-0.5, -0.5, -0.5, 1);
     glm::vec3 b = transform * glm::vec4( 0.5,  0.5,  0.5, 1);

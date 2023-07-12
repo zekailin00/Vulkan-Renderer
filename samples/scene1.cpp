@@ -43,6 +43,13 @@ void Scene1::OnCreated()
         {{-3,0,0},{0,0,0}}
     );
 
+    std::vector<renderer::LineData> lineDataList{};
+
+    renderer::VulkanLineGenerator::GetCircle(
+        lineDataList, {0,0,0}, {0,0,1}, 1, 32);
+    
+    lineComponent->lineRenderer->AddLines(lineDataList);
+
     renderer::LineRenderer::LineProperties* prop =
         lineComponent->lineRenderer->GetLineProperties();
     

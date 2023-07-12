@@ -98,21 +98,21 @@ struct LineData
 class VulkanLineGenerator
 {
 public:
-    void GetLine(LineData& lineData,
+    static void GetLine(LineData& lineData,
         glm::vec3 direction, float length);
 
-    void GetSphere(std::vector<LineData>& lineData,
+    static void GetSphere(std::vector<LineData>& lineData,
         glm::vec3 position, float radius,
         unsigned int resolution = 64);
 
-    void GetCircle(std::vector<LineData>& lineData,
+    static void GetCircle(std::vector<LineData>& lineData,
         glm::vec3 position, glm::vec3 normal, float radius,
         unsigned int resolution = 64);
 
-    void GetAABB(std::vector<LineData>& lineData,
+    static void GetAABB(std::vector<LineData>& lineData,
         glm::vec3 minCoordinates, glm::vec3 maxCoordinates);
 
-    void GetOBB(std::vector<LineData>& lineData,
+    static void GetOBB(std::vector<LineData>& lineData,
         glm::mat4 transform);
 };
 
@@ -128,7 +128,7 @@ public:
         glm::vec3 color = {1.0f, 1.0f, 1.0f};
         float _0;
 
-        float width = 0.1; /* Pixel count */
+        float width = 2; /* Pixel count */
         int useGlobalTransform = 1;
         glm::vec2 resolution;
     };
