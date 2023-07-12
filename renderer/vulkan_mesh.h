@@ -77,7 +77,7 @@ public:
 
         mesh->instanceBuffer = new VulkanBuffer<T>();
         mesh->instanceBuffer->Initialize(
-            vulkanDevice, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 0);
+            vulkanDevice, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 8192);
 
         return mesh;
     }

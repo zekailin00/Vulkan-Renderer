@@ -37,6 +37,8 @@ void RenderTechnique::Destroy()
     ZoneScopedN("RenderTechnique::Destroy");
 
     sceneUniform.Destroy();
+    ResetSceneData();
+    
     skyboxMesh = nullptr;
     textureCube = nullptr;
 }
@@ -48,6 +50,7 @@ void RenderTechnique::ResetSceneData()
     cameraList.clear();
     wireList.clear();
     uiList.clear();
+    lineList.clear();
     sceneMap->nLight.x = 0;
 }
 
@@ -224,26 +227,11 @@ void RenderTechnique::ExecuteCommand(VkCommandBuffer commandBuffer)
 
 
         { // Wireframe rendering
-            VkPipelineLayout layout = vkr.GetPipelineLayout("wire").layout;
-
-            vkCmdBindPipeline(commandBuffer, 
-                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                vkr.GetPipeline("wire").pipeline);
-
-            vkCmdBindDescriptorSets(
-                commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                layout, 0, 1, camera->GetDescriptorSet(), 0, nullptr
+            vkr.pipelineLine->Render(
+                lineList, camera->GetDescriptorSet(),
+                camera->GetCamProperties().Extent,
+                commandBuffer
             );
-
-            for (WirePushConst& e: this->wireList)
-            {
-                ZoneScopedN("ExecuteCommand#wireList");
-                TracyVkZone(tracyVkCtx, commandBuffer, "ExecuteCommand#wireList");
-
-                vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                    sizeof(e), &e);
-                vkCmdDraw(commandBuffer, 6, 1, 0, 0);
-            }
         }
 
         vkCmdEndRenderPass(commandBuffer);

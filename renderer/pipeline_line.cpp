@@ -27,12 +27,6 @@ PipelineLine::PipelineLine(VulkanDevice& vulkanDevice,
     linePipeline->LoadShader("resources/vulkan_shaders/line/vert.spv",
                              "resources/vulkan_shaders/line/frag.spv");
 
-    layoutBuilder.PushDescriptorSetLayout("transform",
-    {
-        layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0)
-    });
-
     layoutBuilder.PushDescriptorSetLayout("camera",
     {
         layoutBuilder.descriptorSetLayoutBinding(
@@ -42,7 +36,7 @@ PipelineLine::PipelineLine(VulkanDevice& vulkanDevice,
     layoutBuilder.PushDescriptorSetLayout("lineProperties",
     {
         layoutBuilder.descriptorSetLayoutBinding(
-            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT, 0),
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT, 0),
     });
 
     wireLayout = layoutBuilder.BuildPipelineLayout(
@@ -99,7 +93,7 @@ void PipelineLine::Render(
     vkCmdBindDescriptorSets(
         commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
         linePipeline->pipelineLayout->layout,
-        1, 1, cameraDescSet, 0, nullptr
+        0, 1, cameraDescSet, 0, nullptr
     );
 
     for(const std::shared_ptr<LineRenderer> e: lineList)
@@ -109,7 +103,7 @@ void PipelineLine::Render(
         vkCmdBindDescriptorSets(
             commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
             linePipeline->pipelineLayout->layout,
-            0, 1, e->GetLinePropDescSet(), 0, nullptr
+            1, 1, e->GetLinePropDescSet(), 0, nullptr
         );
 
         VkDeviceSize offset = 0;

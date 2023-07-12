@@ -14,7 +14,8 @@ Component* LineInitializer::operator()(Entity* entity)
     component->type = Component::Type::Wireframe;
     component->technique = technique;
 
-    component->lineRenderer = std::make_shared<LineRenderer>(vulkanDevice);
+    component->lineRenderer = std::make_shared<LineRenderer>(
+        vulkanDevice, linePipelineLayout);
 
     return component;
 }
@@ -38,6 +39,8 @@ Component* LineDeserializer::operator()(Entity* entity, Json::Value& json)
 
 void LineComponent::Update(Timestep ts)
 {   
+    LineRenderer::LineProperties* prop = lineRenderer->GetLineProperties();
+    prop->model = entity->GetGlobalTransform();
     technique->PushRendererData(lineRenderer);
 }
 

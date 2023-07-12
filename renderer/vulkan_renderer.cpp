@@ -49,7 +49,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_report(
         "[Vulkan Renderer] Debug report from ObjectType: " +
         std::to_string(objectType) + " at location "+
         std::to_string(location) + ".\n\tMessage: " + pMessage + "\n",
-        Logger::Level::Verbose,
+        Logger::Level::Warning,
         Logger::MsgType::Renderer
     );
 
@@ -215,7 +215,8 @@ void VulkanRenderer::AllocateResources(
        UIDeserializer(&defaultTechnique));
        
     ComponentLocator::SetInitializer(Component::Type::Wireframe,
-       LineInitializer(&defaultTechnique, &vulkanDevice));
+       LineInitializer(&defaultTechnique, &vulkanDevice,
+       pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
     ComponentLocator::SetDeserializer(Component::Type::Wireframe,
        LineDeserializer(&defaultTechnique, &vulkanDevice));
 
@@ -820,6 +821,7 @@ void VulkanRenderer::DeallocateResources()
 
     pipelines.clear();
     pipelineImgui.reset();
+    pipelineLine.reset();
     DestroyRenderPasses();
 
     vulkanCmdBuffer.Destroy();

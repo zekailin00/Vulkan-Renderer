@@ -5,6 +5,7 @@
 #include "vulkan_mesh.h"
 #include "vk_primitives/vulkan_device.h"
 #include "vk_primitives/vulkan_uniform.h"
+#include "vk_primitives/vulkan_pipeline_layout.h"
 
 #include <glm/gtc/constants.hpp>
 #include <glm/vec3.hpp>
@@ -94,69 +95,6 @@ struct LineData
     glm::vec3 endPoint;
 };
 
-static void GetLineMesh(
-    std::vector<uint32_t>& indexList, std::vector<Vertex>& vertexList,
-    uint32_t resolution)
-{
-    uint32_t vertexCount = 0;
-
-    const int DIVISION = resolution;
-    const float DEGREE = glm::pi<float>() / DIVISION;
-
-    for (int i = 1; i <= DIVISION; i++)
-    {
-        float degree1 = -glm::half_pi<float>() - DEGREE * (i - 1);
-        float degree2 = -glm::half_pi<float>() - DEGREE * i;
-        
-        vertexList.push_back({glm::vec3(0, 0, 0), {}, {}});
-        vertexList.push_back({glm::vec3(
-            0.5f * glm::cos(degree1),
-            0.5f * glm::sin(degree1), 0),
-            {}, {}});
-        vertexList.push_back({glm::vec3(
-            0.5f * glm::cos(degree2),
-            0.5f * glm::sin(degree2), 0), {}, {}});
-
-        indexList.push_back(vertexCount++);
-        indexList.push_back(vertexCount++);
-        indexList.push_back(vertexCount++);
-    }
-
-    for (int i = 1; i <= DIVISION; i++)
-    {
-        float degree1 = glm::half_pi<float>() - DEGREE * (i - 1);
-        float degree2 = glm::half_pi<float>() - DEGREE * i;
-        
-        vertexList.push_back({glm::vec3(0, 0, 0), {}, {}});
-        vertexList.push_back({glm::vec3(
-            0.5f * glm::cos(degree1),
-            0.5f * glm::sin(degree1), 0), {}, {}});
-        vertexList.push_back({glm::vec3(
-            0.5f * glm::cos(degree2),
-            0.5f * glm::sin(degree2), 0), {}, {}});
-
-        indexList.push_back(vertexCount++);
-        indexList.push_back(vertexCount++);
-        indexList.push_back(vertexCount++);
-    }
-
-    vertexList.push_back({glm::vec3(1.0f,  0.5f, 0.0f), {}, {}});
-    vertexList.push_back({glm::vec3(0.0f, -0.5f, 0.0f), {}, {}});
-    vertexList.push_back({glm::vec3(0.0f,  0.5f, 0.0f), {}, {}});
-
-    indexList.push_back(vertexCount++);
-    indexList.push_back(vertexCount++);
-    indexList.push_back(vertexCount++);
-
-    vertexList.push_back({glm::vec3(0.0f, -0.5f, 0.0f), {}, {}});
-    vertexList.push_back({glm::vec3(1.0f,  0.5f, 0.0f), {}, {}});
-    vertexList.push_back({glm::vec3(1.0f, -0.5f, 0.0f), {}, {}});
-
-    indexList.push_back(vertexCount++);
-    indexList.push_back(vertexCount++);
-    indexList.push_back(vertexCount++);
-}
-
 class VulkanLineGenerator
 {
 public:
@@ -186,10 +124,11 @@ public:
     {
         glm::mat4 model;
 
+        /* RGB float [0.0, 1.0] */
         glm::vec3 color = {1.0f, 1.0f, 1.0f};
         float _0;
 
-        float width = 0.1; /* Meter */
+        float width = 0.1; /* Pixel count */
         int useGlobalTransform = 1;
         glm::vec2 resolution;
     };
@@ -249,7 +188,10 @@ public:
         return lineInstance->GetInstanceCount();
     }
 
-    LineRenderer(VulkanDevice* vulkanDevice);
+    LineRenderer(
+        VulkanDevice* vulkanDevice,
+        VulkanPipelineLayout* linePipelineLayout
+    );
     ~LineRenderer() = default;
 
     LineRenderer(const LineRenderer&) = delete;

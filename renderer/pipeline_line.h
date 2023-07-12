@@ -28,6 +28,12 @@ public:
     void Render(std::vector<std::shared_ptr<LineRenderer>>& lineList,
         VkDescriptorSet* cameraDescSet, glm::vec2 extent,
         VkCommandBuffer commandBuffer);
+
+    VulkanPipeline* GetVulkanPipeline()
+    {
+        return linePipeline.get();
+    }
+    
 public:
     VulkanDevice* vulkanDevice;
     VkDescriptorPool vkDescriptorPool;

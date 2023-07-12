@@ -229,7 +229,72 @@ void VulkanLineGenerator::GetOBB(std::vector<LineData>& lineData,
     lineData.push_back(data);
 }
 
-LineRenderer::LineRenderer(VulkanDevice* vulkanDevice)
+static void GetLineMesh(
+    std::vector<uint32_t>& indexList, std::vector<Vertex>& vertexList,
+    uint32_t resolution)
+{
+    uint32_t vertexCount = 0;
+
+    const int DIVISION = resolution;
+    const float DEGREE = glm::pi<float>() / DIVISION;
+
+    for (int i = 0; i < DIVISION; i++)
+    {
+        float degree1 = (glm::pi<float>()) / 2 + ((i + 0) * glm::pi<float>()) / DIVISION;
+        float degree2 = (glm::pi<float>()) / 2 + ((i + 1) * glm::pi<float>()) / DIVISION;
+        
+        vertexList.push_back({glm::vec3(0, 0, 0), {}, {}});
+        vertexList.push_back({glm::vec3(
+            0.5f * glm::cos(degree1),
+            0.5f * glm::sin(degree1), 0),
+            {}, {}});
+        vertexList.push_back({glm::vec3(
+            0.5f * glm::cos(degree2),
+            0.5f * glm::sin(degree2), 0), {}, {}});
+
+        indexList.push_back(vertexCount++);
+        indexList.push_back(vertexCount++);
+        indexList.push_back(vertexCount++);
+    }
+
+    for (int i = 0; i < DIVISION; i++)
+    {
+        float degree1 = (3 * glm::pi<float>()) / 2 + ((i + 0) * glm::pi<float>()) / DIVISION;
+        float degree2 = (3 * glm::pi<float>()) / 2 + ((i + 1) * glm::pi<float>()) / DIVISION;
+        
+        vertexList.push_back({glm::vec3(0, 0, 1), {}, {0, 0}});
+        vertexList.push_back({glm::vec3(
+            0.5f * glm::cos(degree1) ,
+            0.5f * glm::sin(degree1), 1), {}, {1, 1}});
+        vertexList.push_back({glm::vec3(
+            0.5f * glm::cos(degree2) ,
+            0.5f * glm::sin(degree2), 1), {}, {1, 1}});
+
+        indexList.push_back(vertexCount++);
+        indexList.push_back(vertexCount++);
+        indexList.push_back(vertexCount++);
+    }
+
+    vertexList.push_back({glm::vec3(0.0f, -0.5f,  0.0f), {}, {0, 0}});
+    vertexList.push_back({glm::vec3(0.0f, -0.5f,  1.0f), {}, {1, 1}});
+    vertexList.push_back({glm::vec3(0.0f,  0.5f,  1.0f), {}, {1, 1}});
+
+    indexList.push_back(vertexCount++);
+    indexList.push_back(vertexCount++);
+    indexList.push_back(vertexCount++);
+
+    vertexList.push_back({glm::vec3(0.0f, -0.5f, 0.0f), {}, {}});
+    vertexList.push_back({glm::vec3(0.0f,  0.5f, 1.0f), {}, {}});
+    vertexList.push_back({glm::vec3(0.0f,  0.5f, 0.0f), {}, {}});
+
+    indexList.push_back(vertexCount++);
+    indexList.push_back(vertexCount++);
+    indexList.push_back(vertexCount++);
+}
+
+LineRenderer::LineRenderer(
+        VulkanDevice* vulkanDevice,
+        VulkanPipelineLayout* linePipelineLayout)
 {
     BuildMeshInfo info;
     info.resourcePath = "@line";
@@ -240,7 +305,7 @@ LineRenderer::LineRenderer(VulkanDevice* vulkanDevice)
         info, vulkanDevice
     );
 
-    linePropUniform.Initialize(vulkanDevice, sizeof(lineProperties));
+    linePropUniform.Initialize(vulkanDevice, sizeof(LineRenderer::LineProperties));
     this->lineProperties = static_cast<LineProperties*>(
         linePropUniform.Map());
     
@@ -248,10 +313,14 @@ LineRenderer::LineRenderer(VulkanDevice* vulkanDevice)
     *(this->lineProperties) = defaultProp;
 
     {
+        linePipelineLayout->AllocateDescriptorSet(
+            "lineProperties", 1, &linePropDescSet
+        );
+
         std::array<VkWriteDescriptorSet, 1> descriptorWrite{};
 
         descriptorWrite[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite[0].dstSet = this->linePropDescSet;
+        descriptorWrite[0].dstSet = linePropDescSet;
         descriptorWrite[0].dstBinding = 0;
         descriptorWrite[0].dstArrayElement = 0;
         descriptorWrite[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;

@@ -16,10 +16,16 @@ class LineInitializer
 {
     RenderTechnique* technique;
     VulkanDevice* vulkanDevice;
+    VulkanPipelineLayout* linePipelineLayout;
 
 public:
-    LineInitializer(RenderTechnique* technique, VulkanDevice* vulkanDevice)
-    :technique(technique), vulkanDevice(vulkanDevice) {}
+    LineInitializer(
+        RenderTechnique* technique,
+        VulkanDevice* vulkanDevice,
+        VulkanPipelineLayout* linePipelineLayout):
+    technique(technique),
+    vulkanDevice(vulkanDevice),
+    linePipelineLayout(linePipelineLayout) {}
 
     Component* operator()(Entity* entity);
 };
