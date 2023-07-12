@@ -33,6 +33,7 @@ void main()
     vec4 clip0;
     vec4 clip1;
 
+    // https://wwwtyro.net/2019/11/18/instanced-lines.html
     if (line.useGlobalTransform != 0)
     {
         clip0 = vp.projection * vp.view * line.model * vec4(BeginPoint, 1.0);
