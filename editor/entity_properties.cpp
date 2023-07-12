@@ -573,7 +573,7 @@ void EntityProperties::ShowWireframeComponent()
                         if (!ImGui::TableSetColumnIndex(column) && column > 0)
                             continue;
 
-                        renderer::LineData data = lineData[row];
+                        renderer::LineData& data = (*lineData)[row];
 
                         if (column == 0)
                         {
@@ -582,14 +582,21 @@ void EntityProperties::ShowWireframeComponent()
                         else if (column == 1)
                         {
 
-                            if (ImGui::DragFloat3())
+                            glm::vec3 begin = data.beginPoint;
+                            if (ImGui::DragFloat3("##begin", &begin[0],
+                                0.01f, -FLT_MAX, FLT_MAX, "%.2f"))
                             {
-
+                                data.beginPoint = begin;
                             }
                         }
                         else if (column == 2)
                         {
-                            ImGui::DragFloat3();
+                            glm::vec3 end = data.endPoint;
+                            if (ImGui::DragFloat3("##end", &end[0],
+                                0.01f, -FLT_MAX, FLT_MAX, "%.2f"))
+                            {
+                                data.endPoint = end;
+                            }
                         }
                         else
                         {
@@ -600,12 +607,16 @@ void EntityProperties::ShowWireframeComponent()
                         }
                     }
                 }
-
                 ImGui::EndTable();
             }
-
             ImGui::EndChild();
             ImGui::PopStyleVar();
+
+            ImGui::Spacing();
+            if (ImGui::SmallButton("Add"))
+            {
+                lineData->PushBack((*lineData)[lineData->Size()-1]);
+            }
         }
 
 
