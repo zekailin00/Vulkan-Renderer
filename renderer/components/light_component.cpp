@@ -1,7 +1,9 @@
 #include "light_component.h"
 
 #include "entity.h"
-#include "serialization.h" 
+#include "scene.h"
+#include "serialization.h"
+#include "scene_contexts.h"
 
 
 namespace renderer
@@ -42,6 +44,14 @@ void LightComponent::Update(Timestep ts)
     light->SetTransform(entity->GetGlobalTransform());
     light->dirLight.color = glm::vec4(properties.color, 1.0f);
     technique->PushRendererData(light->dirLight);
+
+    Scene* scene = entity->GetScene();
+    std::shared_ptr<SceneContext> ctx;
+    if ((ctx = scene->GetSceneContext(SceneContext::Type::RendererCtx)))
+    {
+        std::shared_ptr<SceneRendererContext> renderCtx =
+            std::dynamic_pointer_cast<SceneRendererContext>(ctx);
+    }
 }
 
 void LightComponent::Serialize(Json::Value& json)
