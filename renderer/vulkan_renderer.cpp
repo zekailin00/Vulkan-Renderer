@@ -210,20 +210,21 @@ void VulkanRenderer::AllocateResources(
         MeshDeserializer(&defaultTechnique, this));
 
     ComponentLocator::SetInitializer(Component::Type::UI,
-       UIInitializer(&defaultTechnique));
+        UIInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::UI,
-       UIDeserializer(&defaultTechnique));
+        UIDeserializer(&defaultTechnique));
        
     ComponentLocator::SetInitializer(Component::Type::Line,
-       LineInitializer(&defaultTechnique, &vulkanDevice,
-       pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
+        LineInitializer(&defaultTechnique, &vulkanDevice,
+        pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
     ComponentLocator::SetDeserializer(Component::Type::Line,
-       LineDeserializer(&defaultTechnique, &vulkanDevice));
+        LineDeserializer(&defaultTechnique, &vulkanDevice,
+        pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
 
     ComponentLocator::SetInitializer(Component::Type::VrDisplay,
-       VrDisplayInitializer(&defaultTechnique));
+        VrDisplayInitializer(&defaultTechnique));
     ComponentLocator::SetDeserializer(Component::Type::VrDisplay,
-       VrDisplayDeserializer(&defaultTechnique));
+        VrDisplayDeserializer(&defaultTechnique));
 }
 
 void VulkanRenderer::RebuildSwapchain()

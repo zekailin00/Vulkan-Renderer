@@ -34,10 +34,16 @@ class LineDeserializer
 {
     RenderTechnique* technique;
     VulkanDevice* vulkanDevice;
+    VulkanPipelineLayout* linePipelineLayout;
 
 public:
-    LineDeserializer(RenderTechnique* technique, VulkanDevice* vulkanDevice)
-    :technique(technique), vulkanDevice(vulkanDevice) {}
+    LineDeserializer(
+        RenderTechnique* technique,
+        VulkanDevice* vulkanDevice,
+        VulkanPipelineLayout* linePipelineLayout):
+    technique(technique),
+    vulkanDevice(vulkanDevice),
+    linePipelineLayout(linePipelineLayout) {}
 
     Component* operator()(Entity* entity, Json::Value& json);
 };
