@@ -502,60 +502,46 @@ void EntityProperties::ShowWireframeComponent()
                 prop->color = color;
             }
 
-            bool useTransform = prop->useGlobalTransform;
-            if (ImGui::Checkbox("Use Global Transform", &useTransform))
-            {
-                prop->useGlobalTransform = useTransform;
-            }
-
-            ImGui::SameLine();
-
             int pixel = prop->width;
             if (ImGui::DragInt("Width in pixel", &pixel, 1.0f, 1, 2049, "%d",
                 ImGuiSliderFlags_AlwaysClamp))
             {
                 prop->width = pixel;
             }
+
+            bool useTransform = prop->useGlobalTransform;
+            if (ImGui::Checkbox("Use Global Transform", &useTransform))
+            {
+                prop->useGlobalTransform = useTransform;
+            }
+
         }
 
         ImGui::SeparatorText("Line Data");
         {
-            int action; 
+            int removeIndex = -1; 
             int lineCount = component->lineRenderer->GetInstanceCount();
             renderer::VulkanBuffer<renderer::LineData>* lineData =
                 component->lineRenderer->GetLineData();
 
-
-            ImGuiWindowFlags window_flags =
-                ImGuiWindowFlags_None | ImGuiWindowFlags_MenuBar;
-            ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-            ImGui::BeginChild("Line Data Window", ImVec2(0, 260), true, window_flags);
-            if (ImGui::BeginMenuBar())
-            {
-                ImGui::EndMenuBar();
-            }
-
             ImGuiTableFlags flags =
-                ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY |
                 ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersOuter |
-                ImGuiTableFlags_BordersV | ImGuiTableFlags_Resizable |
-                ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
-                ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY;
+                ImGuiTableFlags_BordersV | ImGuiTableFlags_SizingStretchProp |
+                ImGuiTableFlags_NoHostExtendX | ImGuiTableFlags_Hideable |
+                ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable;
 
             int freezeCols = 1;
             int freezeRows = 1;
 
-            // When using ScrollX or ScrollY we need to specify a size for our table container!
-            // Otherwise by default the table will fit all available space, like a BeginChild() call.
-            ImVec2 outer_size = ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 8);
-            if (ImGui::BeginTable("table_scrollx", 7, flags, outer_size))
+            ImVec2 outer_size = ImVec2(0.0f,
+                ImGui::GetTextLineHeightWithSpacing() * 8);
+            if (ImGui::BeginTable("table_scrollx", 4, flags, outer_size))
             {
                 ImGui::TableSetupScrollFreeze(freezeCols, freezeRows);
                 ImGui::TableSetupColumn("Pts", ImGuiTableColumnFlags_NoHide);
-                // Make the first column not hideable to match our use of TableSetupScrollFreeze()
                 ImGui::TableSetupColumn("Begin");
                 ImGui::TableSetupColumn("End");
-                ImGui::TableSetupColumn("Action");
+                ImGui::TableSetupColumn("...");
 
                 ImGui::TableHeadersRow();
 
@@ -564,12 +550,6 @@ void EntityProperties::ShowWireframeComponent()
                     ImGui::TableNextRow();
                     for (int column = 0; column < 4; column++)
                     {
-                        // Both TableNextColumn() and TableSetColumnIndex() return true when a column is visible or performing width measurement.
-                        // Because here we know that:
-                        // - A) all our columns are contributing the same to row height
-                        // - B) column 0 is always visible,
-                        // We only always submit this one column and can skip others.
-                        // More advanced per-column clipping behaviors may benefit from polling the status flags via TableGetColumnFlags().
                         if (!ImGui::TableSetColumnIndex(column) && column > 0)
                             continue;
 
@@ -581,44 +561,68 @@ void EntityProperties::ShowWireframeComponent()
                         }
                         else if (column == 1)
                         {
-
+                            std::string entryName = "##begin" + std::to_string(row);
                             glm::vec3 begin = data.beginPoint;
-                            if (ImGui::DragFloat3("##begin", &begin[0],
+                            ImGui::PushItemWidth(-0.1);
+                            if (ImGui::DragFloat3(entryName.c_str(), &begin[0],
                                 0.01f, -FLT_MAX, FLT_MAX, "%.2f"))
                             {
                                 data.beginPoint = begin;
                             }
+                            ImGui::PopItemWidth();
                         }
                         else if (column == 2)
                         {
+                            std::string entryName = "##end" + std::to_string(row);
                             glm::vec3 end = data.endPoint;
-                            if (ImGui::DragFloat3("##end", &end[0],
+                            ImGui::PushItemWidth(-0.1);
+                            if (ImGui::DragFloat3(entryName.c_str(), &end[0],
                                 0.01f, -FLT_MAX, FLT_MAX, "%.2f"))
                             {
                                 data.endPoint = end;
                             }
+                            ImGui::PopItemWidth();
                         }
                         else
                         {
-                           if (ImGui::SmallButton("Remove"))
-                           {
-                                action = 1;
-                           }
+                            std::string entryName = "x##Remove" + std::to_string(row);
+                            if (ImGui::SmallButton(entryName.c_str()))
+                            {
+                                removeIndex = row;
+                            }
                         }
                     }
                 }
                 ImGui::EndTable();
             }
-            ImGui::EndChild();
-            ImGui::PopStyleVar();
 
             ImGui::Spacing();
             if (ImGui::SmallButton("Add"))
             {
-                lineData->PushBack((*lineData)[lineData->Size()-1]);
+                if (lineData->Size() == 0)
+                {
+                    lineData->PushBack({{0,0,0}, {1,0,0}});
+                }
+                else
+                {
+                    renderer::LineData data = (*lineData)[lineData->Size()-1];
+                    data.beginPoint = data.endPoint;
+                    lineData->PushBack(data);
+                }
+            }
+
+            ImGui::SameLine();
+            if(ImGui::SmallButton("Remove All"))
+            {
+                lineData->Clear(); 
+            }
+
+            if (removeIndex != -1)
+            {
+                lineData->Erase(removeIndex, 1);
+                removeIndex = -1;
             }
         }
-
 
         ImGui::Separator();
     }
