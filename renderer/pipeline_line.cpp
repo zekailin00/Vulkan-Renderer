@@ -96,7 +96,7 @@ void PipelineLine::Render(
         0, 1, cameraDescSet, 0, nullptr
     );
 
-    for(const std::shared_ptr<LineRenderer> e: lineList)
+    for(const std::shared_ptr<LineRenderer>& e: lineList)
     {
         e->GetLineProperties()->resolution = extent;
 

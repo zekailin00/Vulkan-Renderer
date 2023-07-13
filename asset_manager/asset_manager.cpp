@@ -464,8 +464,8 @@ bool AssetManager::GetSourceCode(
     source = "";
     std::string buffer;
     std::ifstream file;
-    file.open(fullPath);
-    if (file.good(), std::ifstream::in)
+    file.open(fullPath, std::ifstream::in);
+    if (file.good())
     {
         while(std::getline(file, buffer))
             source = source + buffer + "\n";

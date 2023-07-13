@@ -244,7 +244,6 @@ static void GetLineMesh(
     uint32_t vertexCount = 0;
 
     const int DIVISION = resolution;
-    const float DEGREE = glm::pi<float>() / DIVISION;
 
     for (int i = 0; i < DIVISION; i++)
     {

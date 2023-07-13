@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 class SceneContext
 {
@@ -29,4 +31,15 @@ class SceneRendererContext: public SceneContext
 public:
     SceneContext::Type GetSceneContextType() override {return Type::RendererCtx;}
     virtual ~SceneRendererContext() {}
+
+public:
+    virtual void RenderDebugLine(glm::vec3 direction, float length) = 0;
+
+    virtual void RenderDebugSphere(glm::vec3 position, float radius) = 0;
+
+    virtual void RenderDebugCircle(glm::vec3 position, glm::vec3 normal) = 0;
+
+    virtual void RenderDebugAABB(glm::vec3 minCoordinates, glm::vec3 maxCoordinates) = 0;
+
+    virtual void RenderDebugOBB(glm::mat4 transform) = 0;
 };
