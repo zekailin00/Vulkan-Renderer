@@ -7,7 +7,7 @@
 
 #include "script.h"
 #include "script_asset_manager.h"
-#include "scene_context.h"
+#include "scene_contexts.h"
 #include "component.h"
 
 #include <filesystem>
@@ -18,7 +18,7 @@ namespace scripting
 
 class ScriptingSystem;
 
-class ScriptContext: public SceneContext
+class ScriptContext: public SceneScriptContext
 {
 public:
     Script* NewScript(IScriptAssetManager* assetManager);
@@ -30,12 +30,6 @@ public:
     const v8::Persistent<v8::Object>& GetSystemObject()
     {
         return systemObject;
-    }
-
-
-    Component::Type GetSceneContextType() override
-    {
-        return Component::Type::Script;
     }
 
     ScriptContext(const ScriptContext&) = delete;

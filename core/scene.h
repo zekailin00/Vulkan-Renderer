@@ -1,7 +1,7 @@
 #pragma once
 
 #include "timestep.h"
-#include "scene_context.h"
+#include "scene_contexts.h"
 #include "entity.h"
 #include "core_asset_manager.h"
 
@@ -31,8 +31,11 @@ public:
     bool SaveToFile(std::string path);
     Scene* Replicate(State state);
 
-    std::shared_ptr<SceneContext> GetSceneContext(Component::Type type);
-    void SetSceneContext(Component::Type type, std::shared_ptr<SceneContext> context);
+    std::shared_ptr<SceneContext> GetSceneContext(
+        SceneContext::Type type);
+    void SetSceneContext(
+        SceneContext::Type type,
+        std::shared_ptr<SceneContext> context);
 
     const std::string& GetSceneName() {return sceneName;}
     ICoreAssetManager* GetAssetManager() {return assetManager;}
@@ -62,5 +65,5 @@ private:
     Entity* rootEntity = nullptr;
     unsigned int entityCounter = 0;
     ICoreAssetManager* assetManager = nullptr;
-    std::shared_ptr<SceneContext> contexts[(int)Component::Type::Size] = {};
+    std::shared_ptr<SceneContext> contexts[SceneContext::Type::CtxSize] = {};
 };

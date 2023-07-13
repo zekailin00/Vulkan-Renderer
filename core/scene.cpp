@@ -69,16 +69,15 @@ Scene* Scene::Replicate(Scene::State state)
     return scene;
 }
 
-
-std::shared_ptr<SceneContext> Scene::GetSceneContext(Component::Type type)
+std::shared_ptr<SceneContext> Scene::GetSceneContext(SceneContext::Type type)
 {
-    return contexts[(int)type];
+    return contexts[type];
 }
 
 void Scene::SetSceneContext(
-    Component::Type type, std::shared_ptr<SceneContext> context)
+    SceneContext::Type type, std::shared_ptr<SceneContext> context)
 {
-    contexts[(int)type] = context;
+    contexts[type] = context;
 }
 
 Entity* Scene::NewEntity()

@@ -25,13 +25,13 @@ Component* ScriptInitializer::operator()(Entity* entity)
 
     std::shared_ptr<ScriptContext> context =
         std::dynamic_pointer_cast<ScriptContext>(
-            scene->GetSceneContext(Component::Type::Script));
+            scene->GetSceneContext(SceneContext::Type::ScriptCtx));
 
     if (context == nullptr)
     {
         ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
         context.reset(scriptingSystem->NewContext());
-        scene->SetSceneContext(Component::Type::Script, context);
+        scene->SetSceneContext(SceneContext::Type::ScriptCtx, context);
     }
 
     IScriptAssetManager* assetManaget = 
@@ -51,13 +51,13 @@ Component* ScriptDeserializer::operator()(Entity* entity, Json::Value& json)
 
     std::shared_ptr<ScriptContext> context =
         std::dynamic_pointer_cast<ScriptContext>(
-            scene->GetSceneContext(Component::Type::Script));
+            scene->GetSceneContext(SceneContext::Type::ScriptCtx));
 
     if (context == nullptr)
     {
         ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
         context.reset(scriptingSystem->NewContext());
-        scene->SetSceneContext(Component::Type::Script, context);
+        scene->SetSceneContext(SceneContext::Type::ScriptCtx, context);
     }
 
     IScriptAssetManager* assetManaget = 
