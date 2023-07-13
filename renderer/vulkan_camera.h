@@ -66,6 +66,8 @@ public:
      */
     void SetProjection(glm::vec4 fov, float zNear, float zFar);
 
+    const glm::mat4& GetProjection(); // Used by VulkanNode
+
     const glm::mat4& GetTransform(); // Used by VulkanNode
 
     void SetTransform(const glm::mat4&); // Used by VulkanNode

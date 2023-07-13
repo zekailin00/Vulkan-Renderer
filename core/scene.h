@@ -31,6 +31,12 @@ public:
     bool SaveToFile(std::string path);
     Scene* Replicate(State state);
 
+    /**
+     * @brief Get the Scene Context object. Could be NULL
+     * 
+     * @param type 
+     * @return std::shared_ptr<SceneContext> 
+     */
     std::shared_ptr<SceneContext> GetSceneContext(
         SceneContext::Type type);
     void SetSceneContext(

@@ -200,9 +200,11 @@ void VulkanRenderer::AllocateResources(
         LightDeserializer(&defaultTechnique));
 
     ComponentLocator::SetInitializer(Component::Type::Camera,
-        CameraInitializer(&defaultTechnique));
+        CameraInitializer(&defaultTechnique, &vulkanDevice,
+        pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
     ComponentLocator::SetDeserializer(Component::Type::Camera,
-        CameraDeserializer(&defaultTechnique));
+        CameraDeserializer(&defaultTechnique, &vulkanDevice,
+        pipelineLine->GetVulkanPipeline()->pipelineLayout.get()));
 
     ComponentLocator::SetInitializer(Component::Type::Mesh,
         MeshInitializer(&defaultTechnique, this));

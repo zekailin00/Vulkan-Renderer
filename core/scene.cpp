@@ -127,7 +127,22 @@ Entity* Scene::GetRootEntity()
 
 void Scene::Update(Timestep ts)
 {
+
+    if (contexts[SceneContext::Type::RendererCtx])
+    {
+        std::dynamic_pointer_cast<SceneRendererContext>(
+            contexts[SceneContext::Type::RendererCtx])
+            ->ClearRenderData();
+    }
+
     rootEntity->Update(ts);
+
+    if (contexts[SceneContext::Type::RendererCtx])
+    {
+        std::dynamic_pointer_cast<SceneRendererContext>(
+            contexts[SceneContext::Type::RendererCtx])
+            ->SubmitRenderData();
+    }
 }
 
 Entity* Scene::GetEntityByName(std::string name)

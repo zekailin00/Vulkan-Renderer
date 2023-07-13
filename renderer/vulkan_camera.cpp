@@ -221,6 +221,11 @@ void VulkanCamera::SetProjection(glm::vec4 fov, float zNear, float zFar)
     math::XrProjectionFov(this->vpMap->projection, fov, zNear, zFar);
 }
 
+const glm::mat4& VulkanCamera::GetProjection()
+{
+    return this->vpMap->projection;
+}
+
 const glm::mat4& VulkanCamera::GetTransform()
 {
     ZoneScopedN("VulkanCamera::GetTransform");

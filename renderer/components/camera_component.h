@@ -16,10 +16,17 @@ class VulkanRenderer;
 class CameraInitializer
 {
     RenderTechnique* technique;
+    VulkanDevice* vulkanDevice;
+    VulkanPipelineLayout* linePipelineLayout;
 
 public:
-    CameraInitializer(RenderTechnique* technique)
-    :technique(technique){}
+    CameraInitializer(
+        RenderTechnique* technique,
+        VulkanDevice* vulkanDevice,
+        VulkanPipelineLayout* linePipelineLayout):
+    technique(technique),
+    vulkanDevice(vulkanDevice),
+    linePipelineLayout(linePipelineLayout) {}
 
     Component* operator()(Entity* entity);
 };
@@ -27,10 +34,17 @@ public:
 class CameraDeserializer
 {
     RenderTechnique* technique;
+    VulkanDevice* vulkanDevice;
+    VulkanPipelineLayout* linePipelineLayout;
 
 public:
-    CameraDeserializer(RenderTechnique* technique)
-    :technique(technique){}
+    CameraDeserializer(
+        RenderTechnique* technique,
+        VulkanDevice* vulkanDevice,
+        VulkanPipelineLayout* linePipelineLayout):
+    technique(technique),
+    vulkanDevice(vulkanDevice),
+    linePipelineLayout(linePipelineLayout) {}
 
     Component* operator()(Entity* entity, Json::Value& json);
 };
