@@ -79,7 +79,7 @@ ninja -C out.gn/x64.release.sample v8_monolith  # same
 ```
 is_component_build = false
 is_debug = true
-is_clang = true
+is_clang = false
 target_cpu = "x64"
 use_custom_libcxx = false
 v8_monolithic = true
@@ -88,10 +88,24 @@ treat_warnings_as_errors = false
 ```
 
 
+**Notes for Windows**
+1. Use MSVC x86_amd64 compiler
+2. `i18n` third party library has an error when the compiler used is MSVC instead of clang.
+
+**Notes for MacOS**
+1. `target_cpu = "arm64"`
+2. `is_clang = true`
+
+Update the following line:
+```
+@third_party\icu\source\i18n\fmtable.cpp:59
+-     return *((const Measure*) a) == *((const Measure*) b);
++     return (*((const Measure*) a)).operator==(*((const Measure*) b));
+```
+
 ## Windows Build Issues
 1. needs to specify dynamic/static library, release/debug build
 2. for debug build, optimization needs to be set to 0
-3. V8 is built using Clang, linking v8 against an executable built with MSVC will lead to a linker error saying v8 lib is corrupted.
-4. The compiler used for windows OS currently must be Clang (MSVC CLI) for MSVC downloaded from Visual Studio Installer
-5. In addition to linking V8 to the intended executed, the platform part of V8, when the target is Windows, also uses dynamic libraries from Windows OS, so we also need to manually link all Windows DLLs to resolve those linking errors.
-6. Currently, only Windows DLLs used are `Winmm` and `Dbghelp`. Linking those two name to the target in CMAKE is sufficient
+3. V8 is built using Clang by default, set `is_clang = false` and fix the bug in `i18n` library to compile the v8 engine with MSVC
+4. In addition to linking V8 to the intended executed, the platform part of V8, when the target is Windows, also uses dynamic libraries from Windows OS, so we also need to manually link all Windows DLLs to resolve those linking errors.
+5. Currently, only Windows DLLs used are `Winmm` and `Dbghelp`. Linking those two name to the target in CMAKE is sufficient
