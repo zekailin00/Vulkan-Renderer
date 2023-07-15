@@ -103,9 +103,17 @@ Update the following line:
 +     return (*((const Measure*) a)).operator==(*((const Measure*) b));
 ```
 
-## Windows Build Issues
+## V8 Windows Build Issues
 1. needs to specify dynamic/static library, release/debug build
 2. for debug build, optimization needs to be set to 0
 3. V8 is built using Clang by default, set `is_clang = false` and fix the bug in `i18n` library to compile the v8 engine with MSVC
 4. In addition to linking V8 to the intended executed, the platform part of V8, when the target is Windows, also uses dynamic libraries from Windows OS, so we also need to manually link all Windows DLLs to resolve those linking errors.
 5. Currently, only Windows DLLs used are `Winmm` and `Dbghelp`. Linking those two name to the target in CMAKE is sufficient
+
+# Physx Build
+
+```
+generate_projects.bat
+cd compiler/<platform>
+cmake --build . --config (debug|checked|profile|release)
+```
