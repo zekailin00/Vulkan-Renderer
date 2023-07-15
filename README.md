@@ -112,6 +112,17 @@ Update the following line:
 
 # Physx Build
 
+**Notes**
+* Because Javascript V8 engine is built with `_ITERATOR_DEBUG_LEVEL=0` for its debug build, PhysX build script also has to be modified for this.
+
+```
+@physx\compiler\public\CMakeLists.txt:33
+
+    project(PhysXSDK C CXX)
++   add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>)
+```
+Then, follow the PhysX guide. The outputs need to be dynamically linked to executables.
+
 ```
 generate_projects.bat
 cd compiler/<platform>
