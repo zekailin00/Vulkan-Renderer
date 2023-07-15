@@ -1,6 +1,7 @@
 add_library(physics_subsystem
     physics_system.cpp
     physics_context.cpp
+    physics_actor.cpp
 )
 
 target_include_directories(physics_subsystem PUBLIC

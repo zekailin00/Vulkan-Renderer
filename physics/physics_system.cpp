@@ -1,5 +1,7 @@
 #include "physics_system.h"
 
+#include "physics_context.h"
+
 namespace physics
 {
 
@@ -36,7 +38,7 @@ PhysicsSystem::~PhysicsSystem()
 
 PhysicsContext* PhysicsSystem::NewContext()
 {
-    return nullptr;
+    return new PhysicsContext(gPhysics);
 }
 
 

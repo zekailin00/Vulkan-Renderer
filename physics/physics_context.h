@@ -1,14 +1,20 @@
 #pragma once
 
+#include <PxPhysicsAPI.h>
 
 namespace physics
 {
 
-class PhyscisContext
+class PhysicsContext
 {
 
 public:
-    ~PhyscisContext() = default;
+    PhysicsContext(physx::PxPhysics* gPhysics);
+    ~PhysicsContext();
+
+private:
+    physx::PxDefaultCpuDispatcher* gDispatcher;
+    physx::PxScene* gScene;
 };
 
 } // namespace physics
