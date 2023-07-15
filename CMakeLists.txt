@@ -1,3 +1,4 @@
+cmake_policy(SET CMP0091 NEW)
 cmake_minimum_required(VERSION 3.23.0)
 
 project(SemaLink_Engine)
@@ -17,8 +18,11 @@ file(GLOB LOCAL_SOURCE "*.cpp")
 file(GLOB PLT_HEADERS "platform/*.h")
 file(GLOB PLT_SOURCE "platform/*.cpp")
 
-#v8 engine
+# V8 engine
 add_subdirectory("${CMAKE_SOURCE_DIR}/external/v8-library")
+
+# Physx
+add_subdirectory("${CMAKE_SOURCE_DIR}/external/physx-library")
 
 # Vulkan
 if (APPLE)
@@ -73,6 +77,9 @@ add_subdirectory("${CMAKE_SOURCE_DIR}/utility")
 
 # core
 add_subdirectory("${CMAKE_SOURCE_DIR}/core")
+
+# Physics subsystem
+add_subdirectory("${CMAKE_SOURCE_DIR}/physics")
 
 # Renderer
 add_subdirectory("${CMAKE_SOURCE_DIR}/renderer")

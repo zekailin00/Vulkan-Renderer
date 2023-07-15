@@ -25,3 +25,6 @@
 [submodule "external/v8-library"]
 	path = external/v8-library
 	url = git@github.com:zekailin00/v8-library.git
+[submodule "external/physx-library"]
+	path = external/physx-library
+	url = git@github.com:zekailin00/physx-library.git
