@@ -71,9 +71,34 @@ bool CollisionShape::GetTrigger() const
     return (gShape->getFlags() | physx::PxShapeFlag::eTRIGGER_SHAPE);
 }
 
-GeometryType CollisionShape::GetGeometry()
+GeometryType CollisionShape::GetGeometryType() const
 {
     return gShape->getGeometryType();
+}
+
+void CollisionShape::SetGeometry(const Geometry &geometry)
+{
+    gShape->setGeometry(geometry);
+}
+
+bool CollisionShape::GetBoxGeometry(BoxGeometry& geometry) const
+{
+    return gShape->getBoxGeometry(geometry);
+}
+
+bool CollisionShape::GetSphereGeometry(SphereGeometry& geometry) const
+{
+    return gShape->getSphereGeometry(geometry);
+}
+
+bool CollisionShape::GetCapsuleGeometry(CapsuleGeometry& geometry) const
+{
+    return gShape->getCapsuleGeometry(geometry);
+}
+
+bool CollisionShape::GetPlaneGeometry(PlaneGeometry& geometry) const
+{
+    return gShape->getPlaneGeometry(geometry);
 }
 
 void CollisionShape::SetDynamicFriction(float coef)

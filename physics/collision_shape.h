@@ -6,6 +6,12 @@
 namespace physics
 {
 
+/**
+ * @brief defines geometries this way would have physx math
+ * library exposed to the top layer. May not be the best way.
+ * 
+ */
+typedef physx::PxGeometry Geometry; 
 typedef physx::PxBoxGeometry BoxGeometry;
 typedef physx::PxSphereGeometry SphereGeometry;
 typedef physx::PxCapsuleGeometry CapsuleGeometry;
@@ -26,7 +32,21 @@ public:
     void SetTrigger(bool isTrigger);
     bool GetTrigger() const;
 
-    GeometryType GetGeometry();
+    GeometryType GetGeometryType() const;
+
+    void SetGeometry(const Geometry &geometry);
+
+    template<typename T>
+    bool GetGeometry(GeometryType type, T& geometry)
+    {
+        return gShape->getGeometryT<T>(type, geometry);
+    }
+
+    bool GetBoxGeometry(BoxGeometry& geometry) const;
+    bool GetSphereGeometry(SphereGeometry& geometry) const;
+    bool GetCapsuleGeometry(CapsuleGeometry& geometry) const;
+    bool GetPlaneGeometry(PlaneGeometry& geometry) const;
+
 
     void SetDynamicFriction(float coef);
     float GetDynamicFriction() const;
