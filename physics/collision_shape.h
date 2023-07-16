@@ -7,6 +7,8 @@ namespace physics
 {
 
 class PhysicsContext;
+class DynamicRigidbody;
+class StaticRigidbody;
 
 class CollisionShape
 {
@@ -42,6 +44,8 @@ private:
     CollisionShape(physx::PxShape* gShape);
 
     friend PhysicsContext;
+    friend DynamicRigidbody;
+    friend StaticRigidbody;
 
 private:
     physx::PxShape* gShape;

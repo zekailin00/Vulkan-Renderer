@@ -29,7 +29,7 @@ public:
 public:
     DynamicRigidbody(physx::PxRigidDynamic* rigidbody);
 
-    glm::mat4 GetGlobalTransform() const;
+    void GetGlobalTransform(glm::mat4& transform) const;
     void SetGlobalTransform(const glm::mat4& transform);
 
     bool AttachShape(CollisionShape* shape);
@@ -38,7 +38,6 @@ public:
     unsigned int GetShapes(std::vector<CollisionShape*>& shapes) const;
 
     void SetGravity(bool isEnabled);
-    void SetSimulation(bool isEnabled);
 
     void SetMass(float mass);
     float GetMass() const; 
@@ -71,10 +70,10 @@ public:
     void SetKinematic(bool isKinematic);
     bool GetKinematic();
     void SetKinematicTarget(const glm::mat4& destination);
-    bool GetKinematicTarget(glm::mat4& target) const;
 
 private:
     physx::PxRigidDynamic* rigidbody;
+    std::vector<CollisionShape*> collisionShapeList;
 };
 
 } // namespace physics
