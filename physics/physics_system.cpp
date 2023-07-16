@@ -2,6 +2,8 @@
 
 #include "physics_context.h"
 
+#include "component.h"
+
 namespace physics
 {
 

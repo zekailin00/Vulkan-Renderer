@@ -99,4 +99,21 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 	return collisionShape;
 }
 
+int PhysicsContext::Simulate(Timestep ts)
+{
+	accumulator += ts;
+    if(accumulator < STEP_SIZE)
+        return 0;
+
+	int simCount = 0;
+	while (accumulator >= STEP_SIZE)
+	{
+		accumulator -= STEP_SIZE;
+    	gScene->simulate(STEP_SIZE);
+		gScene->fetchResults(true);
+	}
+
+    return simCount;
+}
+
 } // namespace physics

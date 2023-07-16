@@ -4,6 +4,7 @@ add_library(physics_subsystem
     dynamic_rigidbody.cpp
     static_rigidbody.cpp
     collision_shape.cpp
+    components/dynamic_body_component.cpp
 )
 
 target_include_directories(physics_subsystem PUBLIC
@@ -12,6 +13,7 @@ target_include_directories(physics_subsystem PUBLIC
 
 target_link_libraries(physics_subsystem PUBLIC
     physx
+    engine_core
     utility
 )
 

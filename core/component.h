@@ -28,6 +28,8 @@ struct Component
         UI,
         Line,
         Script,
+        DynamicBody,
+        StaticBody,
         Size
     };
 

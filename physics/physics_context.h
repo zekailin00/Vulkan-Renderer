@@ -3,6 +3,9 @@
 #include <PxPhysicsAPI.h>
 
 #include "collision_shape.h"
+#include "timestep.h"
+#include "scene_contexts.h"
+
 
 namespace physics
 {
@@ -10,7 +13,7 @@ namespace physics
 class StaticRigidbody;
 class DynamicRigidbody;
 
-class PhysicsContext
+class PhysicsContext: ScenePhysicsContext
 {
 
 public:
@@ -25,9 +28,14 @@ public:
         GeometryType geometryType
     );
 
+    int Simulate(Timestep ts) override;
+
 private:
     physx::PxDefaultCpuDispatcher* gDispatcher;
     physx::PxScene* gScene;
+
+    float accumulator = 0.0f;
+    const float STEP_SIZE = 1.0f / 60.0f;
 
     //Owned by physics system.
     physx::PxPhysics* gPhysics;

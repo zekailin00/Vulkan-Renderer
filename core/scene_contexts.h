@@ -3,6 +3,8 @@
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "timestep.h"
+
 class SceneContext
 {
 public:
@@ -11,6 +13,7 @@ public:
     {
         RendererCtx,
         ScriptCtx,
+        PhysicsCtx,
         CtxSize
     };
 
@@ -48,4 +51,14 @@ public:
     virtual void ClearRenderData() = 0;
 
     virtual void SubmitRenderData() = 0;
+};
+
+class ScenePhysicsContext: public SceneContext
+{
+public:
+    SceneContext::Type GetSceneContextType() override {return Type::PhysicsCtx;}
+    virtual ~ScenePhysicsContext() {}
+
+public:
+    virtual int Simulate(Timestep ts) = 0;
 };
