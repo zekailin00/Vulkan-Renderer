@@ -1,7 +1,9 @@
 add_library(physics_subsystem
     physics_system.cpp
     physics_context.cpp
-    physics_actor.cpp
+    dynamic_rigidbody.cpp
+    static_rigidbody.cpp
+    collision_shape.cpp
 )
 
 target_include_directories(physics_subsystem PUBLIC
@@ -10,6 +12,7 @@ target_include_directories(physics_subsystem PUBLIC
 
 target_link_libraries(physics_subsystem PUBLIC
     physx
+    utility
 )
 
 add_executable(test_physx_launch
