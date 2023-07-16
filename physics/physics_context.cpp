@@ -55,7 +55,7 @@ DynamicRigidbody* PhysicsContext::NewDynamicRigidbody()
 
 CollisionShape* PhysicsContext::AddCollisionShape(
 	DynamicRigidbody* rigidbody,
-	CollisionShape::Geometry geometry)
+	GeometryType geometryType)
 {
 	CollisionShape* collisionShape;
 	physx::PxShape* shape;
@@ -63,9 +63,9 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		0.5f, 0.5f, 0.5f
 	);
 
-	switch (geometry)
+	switch (geometryType)
 	{
-	case CollisionShape::Geometry::Box:
+	case GeometryType::eBOX:
 		shape = gPhysics->createShape(
 			physx::PxBoxGeometry(0.5f, 0.5f, 0.5f),
 			*material, true
@@ -73,7 +73,7 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		collisionShape = new CollisionShape(shape);
 		break;
 
-	case CollisionShape::Geometry::Sphere:
+	case GeometryType::eSPHERE:
 		shape = gPhysics->createShape(
 			physx::PxSphereGeometry(0.5f),
 			*material, true
@@ -81,7 +81,7 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		collisionShape = new CollisionShape(shape);
 		break;
 
-	case CollisionShape::Geometry::Capsule:
+	case GeometryType::eCAPSULE:
 		shape = gPhysics->createShape(
 			physx::PxCapsuleGeometry(0.5f, 1.0f),
 			*material, true
@@ -89,14 +89,10 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		collisionShape = new CollisionShape(shape);
 		break;
 
-	case CollisionShape::Geometry::Plane:
-		// Free material and others
+	default:
 		material->release();
 		return nullptr;
 		break;
-
-	default:
-		throw;
 	}
 
 	rigidbody->AttachShape(collisionShape);

@@ -22,7 +22,7 @@ public:
 
     CollisionShape* AddCollisionShape(
         DynamicRigidbody* ridigbody,
-        CollisionShape::Geometry geometry
+        GeometryType geometryType
     );
 
 private:

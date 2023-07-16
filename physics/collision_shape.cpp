@@ -71,31 +71,9 @@ bool CollisionShape::GetTrigger() const
     return (gShape->getFlags() | physx::PxShapeFlag::eTRIGGER_SHAPE);
 }
 
-CollisionShape::Geometry CollisionShape::GetGeometry()
+GeometryType CollisionShape::GetGeometry()
 {
-    physx::PxGeometryType::Enum type = gShape->getGeometryType();
-
-    switch (type)
-    {
-    case physx::PxGeometryType::eBOX:
-        return CollisionShape::Geometry::Box;
-        break;
-
-    case physx::PxGeometryType::eSPHERE:
-        return CollisionShape::Geometry::Sphere;
-        break;
-
-    case physx::PxGeometryType::eCAPSULE:
-        return CollisionShape::Geometry::Capsule;
-        break;
-
-    case physx::PxGeometryType::ePLANE:
-        return CollisionShape::Geometry::Plane;
-        break;
-    
-    default:
-        throw;
-    }
+    return gShape->getGeometryType();
 }
 
 void CollisionShape::SetDynamicFriction(float coef)
