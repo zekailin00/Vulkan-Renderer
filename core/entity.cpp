@@ -136,7 +136,7 @@ const glm::mat4& Entity::GetGlobalTransform()
     return globalTransform;
 }
 
-const glm::mat4& Entity::GetLocalTransform()
+const glm::mat4& Entity::GetLocalTransform() const
 {
     return localTransform;
 }
@@ -155,12 +155,12 @@ void Entity::SetLocalTransform(const glm::vec3& postion,
                      glm::scale(glm::mat4(1.0f), scale);
 }
 
-glm::vec3 Entity::GetLocalTranslation()
+glm::vec3 Entity::GetLocalTranslation() const
 {
     return glm::vec3(localTransform[3]);
 }
 
-glm::vec3 Entity::GetLocalRotation()
+glm::vec3 Entity::GetLocalRotation() const
 {
     // glm library problem
     // extractEulerAngleXYZ required unity scale
@@ -174,7 +174,7 @@ glm::vec3 Entity::GetLocalRotation()
     return rot;
 }
 
-glm::vec3 Entity::GetLocalScale()
+glm::vec3 Entity::GetLocalScale() const
 {
     glm::vec3 scale;
     glm::quat rotation;
@@ -189,7 +189,7 @@ glm::vec3 Entity::GetLocalScale()
     return scale;
 }
 
-Entity* Entity::GetChildByName(std::string name)
+Entity* Entity::GetChildByName(std::string name) const
 {
     Entity* childResult;
     for (Entity* e: children)

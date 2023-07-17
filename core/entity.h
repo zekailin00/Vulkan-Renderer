@@ -31,7 +31,7 @@ public:
 
 public:
     const glm::mat4& GetGlobalTransform();
-    const glm::mat4& GetLocalTransform();
+    const glm::mat4& GetLocalTransform() const;
 
     void SetLocalTransform(const glm::mat4& transform);
     /**
@@ -44,24 +44,26 @@ public:
     void SetLocalTransform(
         const glm::vec3& postion, const glm::vec3& rotation, const glm::vec3& scale);
 
-    glm::vec3 GetLocalTranslation();
-    glm::vec3 GetLocalRotation();
-    glm::vec3 GetLocalScale();
+    glm::vec3 GetLocalTranslation() const;
+    glm::vec3 GetLocalRotation() const;
+    glm::vec3 GetLocalScale() const;
 
-    Entity* GetParent() {return parent;}
-    Entity* GetChildByName(std::string name);
+    Entity* GetParent() const {return parent;}
+    Entity* GetChildByName(std::string name) const;
     void ScanEntities(std::function<void(Entity*)> fn);
     const std::list<Entity*>& GetChildren();
 
-    const std::string& GetName() {return name;}
+    const std::string& GetName() const {return name;}
     void SetName(const std::string& name) {this->name = name;}
-    Scene* GetScene() {return scene;}
+    Scene* GetScene() const {return scene;}
 
 private:
     friend Scene;
 
     const Entity& operator=(const Entity&) = delete;
     Entity(const Entity&) = delete;
+
+    void UpdatePhysicsTransform();
 
     Entity() = default;
     ~Entity() = default;
