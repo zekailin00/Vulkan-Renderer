@@ -9,6 +9,7 @@
 namespace physics
 {
 
+class PhysicsContext;
 class CollisionShape;
 
 class DynamicRigidbody
@@ -27,7 +28,13 @@ public:
     };
 
 public:
-    DynamicRigidbody(physx::PxRigidDynamic* rigidbody);
+    DynamicRigidbody(PhysicsContext* context, physx::PxRigidDynamic* rigidbody);
+    ~DynamicRigidbody();
+
+    PhysicsContext* GetContext() {return context;}
+
+    DynamicRigidbody(const DynamicRigidbody&) = delete;
+    void operator=(const DynamicRigidbody&) = delete;
 
     void GetGlobalTransform(glm::mat4& transform) const;
     void SetGlobalTransform(const glm::mat4& transform);
@@ -49,14 +56,6 @@ public:
     void SetAngularDamping(float angularDamp);
     float GetAngularDamping() const;
 
-    /**
-     * @brief It is invalid to use this method
-     * if the actor has not been added to a scene already or 
-     * if PxActorFlag::eDISABLE_SIMULATION is set.
-     * 
-     * @param force 
-     * @param mode 
-     */
     void AddForce(const glm::vec3& force);
     void AddTorque(const glm::vec3& torque);
     void ClearForce();
@@ -72,6 +71,7 @@ public:
     void SetKinematicTarget(const glm::mat4& destination);
 
 private:
+    PhysicsContext* context; // Owned by scene
     physx::PxRigidDynamic* rigidbody;
     std::vector<CollisionShape*> collisionShapeList;
 };

@@ -13,7 +13,7 @@ namespace physics
 class StaticRigidbody;
 class DynamicRigidbody;
 
-class PhysicsContext: ScenePhysicsContext
+class PhysicsContext: public ScenePhysicsContext
 {
 
 public:

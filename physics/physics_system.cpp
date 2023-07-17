@@ -1,6 +1,7 @@
 #include "physics_system.h"
 
 #include "physics_context.h"
+#include "components/dynamic_body_component.h"
 
 #include "component.h"
 
@@ -23,6 +24,11 @@ PhysicsSystem::PhysicsSystem()
         PX_PHYSICS_VERSION, *gFoundation,
         physx::PxTolerancesScale(), true, gPvd
     );
+
+    ComponentLocator::SetInitializer(Component::Type::DynamicBody,
+        DynamicBodyInitializer(this));
+    ComponentLocator::SetDeserializer(Component::Type::DynamicBody,
+        DynamicBodyDeserializer());
 }
 
 PhysicsSystem::~PhysicsSystem()

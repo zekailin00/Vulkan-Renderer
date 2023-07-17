@@ -8,9 +8,14 @@
 namespace physics
 {
 
-CollisionShape::CollisionShape(physx::PxShape* shape)
+CollisionShape::CollisionShape(physx::PxShape* gShape)
 {
     this->gShape = gShape;
+}
+
+CollisionShape::~CollisionShape()
+{
+    // PX_RELEASE(gShape);
 }
 
 void CollisionShape::SetLocalTransform(const glm::mat4& transform)

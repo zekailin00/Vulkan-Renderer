@@ -57,6 +57,8 @@ public:
     void SetRestitution(float rest);
     float GetRestitution() const;
 
+    ~CollisionShape();
+
 private:
     CollisionShape(physx::PxShape* gShape);
 

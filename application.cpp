@@ -109,6 +109,7 @@ Application::Application()
     this->openxr = OpenxrPlatform::Initialize();
     this->eventQueue = EventQueue::GetInstance();
     this->scripting = scripting::ScriptingSystem::GetInstance();
+    this->physics = new physics::PhysicsSystem();
 
     window->InitializeWindow();
     renderer->InitializeDevice(
@@ -128,6 +129,8 @@ Application::~Application()
 
     openxr->Destroy();
     delete openxr;
+
+    delete physics;
 
     renderer->Destroy();
     window->DestroyWindow();

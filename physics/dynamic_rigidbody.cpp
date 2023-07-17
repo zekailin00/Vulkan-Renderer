@@ -9,9 +9,16 @@
 namespace physics
 {
 
-DynamicRigidbody::DynamicRigidbody(physx::PxRigidDynamic* rigidbody)
+DynamicRigidbody::DynamicRigidbody(
+    PhysicsContext* context, physx::PxRigidDynamic* rigidbody)
 {
+    this->context = context;
     this->rigidbody = rigidbody;
+}
+
+DynamicRigidbody::~DynamicRigidbody()
+{
+    PX_RELEASE(rigidbody);
 }
 
 void DynamicRigidbody::GetGlobalTransform(glm::mat4& transform) const
@@ -65,6 +72,8 @@ void DynamicRigidbody::DetachShape(CollisionShape* shape)
     {
         if (shape == *begin)
         {
+            rigidbody->detachShape(*(*begin)->gShape);
+            delete *begin;
             collisionShapeList.erase(begin);
             break;
         }

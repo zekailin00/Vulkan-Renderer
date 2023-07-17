@@ -22,7 +22,7 @@ Component* DynamicBodyInitializer::operator()(Entity* entity)
     std::shared_ptr<PhysicsContext> physicsCtx;
     if (!scene->GetSceneContext(SceneContext::Type::PhysicsCtx))
     {
-        physicsCtx = std::make_shared(*system->NewContext());
+        physicsCtx = std::shared_ptr<PhysicsContext>(system->NewContext());
 
         scene->SetSceneContext(
             SceneContext::Type::PhysicsCtx,
@@ -38,12 +38,16 @@ Component* DynamicBodyInitializer::operator()(Entity* entity)
 
     component->dynamicBody = physicsCtx->NewDynamicRigidbody();
 
+    component->dynamicBody->SetGlobalTransform(
+        entity->GetGlobalTransform()
+    );
+
     return component;
 }
 
 Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json)
 {
-
+    return nullptr;
 }
 
 void DynamicBodyComponent::Update(Timestep ts)
@@ -53,8 +57,11 @@ void DynamicBodyComponent::Update(Timestep ts)
         glm::mat4 transform;
         dynamicBody->GetGlobalTransform(transform);
         
-        // set global??
+        glm::mat4 parentTransform = entity->GetParent()->GetGlobalTransform();
+        glm::mat4 localTransform = glm::inverse(parentTransform) * transform;
+        entity->SetLocalTransform(localTransform);
     }
+    // debug lines
 }
 
 void DynamicBodyComponent::Serialize(Json::Value& json)
@@ -64,7 +71,7 @@ void DynamicBodyComponent::Serialize(Json::Value& json)
 
 DynamicBodyComponent::~DynamicBodyComponent() 
 {
-
+    delete dynamicBody;
 }
 
 } // namespace physics

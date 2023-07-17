@@ -118,6 +118,11 @@ Scene::~Scene()
     for (Entity* e: childrenCopy)
         RemoveEntity(e);
     delete rootEntity;
+
+    for (int i = 0; i < SceneContext::Type::CtxSize; i++)
+    {
+        contexts[i] = nullptr;
+    }
 }
 
 Entity* Scene::GetRootEntity()
@@ -142,6 +147,13 @@ void Scene::Update(Timestep ts)
         std::dynamic_pointer_cast<SceneRendererContext>(
             contexts[SceneContext::Type::RendererCtx])
             ->SubmitRenderData();
+    }
+
+    if (contexts[SceneContext::Type::PhysicsCtx])
+    {
+        std::dynamic_pointer_cast<ScenePhysicsContext>(
+            contexts[SceneContext::Type::PhysicsCtx])
+            ->Simulate(ts);
     }
 }
 

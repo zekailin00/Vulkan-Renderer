@@ -116,6 +116,7 @@ target_include_directories(engine PUBLIC
 # libraries
 target_link_libraries(engine
     scripting_subsystem
+    physics_subsystem
     renderer
     platform
     engine_core

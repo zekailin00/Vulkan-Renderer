@@ -49,7 +49,7 @@ DynamicRigidbody* PhysicsContext::NewDynamicRigidbody()
 
 	gScene->addActor(*body);
 
-	DynamicRigidbody* dynamicRigidBody = new DynamicRigidbody(body);
+	DynamicRigidbody* dynamicRigidBody = new DynamicRigidbody(this, body);
 	return dynamicRigidBody;
 }
 

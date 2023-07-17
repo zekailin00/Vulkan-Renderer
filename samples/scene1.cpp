@@ -27,7 +27,7 @@ void Scene1::OnCreated()
     camProp.Extent = {1920, 1080};
     camComponent->camera->RebuildCamera(camProp);
 
-    camera->SetLocalTransform({0,0,7}, {0,0,0}, {1,1,1});
+    camera->SetLocalTransform({0,0,15}, {0,0,0}, {1,1,1});
     renderer->SetWindowContent(camComponent->camera);
 
     Entity* lineEntity = scene->NewEntity();
@@ -55,6 +55,25 @@ void Scene1::OnCreated()
     
     prop->color = {1, 0, 0};
     prop->width = 2;
+
+    {
+        Entity* kinematicFloor = scene->NewEntity();
+
+        physics::DynamicBodyComponent* comp =
+            dynamic_cast<physics::DynamicBodyComponent*>(
+                kinematicFloor->AddComponent(Component::Type::DynamicBody));
+        
+        physics::PhysicsContext* context = comp->dynamicBody->GetContext();
+
+        physics::CollisionShape * box = context->AddCollisionShape(
+            comp->dynamicBody, physics::GeometryType::eBOX);
+        
+        box->SetGeometry(physics::BoxGeometry(10, 1, 10));
+        comp->dynamicBody->SetKinematic(true);
+        comp->dynamicBody->SetGlobalTransform(
+            glm::translate(glm::mat4(1.0f), {0, -5, 0})
+        );
+    }
 }
 
 void Scene1::OnUpdated(float ts) {}

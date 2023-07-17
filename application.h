@@ -20,6 +20,12 @@
 
 #include "scripting_subsystem.h"
 
+#include "physics_system.h"
+#include "physics_context.h"
+#include "dynamic_rigidbody.h"
+#include "collision_shape.h"
+#include "components\dynamic_body_component.h"
+
 #include <tracy/Tracy.hpp>
 #include <map>
 
@@ -61,6 +67,7 @@ private:
     XrPlatform* openxr = nullptr;
     Input* input = nullptr;
     scripting::ScriptingSystem* scripting = nullptr;
+    physics::PhysicsSystem* physics = nullptr;
 
     std::map<int, Scene*> activeScenes;
     int activeSceneHandleCount = 0;
