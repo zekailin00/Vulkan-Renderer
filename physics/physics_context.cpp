@@ -3,6 +3,8 @@
 #include "dynamic_rigidbody.h"
 #include "static_rigidbody.h"
 
+#include "component.h"
+#include "components/dynamic_body_component.h"
 
 namespace physics
 {
@@ -115,5 +117,21 @@ int PhysicsContext::Simulate(Timestep ts)
 
     return simCount;
 }
+
+void PhysicsContext::UpdatePhysicsTransform(Entity* e)
+{
+	if (e->HasComponent(Component::Type::DynamicBody))
+	{
+		DynamicRigidbody * rigidbody = dynamic_cast<DynamicBodyComponent*>(
+			e->GetComponent(Component::Type::DynamicBody))->dynamicBody;
+		
+		rigidbody->SetGlobalTransform(e->GetGlobalTransform());
+		// kinematic objects have different methods to set tf
+		
+		// glm::vec3 scale = e->GetGlobalScale();
+		// FIXME: SCALE ISSUE
+		// scale->
+	}
+} 
 
 } // namespace physics

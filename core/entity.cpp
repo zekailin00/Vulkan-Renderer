@@ -31,12 +31,12 @@ void Entity::RemoveComponent(Component::Type type)
     delete component;
 }
 
-bool Entity::HasComponent(Component::Type type)
+bool Entity::HasComponent(Component::Type type) const
 {
     return componentList[(int)type] != nullptr;
 }
 
-Component* Entity::GetComponent(Component::Type type)
+Component* Entity::GetComponent(Component::Type type) const
 {
     return componentList[(int)type];
 }
@@ -121,9 +121,11 @@ void Entity::ReparentTo(Entity* entity)
     parent->children.remove(this);
     entity->children.push_back(this);
     parent = entity;
+
+    UpdateTransform(false);
 }
 
-const glm::mat4& Entity::GetGlobalTransform()
+const glm::mat4& Entity::GetGlobalTransform() const
 {
     static const glm::mat4 IDENTITY(1.0f);
     if (parent == nullptr)
@@ -132,7 +134,6 @@ const glm::mat4& Entity::GetGlobalTransform()
         return IDENTITY;
     }
 
-    globalTransform = parent->GetGlobalTransform() * localTransform;
     return globalTransform;
 }
 
@@ -141,18 +142,22 @@ const glm::mat4& Entity::GetLocalTransform() const
     return localTransform;
 }
 
-void Entity::SetLocalTransform(const glm::mat4& transform)
+void Entity::SetLocalTransform(const glm::mat4& transform, bool isPhysicsDriven)
 {
     localTransform = transform;
+
+    UpdateTransform(isPhysicsDriven);
 }
 
 void Entity::SetLocalTransform(const glm::vec3& postion,
-    const glm::vec3& rotation, const glm::vec3& scale)
+    const glm::vec3& rotation, const glm::vec3& scale, bool isPhysicsDriven)
 {
     // Transform = T * R * S
     localTransform = glm::translate(glm::mat4(1.0f), postion) *
                      glm::eulerAngleXYZ(rotation[0], rotation[1], rotation[2]) *
                      glm::scale(glm::mat4(1.0f), scale);
+
+    UpdateTransform(isPhysicsDriven);
 }
 
 glm::vec3 Entity::GetLocalTranslation() const
@@ -189,6 +194,39 @@ glm::vec3 Entity::GetLocalScale() const
     return scale;
 }
 
+glm::vec3 Entity::GetGlobalScale() const
+{
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(
+        globalTransform, scale, rotation,
+        translation, skew, perspective
+    );
+
+    return scale;
+}
+
+glm::mat4 Entity::GetGlobalTransformNoScale() const
+{
+    glm::vec3 scale;
+    glm::quat rotation;
+    glm::vec3 translation;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(
+        globalTransform, scale, rotation,
+        translation, skew, perspective
+    );
+
+    glm::mat4 matRotation = glm::toMat4(rotation);
+    glm::mat4 matTranslate = glm::translate(glm::mat4(1.0f), translation);
+
+    return matTranslate * matRotation;
+}
+
 Entity* Entity::GetChildByName(std::string name) const
 {
     Entity* childResult;
@@ -216,4 +254,29 @@ void Entity::ScanEntities(std::function<void(Entity*)> fn)
 const std::list<Entity*>& Entity::GetChildren()
 {
     return children;
+}
+
+void Entity::UpdateTransform(bool isPhysicsDriven)
+{
+    static const glm::mat4 IDENTITY(1.0f);
+
+    globalTransform =
+        (parent?(parent->GetGlobalTransform()):IDENTITY) *
+        localTransform;
+
+    if (!isPhysicsDriven &&
+        scene->GetSceneContext(SceneContext::Type::PhysicsCtx) != nullptr)
+    {
+        std::shared_ptr<ScenePhysicsContext> physicsCtx =
+            std::dynamic_pointer_cast<ScenePhysicsContext>(
+                scene->GetSceneContext(SceneContext::Type::PhysicsCtx)
+            );
+
+        physicsCtx->UpdatePhysicsTransform(this);
+    }
+
+    for (auto& e: children)
+    {
+        e->UpdateTransform(isPhysicsDriven);
+    }
 }

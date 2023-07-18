@@ -52,16 +52,69 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
 
 void DynamicBodyComponent::Update(Timestep ts)
 {
-    if (!dynamicBody->GetKinematic())
+    glm::mat4 transform;
+    dynamicBody->GetGlobalTransform(transform);
+    
+    glm::mat4 parentTransform = entity->GetParent()->GetGlobalTransform();
+    glm::mat4 localTransform = glm::inverse(parentTransform) * transform;
+    entity->SetLocalTransform(localTransform);
+
+
+    if (entity->GetScene()->GetSceneContext(SceneContext::Type::RendererCtx))
     {
-        glm::mat4 transform;
-        dynamicBody->GetGlobalTransform(transform);
-        
-        glm::mat4 parentTransform = entity->GetParent()->GetGlobalTransform();
-        glm::mat4 localTransform = glm::inverse(parentTransform) * transform;
-        entity->SetLocalTransform(localTransform);
+        std::shared_ptr<SceneRendererContext> renderCtx =
+            std::dynamic_pointer_cast<SceneRendererContext>(
+                entity->GetScene()->GetSceneContext(SceneContext::Type::RendererCtx)
+            );
+        // debug lines
+        std::vector<physics::CollisionShape*> shapes;
+        dynamicBody->GetShapes(shapes);
+        for(auto& shape: shapes)
+        {
+            switch (shape->GetGeometryType())
+            {
+            case physics::GeometryType::eBOX:
+            {
+                glm::mat4 tf = entity->GetGlobalTransformNoScale();
+                glm::mat4 shapeTf;
+                shape->GetLocalTransform(shapeTf);
+
+                BoxGeometry box;
+                shape->GetBoxGeometry(box);
+                glm::vec3 scale = 
+                {
+                    box.halfExtents.x * 2,
+                    box.halfExtents.y * 2,
+                    box.halfExtents.z * 2
+                };
+
+                glm::mat4 shapeScaleTf = glm::scale(glm::mat4(1.0f), scale);
+
+                glm::mat4 finalTransform = tf * shapeTf * shapeScaleTf;
+
+                renderCtx->RenderDebugOBB(finalTransform);
+
+            }    
+                break;
+
+            case physics::GeometryType::eSPHERE:
+                /* code */
+                break;
+
+            case physics::GeometryType::eCAPSULE:
+                /* code */
+                break;
+
+            case physics::GeometryType::ePLANE:
+                /* code */
+                throw;
+                break;
+            
+            default:
+                break;
+            }
+        }
     }
-    // debug lines
 }
 
 void DynamicBodyComponent::Serialize(Json::Value& json)

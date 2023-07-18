@@ -30,6 +30,8 @@ public:
 
     int Simulate(Timestep ts) override;
 
+    void UpdatePhysicsTransform(Entity* e) override;
+
 private:
     physx::PxDefaultCpuDispatcher* gDispatcher;
     physx::PxScene* gScene;

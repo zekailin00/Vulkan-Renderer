@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 
 #include "timestep.h"
+#include "entity.h"
 
 class SceneContext
 {
@@ -61,4 +62,5 @@ public:
 
 public:
     virtual int Simulate(Timestep ts) = 0;
+    virtual void UpdatePhysicsTransform(Entity* e) = 0;
 };

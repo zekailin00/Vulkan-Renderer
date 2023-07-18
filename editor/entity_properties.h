@@ -22,6 +22,7 @@ private:
     void ShowMeshComponent();
     void ShowWireframeComponent();
     void ShowScriptComponent();
+    void ShowDynamicBodyComponent();
 
     void PublishMaterialSelectedEvent(renderer::VulkanMaterial* mat);
 

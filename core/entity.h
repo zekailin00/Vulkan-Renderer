@@ -17,8 +17,8 @@ public:
     Component* AddComponent(Component::Type type);
     void RemoveComponent(Component::Type type);
 
-    bool HasComponent(Component::Type type);
-    Component* GetComponent(Component::Type type);
+    bool HasComponent(Component::Type type) const;
+    Component* GetComponent(Component::Type type) const;
 
     void Serialize(Json::Value& json);
     bool Deserialize(Json::Value& json);
@@ -30,23 +30,31 @@ public:
     bool operator==(const Entity& e);
 
 public:
-    const glm::mat4& GetGlobalTransform();
+    const glm::mat4& GetGlobalTransform() const;
     const glm::mat4& GetLocalTransform() const;
 
-    void SetLocalTransform(const glm::mat4& transform);
+    void SetLocalTransform(const glm::mat4& transform, bool isPhysicsDriven = false);
     /**
      * @brief Set the Local Transform
      * 
      * @param postion <x, y, z>
      * @param rotation <w, x, y, z> quaternion
      * @param scale <x, y, z>
+     * @param isPhysicsDriven true if this is driven by physics system
      */
-    void SetLocalTransform(
-        const glm::vec3& postion, const glm::vec3& rotation, const glm::vec3& scale);
+    void SetLocalTransform(const glm::vec3& postion, const glm::vec3& rotation,
+        const glm::vec3& scale, bool isPhysicsDriven = false);
 
     glm::vec3 GetLocalTranslation() const;
     glm::vec3 GetLocalRotation() const;
     glm::vec3 GetLocalScale() const;
+
+    //////////////// For Physics ///////////////
+
+    glm::vec3 GetGlobalScale() const;
+    glm::mat4 GetGlobalTransformNoScale() const;
+
+    ////////////////////////////////////////////
 
     Entity* GetParent() const {return parent;}
     Entity* GetChildByName(std::string name) const;
@@ -63,7 +71,7 @@ private:
     const Entity& operator=(const Entity&) = delete;
     Entity(const Entity&) = delete;
 
-    void UpdatePhysicsTransform();
+    void UpdateTransform(bool isPhysicsDriven);
 
     Entity() = default;
     ~Entity() = default;

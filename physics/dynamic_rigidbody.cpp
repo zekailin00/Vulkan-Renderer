@@ -97,6 +97,11 @@ void DynamicRigidbody::SetGravity(bool isEnabled)
     rigidbody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !isEnabled);
 }
 
+bool DynamicRigidbody::GetGravity()
+{
+    return !(rigidbody->getActorFlags() & physx::PxActorFlag::eDISABLE_GRAVITY);
+}
+
 void DynamicRigidbody::SetMass(float mass)
 {
     rigidbody->setMass(mass);
@@ -230,7 +235,7 @@ void DynamicRigidbody::SetKinematic(bool isKinematic)
 
 bool DynamicRigidbody::GetKinematic()
 {
-    return (rigidbody->getRigidBodyFlags() | physx::PxRigidBodyFlag::eKINEMATIC);
+    return (rigidbody->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC);
 }
 
 void DynamicRigidbody::SetKinematicTarget(const glm::mat4& destination)

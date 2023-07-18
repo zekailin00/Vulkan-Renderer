@@ -19,7 +19,6 @@ public:
     {
         bool isKinematic;
         bool isGravity = true;
-        bool isSimulated = false;
 
         float mass;
         glm::vec3 inertia;
@@ -45,6 +44,7 @@ public:
     unsigned int GetShapes(std::vector<CollisionShape*>& shapes) const;
 
     void SetGravity(bool isEnabled);
+    bool GetGravity();
 
     void SetMass(float mass);
     float GetMass() const; 

@@ -9,6 +9,8 @@
 #include "validation.h"
 #include "logger.h"
 
+#include <map>
+
 
 EntityProperties::EntityProperties()
 {
@@ -153,18 +155,23 @@ void EntityProperties::ShowEntityProperties()
             float* row2 = &localTransform[2][0];
             float* row3 = &localTransform[3][0];
 
+            bool edited = false;
+
             ImGui::PushItemWidth(-0.1);
-            ImGui::DragFloat4("##row0l", row0, 0.01f,
-                -FLT_MAX, FLT_MAX, "%.3f");
-            ImGui::DragFloat4("##row1l", row1, 0.01f,
-                -FLT_MAX, FLT_MAX, "%.3f");
-            ImGui::DragFloat4("##row2l", row2, 0.01f,
-                -FLT_MAX, FLT_MAX, "%.3f");
-            ImGui::DragFloat4("##row3l", row3, 0.01f,
-                -FLT_MAX, FLT_MAX, "%.3f");
+            edited = ImGui::DragFloat4("##row0l",
+                row0, 0.01f, -FLT_MAX, FLT_MAX, "%.3f") || edited;
+            edited = ImGui::DragFloat4("##row1l",
+                row1, 0.01f, -FLT_MAX, FLT_MAX, "%.3f") || edited;
+            edited = ImGui::DragFloat4("##row2l",
+                row2, 0.01f, -FLT_MAX, FLT_MAX, "%.3f") || edited;
+            edited = ImGui::DragFloat4("##row3l",
+                row3, 0.01f, -FLT_MAX, FLT_MAX, "%.3f") || edited;
             ImGui::PopItemWidth();
 
-            selectedEntity->SetLocalTransform(glm::transpose(localTransform));
+            if (edited)
+            {
+                selectedEntity->SetLocalTransform(glm::transpose(localTransform));
+            }
         }
 
         ImGui::SeparatorText("Translation, Rotation, Scale");
@@ -184,9 +191,16 @@ void EntityProperties::ShowEntityProperties()
 
             glm::vec3 s = selectedEntity->GetLocalScale();
 
-            ImGui::DragFloat3("Translation", &t[0], 0.01f, -FLT_MAX, FLT_MAX);
+            bool edited = false;
 
-            if (ImGui::DragFloat3("Rotation", &r[0], 0.01f, -FLT_MAX, FLT_MAX))
+            edited = ImGui::DragFloat3("Translation",
+                &t[0], 0.01f, -FLT_MAX, FLT_MAX) || edited;
+
+            bool tmp = ImGui::DragFloat3("Rotation",
+                &r[0], 0.01f, -FLT_MAX, FLT_MAX);
+            edited = tmp || edited;
+
+            if (tmp)
             {
                 uiControlling = true;
                 frameCount = 100;
@@ -196,10 +210,14 @@ void EntityProperties::ShowEntityProperties()
                 uiControlling = false;
             }
 
-            ImGui::DragFloat3("Scale", &s[0], 0.001f, 0.001, FLT_MAX,
-                "%.3f", ImGuiSliderFlags_AlwaysClamp);
+            edited = ImGui::DragFloat3("Scale",
+                &s[0], 0.001f, 0.001, FLT_MAX,
+                "%.3f", ImGuiSliderFlags_AlwaysClamp) || edited;
 
-            selectedEntity->SetLocalTransform(t, r, s);
+            if (edited)
+            {
+                selectedEntity->SetLocalTransform(t, r, s);
+            }
         }
 
         ImGui::Separator();
@@ -233,6 +251,11 @@ void EntityProperties::ShowEntityProperties()
     if (selectedEntity->HasComponent(Component::Type::Script))
     {
         ShowScriptComponent();
+    }
+
+    if (selectedEntity->HasComponent(Component::Type::DynamicBody))
+    {
+        ShowDynamicBodyComponent();
     }
 }
 
@@ -698,6 +721,138 @@ void EntityProperties::ShowScriptComponent()
     }
 }
 
+void EntityProperties::ShowDynamicBodyComponent()
+{
+    if (ImGui::CollapsingHeader("Dynamic Rigidbody Component"))
+    {
+        RemoveComponent(Component::Type::DynamicBody);
+
+        physics::DynamicBodyComponent* component =
+            dynamic_cast<physics::DynamicBodyComponent*>(
+                selectedEntity->GetComponent(Component::Type::DynamicBody));
+        physics::DynamicRigidbody * rigidbody = component->dynamicBody;
+
+        ImGui::SeparatorText("Properties");
+        {
+            bool isKinematic = rigidbody->GetKinematic();
+            if (ImGui::Checkbox("Is Kinematic", &isKinematic))
+            {
+                rigidbody->SetKinematic(isKinematic);
+            }
+
+            bool isGravity = rigidbody->GetGravity();
+            if (ImGui::Checkbox("Is Gravity Affected", &isGravity))
+            {
+                rigidbody->SetGravity(isGravity);
+            }
+
+            float mass = rigidbody->GetMass();
+            if (ImGui::DragFloat("Mass", &mass, 0.5f, 0.0f,
+                FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+            {
+                rigidbody->SetMass(mass);
+            }
+
+            glm::vec3 inertia = rigidbody->GetMassSpaceInertiaTensor();
+            if (ImGui::DragFloat3("Inertia", &inertia[0], 0.5f, 0.0,
+                FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+            {
+                rigidbody->SetMassSpaceInertiaTensor(inertia);
+            }
+
+            float linearDamp = rigidbody->GetLinearDamping();
+            if (ImGui::DragFloat("Linear Damp", &linearDamp, 0.01f, 0.0f,
+                FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+            {
+                rigidbody->SetLinearDamping(linearDamp);
+            }
+
+            float angularDamp = rigidbody->GetAngularDamping();
+            if (ImGui::DragFloat("Angular Damp", &angularDamp, 0.01f, 0.0f,
+                FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+            {
+                rigidbody->SetAngularDamping(angularDamp);
+            }
+        }
+
+        ImGui::SeparatorText("Shapes");
+        {
+            std::vector<physics::CollisionShape *> shapeList;
+            rigidbody->GetShapes(shapeList);
+            for (int i = 0; i < shapeList.size(); i++)
+            {
+                ImGuiTreeNodeFlags treeFlags =
+                    ImGuiTreeNodeFlags_OpenOnArrow |
+                    ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                    ImGuiTreeNodeFlags_SpanAvailWidth;
+
+                switch (shapeList[i]->GetGeometryType())
+                {
+                case physics::GeometryType::eBOX:
+                    {
+                        std::string treeName = std::to_string(i) + ". Box Shape";
+                        if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                        {
+                            physics::BoxGeometry box;
+                            shapeList[i]->GetBoxGeometry(box);
+
+                            glm::vec3 halfExtent =
+                            {
+                                box.halfExtents.x,
+                                box.halfExtents.y,
+                                box.halfExtents.z
+                            };
+
+                            if (ImGui::DragFloat3("Half Extent", &halfExtent[0],
+                                0.01f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+                            {
+                                box.halfExtents.x = halfExtent.x;
+                                box.halfExtents.y = halfExtent.y;
+                                box.halfExtents.z = halfExtent.z;
+
+                                shapeList[i]->SetGeometry(box);
+                            }
+
+                            // shapeList[i]->GetLocalTransform()
+
+
+                            ImGui::TreePop();
+                        }
+                    }
+                    break;
+                
+                default:
+                    break;
+                }
+    
+            }
+
+            ImGui::Spacing();
+            if (ImGui::Button("Add.."))
+                ImGui::OpenPopup("Add Shape");
+            
+            std::map<std::string, physics::GeometryType> shapeNames =
+            {
+                {"Box", physics::GeometryType::eBOX}
+            };
+            if (ImGui::BeginPopup("Add Shape"))
+            {
+                ImGui::SeparatorText("Shapes");
+                for (auto& s: shapeNames)
+                {
+                    if (ImGui::Selectable(s.first.c_str()))
+                    {
+                        rigidbody
+                            ->GetContext()
+                            ->AddCollisionShape(rigidbody, s.second);
+                    }
+                }     
+                ImGui::EndPopup();
+            }
+        }
+    }
+}
+
 void EntityProperties::AddComponent()
 {
     std::vector<std::string> components
@@ -707,7 +862,8 @@ void EntityProperties::AddComponent()
         "VR Display Component",
         "Mesh Component",
         "Script Component",
-        "Line Component"
+        "Line Component",
+        "Dynamic Rigidbody Component"
     };
 
     std::string selectedComponent;
@@ -752,6 +908,11 @@ void EntityProperties::AddComponent()
         !selectedEntity->HasComponent(Component::Type::Line))
     {
         selectedEntity->AddComponent(Component::Type::Line);
+    }
+    else if (selectedComponent == "Dynamic Rigidbody Component" &&
+        !selectedEntity->HasComponent(Component::Type::DynamicBody))
+    {
+        selectedEntity->AddComponent(Component::Type::DynamicBody);
     }
 }
 
