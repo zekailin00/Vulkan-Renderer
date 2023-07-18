@@ -2,6 +2,7 @@
 
 #include "collision_shape.h"
 
+#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
@@ -43,17 +44,24 @@ void DynamicRigidbody::GetGlobalTransform(glm::mat4& transform) const
 
 void DynamicRigidbody::SetGlobalTransform(const glm::mat4& transform)
 {
-    glm::quat quaternion = glm::toQuat(transform);
+    glm::vec3 _0, _1;
+    glm::quat rotation;
+    glm::vec3 translate;
+    glm::vec4 _2;
+    glm::decompose(
+        transform, _0, rotation,
+        translate, _1, _2
+    );
 
     physx::PxTransform pose;
-    pose.p.x = transform[3][0];
-    pose.p.y = transform[3][1];
-    pose.p.z = transform[3][2];
+    pose.p.x = translate.x;
+    pose.p.y = translate.y;
+    pose.p.z = translate.z;
 
-    pose.q.w = quaternion.w;
-    pose.q.x = quaternion.x;
-    pose.q.y = quaternion.y;
-    pose.q.z = quaternion.z;
+    pose.q.w = rotation.w;
+    pose.q.x = rotation.x;
+    pose.q.y = rotation.y;
+    pose.q.z = rotation.z;
 
     rigidbody->setGlobalPose(pose);
 }
@@ -240,17 +248,24 @@ bool DynamicRigidbody::GetKinematic()
 
 void DynamicRigidbody::SetKinematicTarget(const glm::mat4& destination)
 {
-    glm::quat quaternion = glm::toQuat(destination);
+    glm::vec3 _0, _1;
+    glm::quat rotation;
+    glm::vec3 translate;
+    glm::vec4 _2;
+    glm::decompose(
+        destination, _0, rotation,
+        translate, _1, _2
+    );
 
     physx::PxTransform pose;
-    pose.p.x = destination[3][0];
-    pose.p.y = destination[3][1];
-    pose.p.z = destination[3][2];
+    pose.p.x = translate.x;
+    pose.p.y = translate.y;
+    pose.p.z = translate.z;
 
-    pose.q.w = quaternion.w;
-    pose.q.x = quaternion.x;
-    pose.q.y = quaternion.y;
-    pose.q.z = quaternion.z;
+    pose.q.w = rotation.w;
+    pose.q.x = rotation.x;
+    pose.q.y = rotation.y;
+    pose.q.z = rotation.z;
 
     rigidbody->setKinematicTarget(pose);
 }

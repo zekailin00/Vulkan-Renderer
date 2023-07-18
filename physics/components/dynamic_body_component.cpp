@@ -57,8 +57,8 @@ void DynamicBodyComponent::Update(Timestep ts)
     
     glm::mat4 parentTransform = entity->GetParent()->GetGlobalTransform();
     glm::mat4 localTransform = glm::inverse(parentTransform) * transform;
-    entity->SetLocalTransform(localTransform);
-
+    glm::mat4 scaleTransform = glm::scale(glm::mat4(1.0f), entity->GetLocalScale());
+    entity->SetLocalTransform(localTransform * scaleTransform, true);
 
     if (entity->GetScene()->GetSceneContext(SceneContext::Type::RendererCtx))
     {

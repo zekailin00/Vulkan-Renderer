@@ -1,6 +1,7 @@
 #include "collision_shape.h"
 
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 #include "validation.h"
 
@@ -20,17 +21,24 @@ CollisionShape::~CollisionShape()
 
 void CollisionShape::SetLocalTransform(const glm::mat4& transform)
 {
-    glm::quat quaternion = glm::toQuat(transform);
+    glm::vec3 _0, _1;
+    glm::quat rotation;
+    glm::vec3 translate;
+    glm::vec4 _2;
+    glm::decompose(
+        transform, _0, rotation,
+        translate, _1, _2
+    );
 
     physx::PxTransform pose;
-    pose.p.x = transform[3][0];
-    pose.p.y = transform[3][1];
-    pose.p.z = transform[3][2];
+    pose.p.x = translate.x;
+    pose.p.y = translate.y;
+    pose.p.z = translate.z;
 
-    pose.q.w = quaternion.w;
-    pose.q.x = quaternion.x;
-    pose.q.y = quaternion.y;
-    pose.q.z = quaternion.z;
+    pose.q.w = rotation.w;
+    pose.q.x = rotation.x;
+    pose.q.y = rotation.y;
+    pose.q.z = rotation.z;
 
     gShape->setLocalPose(pose);
 }

@@ -98,6 +98,7 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 	}
 
 	rigidbody->AttachShape(collisionShape);
+	shape->release();
 	return collisionShape;
 }
 

@@ -183,57 +183,57 @@ void VulkanLineGenerator::GetOBB(std::vector<LineData>& lineData,
 
     lineData.clear();
 
-    glm::vec3 a = transform * glm::vec4(-0.5, -0.5, -0.5, 1);
-    glm::vec3 b = transform * glm::vec4( 0.5,  0.5,  0.5, 1);
+    glm::vec3 a = glm::vec3(-0.5, -0.5, -0.5);
+    glm::vec3 b = glm::vec3( 0.5,  0.5,  0.5);
 
     LineData data;
 
-    data.beginPoint = {a.x, a.y, a.z};
-    data.endPoint   = {a.x, a.y, b.z};
+    data.beginPoint = transform * glm::vec4(a.x, a.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(a.x, a.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {b.x, a.y, a.z};
-    data.endPoint   = {b.x, a.y, b.z};
+    data.beginPoint = transform * glm::vec4(b.x, a.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, a.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, a.y, a.z};
-    data.endPoint   = {b.x, a.y, a.z};
+    data.beginPoint = transform * glm::vec4(a.x, a.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, a.y, a.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, a.y, b.z};
-    data.endPoint   = {b.x, a.y, b.z};
+    data.beginPoint = transform * glm::vec4(a.x, a.y, b.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, a.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, b.y, a.z};
-    data.endPoint   = {a.x, b.y, b.z};
+    data.beginPoint = transform * glm::vec4(a.x, b.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(a.x, b.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {b.x, b.y, a.z};
-    data.endPoint   = {b.x, b.y, b.z};
+    data.beginPoint = transform * glm::vec4(b.x, b.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, b.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, b.y, a.z};
-    data.endPoint   = {b.x, b.y, a.z};
+    data.beginPoint = transform * glm::vec4(a.x, b.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, b.y, a.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, b.y, b.z};
-    data.endPoint   = {b.x, b.y, b.z};
+    data.beginPoint = transform * glm::vec4(a.x, b.y, b.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, b.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, a.y, a.z};
-    data.endPoint   = {a.x, b.y, a.z};
+    data.beginPoint = transform * glm::vec4(a.x, a.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(a.x, b.y, a.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {b.x, a.y, b.z};
-    data.endPoint   = {b.x, b.y, b.z};
+    data.beginPoint = transform * glm::vec4(b.x, a.y, b.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, b.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {a.x, a.y, b.z};
-    data.endPoint   = {a.x, b.y, b.z};
+    data.beginPoint = transform * glm::vec4(a.x, a.y, b.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(a.x, b.y, b.z, 1.0f);
     lineData.push_back(data);
 
-    data.beginPoint = {b.x, a.y, a.z};
-    data.endPoint   = {b.x, b.y, a.z};
+    data.beginPoint = transform * glm::vec4(b.x, a.y, a.z, 1.0f);
+    data.endPoint   = transform * glm::vec4(b.x, b.y, a.z, 1.0f);
     lineData.push_back(data);
 }
 
