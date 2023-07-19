@@ -98,7 +98,21 @@ void DynamicBodyComponent::Update(Timestep ts)
                 break;
 
             case physics::GeometryType::eSPHERE:
-                /* code */
+            {
+                glm::mat4 tf = entity->GetGlobalTransformNoScale();
+                glm::mat4 shapeTf;
+                shape->GetLocalTransform(shapeTf);
+
+                glm::mat4 finalTransform = tf * shapeTf;
+
+                SphereGeometry sphere;
+                shape->GetSphereGeometry(sphere);
+
+                renderCtx->RenderDebugSphere(
+                    glm::vec3(finalTransform[3]),
+                    sphere.radius
+                );
+            }
                 break;
 
             case physics::GeometryType::eCAPSULE:

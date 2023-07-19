@@ -230,9 +230,9 @@ glm::mat4 Entity::GetGlobalTransformNoScale() const
     );
 
     glm::mat4 matRotation = glm::toMat4(rotation);
-    glm::mat4 matTranslate = glm::translate(glm::mat4(1.0f), translation);
+    matRotation[3] = globalTransform[3];
 
-    return matTranslate * matRotation;
+    return matRotation;
 }
 
 Entity* Entity::GetChildByName(std::string name) const

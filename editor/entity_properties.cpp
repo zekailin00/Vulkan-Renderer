@@ -827,35 +827,92 @@ void EntityProperties::ShowDynamicBodyComponent()
                 switch (shapeList[i]->GetGeometryType())
                 {
                 case physics::GeometryType::eBOX:
+                {
+                    std::string treeName = std::to_string(i) + ". Box Shape";
+                    if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
                     {
-                        std::string treeName = std::to_string(i) + ". Box Shape";
-                        if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                        physics::BoxGeometry box;
+                        shapeList[i]->GetBoxGeometry(box);
+                        glm::vec3 halfExtent =
                         {
-                            physics::BoxGeometry box;
-                            shapeList[i]->GetBoxGeometry(box);
-                            //FIXME: range not 0
-                            glm::vec3 halfExtent =
-                            {
-                                box.halfExtents.x,
-                                box.halfExtents.y,
-                                box.halfExtents.z
-                            };
+                            box.halfExtents.x,
+                            box.halfExtents.y,
+                            box.halfExtents.z
+                        };
 
-                            if (ImGui::DragFloat3("Half Extent", &halfExtent[0],
-                                0.01f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
-                            {
-                                box.halfExtents.x = halfExtent.x;
-                                box.halfExtents.y = halfExtent.y;
-                                box.halfExtents.z = halfExtent.z;
+                        if (ImGui::DragFloat3("Half Extent", &halfExtent[0],
+                            0.01f, 0.01f, FLT_MAX, "%.3f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            box.halfExtents.x = halfExtent.x;
+                            box.halfExtents.y = halfExtent.y;
+                            box.halfExtents.z = halfExtent.z;
 
-                                shapeList[i]->SetGeometry(box);
-                            }
-
-                            DrawPhysicsShapeCommon(shapeList[i]);
-
-                            ImGui::TreePop();
+                            shapeList[i]->SetGeometry(box);
                         }
+
+                        DrawPhysicsShapeCommon(shapeList[i]);
+
+                        ImGui::TreePop();
                     }
+                }
+                    break;
+                case physics::GeometryType::eSPHERE:
+                {
+                    std::string treeName = std::to_string(i) + ". Sphere Shape";
+                    if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                    {
+                        physics::SphereGeometry sphere;
+                        shapeList[i]->GetSphereGeometry(sphere);
+
+                        float radius = sphere.radius;
+
+                        if (ImGui::DragFloat("Radius", &radius,
+                            0.01f, 0.01f, FLT_MAX, "%.2f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            sphere.radius = radius;
+                            shapeList[i]->SetGeometry(sphere);
+                        }
+
+                        DrawPhysicsShapeCommon(shapeList[i]);
+
+                        ImGui::TreePop();
+                    }
+                }
+                    break;
+
+                case physics::GeometryType::eCAPSULE:
+                {
+                    std::string treeName = std::to_string(i) + ". Capsule Shape";
+                    if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                    {
+                        physics::BoxGeometry box;
+                        shapeList[i]->GetBoxGeometry(box);
+                        //FIXME: range not 0
+                        glm::vec3 halfExtent =
+                        {
+                            box.halfExtents.x,
+                            box.halfExtents.y,
+                            box.halfExtents.z
+                        };
+
+                        if (ImGui::DragFloat3("Half Extent", &halfExtent[0],
+                            0.01f, 0.0f, FLT_MAX, "%.3f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            box.halfExtents.x = halfExtent.x;
+                            box.halfExtents.y = halfExtent.y;
+                            box.halfExtents.z = halfExtent.z;
+
+                            shapeList[i]->SetGeometry(box);
+                        }
+
+                        DrawPhysicsShapeCommon(shapeList[i]);
+
+                        ImGui::TreePop();
+                    }
+                }
                     break;
                 
                 default:
@@ -870,7 +927,9 @@ void EntityProperties::ShowDynamicBodyComponent()
             
             std::map<std::string, physics::GeometryType> shapeNames =
             {
-                {"Box", physics::GeometryType::eBOX}
+                {"Box",     physics::GeometryType::eBOX    },
+                {"Sphere",  physics::GeometryType::eSPHERE },
+                {"Capsule", physics::GeometryType::eCAPSULE}
             };
             if (ImGui::BeginPopup("Add Shape"))
             {
