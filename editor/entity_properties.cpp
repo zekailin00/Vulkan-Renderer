@@ -219,9 +219,11 @@ void EntityProperties::ShowEntityProperties()
                         selectedEntity->SetLocalRotation(r);
                     }
                     else
-                    {glm::mat4 transform = selectedEntity->GetLocalTransform();
-                    math::RotateAroundBasis1(transform, r[1] - rCached[1]);
-                    selectedEntity->SetLocalTransform(transform);}
+                    {
+                        glm::mat4 transform = selectedEntity->GetLocalTransform();
+                        math::RotateAroundBasis1(transform, r[1] - rCached[1]);
+                        selectedEntity->SetLocalTransform(transform);
+                    }
                 }
                 else if (rCached[2] != r[2])
                 {
@@ -230,9 +232,11 @@ void EntityProperties::ShowEntityProperties()
                         selectedEntity->SetLocalRotation(r);
                     }
                     else
-                    {glm::mat4 transform = selectedEntity->GetLocalTransform();
-                    math::RotateAroundBasis2(transform, r[2] - rCached[2]);
-                    selectedEntity->SetLocalTransform(transform);}
+                    {
+                        glm::mat4 transform = selectedEntity->GetLocalTransform();
+                        math::RotateAroundBasis2(transform, r[2] - rCached[2]);
+                        selectedEntity->SetLocalTransform(transform);
+                    }
                 }
             }
 
