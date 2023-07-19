@@ -833,7 +833,7 @@ void EntityProperties::ShowDynamicBodyComponent()
                         {
                             physics::BoxGeometry box;
                             shapeList[i]->GetBoxGeometry(box);
-
+                            //FIXME: range not 0
                             glm::vec3 halfExtent =
                             {
                                 box.halfExtents.x,
@@ -885,79 +885,6 @@ void EntityProperties::ShowDynamicBodyComponent()
                     }
                 }     
                 ImGui::EndPopup();
-            }
-        }
-    }
-}
-
-void DrawPhysicsShapeCommon(physics::CollisionShape* shape)
-{
-    glm::mat4 transform;
-    shape->GetLocalTransform(transform);
-
-    if (ImGui::DragFloat3("Translation", &transform[3][0],
-        0.01f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
-    {
-        shape->SetLocalTransform(transform);
-    }
-
-    glm::vec3 r; // local euler XYZ
-    glm::vec3 rCached;
-
-    glm::extractEulerAngleXYZ(
-        glm::mat4(
-            glm::normalize(transform[0]),
-            glm::normalize(transform[1]),
-            glm::normalize(transform[2]),
-            transform[3]
-        ),
-        r[0], r[1], r[2]
-    );
-
-    rCached = r;
-    if (ImGui::DragFloat3("Rotation", &r[0], 0.01f,
-        -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
-    {
-        if (rCached[0] != r[0])
-        {
-            if (glm::abs(rCached[0] - r[0]) > 0.1f)
-            {
-                glm::mat4 newTransform = glm::eulerAngleXYZ(r[0], r[1], r[2]);
-                newTransform[3] = transform[3];
-                shape->SetLocalTransform(newTransform);
-            }
-            else
-            {
-                math::RotateAroundBasis0(transform, r[0] - rCached[0]);
-                shape->SetLocalTransform(transform);
-            }
-        }
-        else if (rCached[1] != r[1])
-        {
-            if (glm::abs(rCached[1] - r[1]) > 0.1f)
-            {
-                glm::mat4 newTransform = glm::eulerAngleXYZ(r[0], r[1], r[2]);
-                newTransform[3] = transform[3];
-                shape->SetLocalTransform(newTransform);
-            }
-            else
-            {
-                math::RotateAroundBasis1(transform, r[1] - rCached[1]);
-                shape->SetLocalTransform(transform);
-            }
-        }
-        else if (rCached[2] != r[2])
-        {
-            if (glm::abs(rCached[2] - r[2]) > 0.1f)
-            {
-                glm::mat4 newTransform = glm::eulerAngleXYZ(r[0], r[1], r[2]);
-                newTransform[3] = transform[3];
-                shape->SetLocalTransform(newTransform);
-            }
-            else
-            {
-                math::RotateAroundBasis2(transform, r[2] - rCached[2]);
-                shape->SetLocalTransform(transform);
             }
         }
     }
@@ -1054,4 +981,105 @@ void EntityProperties::PublishMaterialSelectedEvent(
     event->materialPtr = mat;
 
     EventQueue::GetInstance()->Publish(EventQueue::Editor,event);
+}
+
+
+void DrawPhysicsShapeCommon(physics::CollisionShape* shape)
+{
+    glm::mat4 transform;
+    shape->GetLocalTransform(transform);
+
+    if (ImGui::DragFloat3("Translation", &transform[3][0],
+        0.01f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+    {
+        shape->SetLocalTransform(transform);
+    }
+
+    glm::vec3 r; // local euler XYZ
+    glm::vec3 rCached;
+
+    glm::extractEulerAngleXYZ(
+        glm::mat4(
+            glm::normalize(transform[0]),
+            glm::normalize(transform[1]),
+            glm::normalize(transform[2]),
+            transform[3]
+        ),
+        r[0], r[1], r[2]
+    );
+
+    rCached = r;
+    if (ImGui::DragFloat3("Rotation", &r[0], 0.01f,
+        -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+    {
+        if (rCached[0] != r[0])
+        {
+            if (glm::abs(rCached[0] - r[0]) > 0.1f)
+            {
+                glm::mat4 newTransform = glm::eulerAngleXYZ(r[0], r[1], r[2]);
+                newTransform[3] = transform[3];
+                shape->SetLocalTransform(newTransform);
+            }
+            else
+            {
+                math::RotateAroundBasis0(transform, r[0] - rCached[0]);
+                shape->SetLocalTransform(transform);
+            }
+        }
+        else if (rCached[1] != r[1])
+        {
+            if (glm::abs(rCached[1] - r[1]) > 0.1f)
+            {
+                glm::mat4 newTransform = glm::eulerAngleXYZ(r[0], r[1], r[2]);
+                newTransform[3] = transform[3];
+                shape->SetLocalTransform(newTransform);
+            }
+            else
+            {
+                math::RotateAroundBasis1(transform, r[1] - rCached[1]);
+                shape->SetLocalTransform(transform);
+            }
+        }
+        else if (rCached[2] != r[2])
+        {
+            if (glm::abs(rCached[2] - r[2]) > 0.1f)
+            {
+                glm::mat4 newTransform = glm::eulerAngleXYZ(r[0], r[1], r[2]);
+                newTransform[3] = transform[3];
+                shape->SetLocalTransform(newTransform);
+            }
+            else
+            {
+                math::RotateAroundBasis2(transform, r[2] - rCached[2]);
+                shape->SetLocalTransform(transform);
+            }
+        }
+    }
+
+    float staticFriction = shape->GetStaticFriction();
+    if (ImGui::DragFloat("Static Friction", &staticFriction,
+        0.001f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+    {
+        shape->SetStaticFriction(staticFriction);   
+    }
+
+    float dynamicFriction = shape->GetDynamicFriction();
+    if (ImGui::DragFloat("Dynamic Friction", &dynamicFriction,
+        0.001f, 0.0f, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+    {
+        shape->SetDynamicFriction(dynamicFriction);   
+    }
+
+    float restitution = shape->GetRestitution();
+    if (ImGui::DragFloat("Restitution", &restitution,
+        0.001f, 0.0f, 1.0f, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+    {
+        shape->SetRestitution(restitution);   
+    }
+
+    bool isTrigger = shape->GetTrigger();
+    if (ImGui::Checkbox("Is Trigger", &isTrigger))
+    {
+        shape->SetTrigger(isTrigger);
+    }
 }
