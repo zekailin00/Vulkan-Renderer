@@ -123,15 +123,18 @@ void PhysicsContext::UpdatePhysicsTransform(Entity* e)
 {
 	if (e->HasComponent(Component::Type::DynamicBody))
 	{
-		DynamicRigidbody * rigidbody = dynamic_cast<DynamicBodyComponent*>(
+		DynamicRigidbody* rigidbody = dynamic_cast<DynamicBodyComponent*>(
 			e->GetComponent(Component::Type::DynamicBody))->dynamicBody;
-		
-		rigidbody->SetGlobalTransform(e->GetGlobalTransform());
-		// kinematic objects have different methods to set tf
-		
-		// glm::vec3 scale = e->GetGlobalScale();
-		// FIXME: SCALE ISSUE
-		// scale->
+	
+
+		if (rigidbody->GetKinematic())
+		{
+			rigidbody->SetKinematicTarget(e->GetGlobalTransform());
+		}
+		else
+		{
+			rigidbody->SetGlobalTransform(e->GetGlobalTransform());
+		}
 	}
 } 
 

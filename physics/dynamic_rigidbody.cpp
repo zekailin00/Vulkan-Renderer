@@ -103,6 +103,11 @@ unsigned int DynamicRigidbody::GetShapes(
 void DynamicRigidbody::SetGravity(bool isEnabled)
 {
     rigidbody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !isEnabled);
+    if (isEnabled || !this->GetKinematic())
+    {
+        // Force non-kinematic rigidbody to wake up with zero force
+        rigidbody->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
+    }
 }
 
 bool DynamicRigidbody::GetGravity()
@@ -239,6 +244,11 @@ void DynamicRigidbody::SetAngularVelocity(const glm::vec3& angularVelocity)
 void DynamicRigidbody::SetKinematic(bool isKinematic)
 {
     rigidbody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
+    if (!isKinematic)
+    {
+        // Force non-kinematic rigidbody to wake up with zero force
+        rigidbody->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
+    }
 }
 
 bool DynamicRigidbody::GetKinematic()
