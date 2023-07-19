@@ -31,6 +31,14 @@ void VulkanContext::RenderDebugCircle(glm::vec3 position, glm::vec3 normal, floa
     debugLineRenderer->AddLines(lineData);
 }
 
+void VulkanContext::RenderDebugCapsule(float halfHeight, float radius,
+    const glm::mat4& transform)
+{
+    std::vector<LineData> lineData;
+    VulkanLineGenerator::GetCapsule(lineData, halfHeight, radius, transform);
+    debugLineRenderer->AddLines(lineData);
+}
+
 void VulkanContext::RenderDebugAABB(glm::vec3 minCoordinates, glm::vec3 maxCoordinates)
 {
     std::vector<LineData> lineData;

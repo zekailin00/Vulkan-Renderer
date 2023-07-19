@@ -115,6 +115,169 @@ void VulkanLineGenerator::GetCircle(std::vector<LineData>& lineData,
     }
 }
 
+void VulkanLineGenerator::GetCapsule(std::vector<LineData>& lineData,
+    float halfHeight, float radius,
+    const glm::mat4& transform, unsigned int resolution)
+{
+    ZoneScopedN("VulkanLineGenerator::GetCapsule");
+
+    lineData.clear();
+
+    const int DIVISION = resolution;
+    const float DEGREE = glm::two_pi<float>() / DIVISION;
+
+    glm::vec3 prevPoint = glm::vec3(
+        radius * glm::cos(-glm::half_pi<float>()) + halfHeight,
+        radius * glm::sin(-glm::half_pi<float>()),
+        0
+    );
+    for (int i = 1; i <= DIVISION/2; i++)
+    {
+        float currDegree = DEGREE * i - glm::half_pi<float>();
+
+        LineData data;
+        data.beginPoint = prevPoint;
+        data.endPoint = glm::vec3(
+            radius * glm::cos(currDegree) + halfHeight,
+            radius * glm::sin(currDegree),
+            0);
+
+        prevPoint = data.endPoint;
+
+        data.beginPoint = transform * glm::vec4(data.beginPoint, 1);
+        data.endPoint   = transform * glm::vec4(data.endPoint,   1);
+        lineData.push_back(data);
+    }
+
+    prevPoint = glm::vec3(
+        radius * glm::cos(-glm::half_pi<float>()) - halfHeight,
+        radius * glm::sin(-glm::half_pi<float>()),
+        0
+    );
+    for (int i = 1; i <= DIVISION/2; i++)
+    {
+        float currDegree = -DEGREE * i - glm::half_pi<float>();
+
+        LineData data;
+        data.beginPoint = prevPoint;
+        data.endPoint = glm::vec3(
+            radius * glm::cos(currDegree) - halfHeight,
+            radius * glm::sin(currDegree),
+            0);
+
+        prevPoint = data.endPoint;
+
+        data.beginPoint = transform * glm::vec4(data.beginPoint, 1);
+        data.endPoint   = transform * glm::vec4(data.endPoint,   1);
+        lineData.push_back(data);
+    }
+
+    prevPoint = glm::vec3(
+        radius * glm::cos(+glm::half_pi<float>()) - halfHeight,
+        0,
+        radius * glm::sin(+glm::half_pi<float>())
+    );
+    for (int i = 1; i <= DIVISION/2; i++)
+    {
+        float currDegree = DEGREE * i + glm::half_pi<float>();
+
+        LineData data;
+        data.beginPoint = prevPoint;
+        data.endPoint = glm::vec3(
+            radius * glm::cos(currDegree) - halfHeight,
+            0,
+            radius * glm::sin(currDegree)
+        );
+        
+        prevPoint = data.endPoint;
+
+        data.beginPoint = transform * glm::vec4(data.beginPoint, 1);
+        data.endPoint   = transform * glm::vec4(data.endPoint,   1);
+        lineData.push_back(data);
+    }
+
+    prevPoint = glm::vec3(
+        radius * glm::cos(-glm::half_pi<float>()) + halfHeight,
+        0,
+        radius * glm::sin(-glm::half_pi<float>()));
+    for (int i = 1; i <= DIVISION/2; i++)
+    {
+        float currDegree = DEGREE * i - glm::half_pi<float>();
+
+        LineData data;
+        data.beginPoint = prevPoint;
+        data.endPoint =  glm::vec3(
+            radius * glm::cos(currDegree) + halfHeight,
+            0,
+            radius * glm::sin(currDegree)
+        );
+        
+        prevPoint = data.endPoint;
+
+        data.beginPoint = transform * glm::vec4(data.beginPoint, 1);
+        data.endPoint   = transform * glm::vec4(data.endPoint,   1);
+        lineData.push_back(data);
+    }
+
+    prevPoint = glm::vec3(halfHeight, radius * glm::cos(0), radius * glm::sin(0));
+    for (int i = 1; i <= DIVISION; i++)
+    {
+        float currDegree = DEGREE * i;
+
+        LineData data;
+        data.beginPoint = prevPoint;
+        data.endPoint = glm::vec3(
+            halfHeight,
+            radius * glm::cos(currDegree),
+            radius * glm::sin(currDegree)
+        );
+        
+        prevPoint = data.endPoint;
+
+        data.beginPoint = transform * glm::vec4(data.beginPoint, 1);
+        data.endPoint   = transform * glm::vec4(data.endPoint,   1);
+        lineData.push_back(data);
+    }
+
+    prevPoint = glm::vec3(-halfHeight, radius * glm::cos(0), radius * glm::sin(0));
+    for (int i = 1; i <= DIVISION; i++)
+    {
+        float currDegree = -DEGREE * i;
+
+        LineData data;
+        data.beginPoint = prevPoint;
+        data.endPoint = glm::vec3(
+            -halfHeight,
+            radius * glm::cos(currDegree),
+            radius * glm::sin(currDegree)
+        );
+        
+        prevPoint = data.endPoint;
+
+        data.beginPoint = transform * glm::vec4(data.beginPoint, 1);
+        data.endPoint   = transform * glm::vec4(data.endPoint,   1);
+        lineData.push_back(data);
+    }
+
+    LineData data;
+
+    data.beginPoint = transform * glm::vec4( halfHeight, radius, 0, 1);
+    data.endPoint   = transform * glm::vec4(-halfHeight, radius, 0, 1);
+    lineData.push_back(data);
+
+    data.beginPoint = transform * glm::vec4( halfHeight, -radius, 0, 1);
+    data.endPoint   = transform * glm::vec4(-halfHeight, -radius, 0, 1);
+    lineData.push_back(data);
+
+    data.beginPoint = transform * glm::vec4( halfHeight, 0, radius, 1);
+    data.endPoint   = transform * glm::vec4(-halfHeight, 0, radius, 1);
+    lineData.push_back(data);
+
+    data.beginPoint = transform * glm::vec4( halfHeight, 0, -radius, 1);
+    data.endPoint   = transform * glm::vec4(-halfHeight, 0, -radius, 1);
+    lineData.push_back(data);
+}
+
 void VulkanLineGenerator::GetAABB(std::vector<LineData>& lineData,
     glm::vec3 minCoordinates, glm::vec3 maxCoordinates)
 {

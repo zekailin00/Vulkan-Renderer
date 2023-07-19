@@ -43,6 +43,9 @@ public:
 
     virtual void RenderDebugCircle(
         glm::vec3 position, glm::vec3 normal, float radius) = 0;
+    
+    virtual void RenderDebugCapsule(float halfHeight, float radius,
+        const glm::mat4& transform) = 0;
 
     virtual void RenderDebugAABB(
         glm::vec3 minCoordinates, glm::vec3 maxCoordinates) = 0;

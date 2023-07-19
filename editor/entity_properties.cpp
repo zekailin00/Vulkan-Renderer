@@ -866,7 +866,6 @@ void EntityProperties::ShowDynamicBodyComponent()
                         shapeList[i]->GetSphereGeometry(sphere);
 
                         float radius = sphere.radius;
-
                         if (ImGui::DragFloat("Radius", &radius,
                             0.01f, 0.01f, FLT_MAX, "%.2f",
                             ImGuiSliderFlags_AlwaysClamp))
@@ -887,25 +886,25 @@ void EntityProperties::ShowDynamicBodyComponent()
                     std::string treeName = std::to_string(i) + ". Capsule Shape";
                     if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
                     {
-                        physics::BoxGeometry box;
-                        shapeList[i]->GetBoxGeometry(box);
-                        //FIXME: range not 0
-                        glm::vec3 halfExtent =
-                        {
-                            box.halfExtents.x,
-                            box.halfExtents.y,
-                            box.halfExtents.z
-                        };
+                        physics::CapsuleGeometry capsule;
+                        shapeList[i]->GetCapsuleGeometry(capsule);
 
-                        if (ImGui::DragFloat3("Half Extent", &halfExtent[0],
-                            0.01f, 0.0f, FLT_MAX, "%.3f",
+                        float radius = capsule.radius;
+                        if (ImGui::DragFloat("Radius", &radius,
+                            0.01f, 0.01f, FLT_MAX, "%.2f",
                             ImGuiSliderFlags_AlwaysClamp))
                         {
-                            box.halfExtents.x = halfExtent.x;
-                            box.halfExtents.y = halfExtent.y;
-                            box.halfExtents.z = halfExtent.z;
+                            capsule.radius = radius;
+                            shapeList[i]->SetGeometry(capsule);
+                        }
 
-                            shapeList[i]->SetGeometry(box);
+                        float halfHeight = capsule.halfHeight;
+                        if (ImGui::DragFloat("Half Height", &halfHeight,
+                            0.01f, 0.01f, FLT_MAX, "%.2f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            capsule.halfHeight = halfHeight;
+                            shapeList[i]->SetGeometry(capsule);
                         }
 
                         DrawPhysicsShapeCommon(shapeList[i]);

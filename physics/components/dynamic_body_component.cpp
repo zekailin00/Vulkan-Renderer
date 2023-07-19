@@ -116,7 +116,22 @@ void DynamicBodyComponent::Update(Timestep ts)
                 break;
 
             case physics::GeometryType::eCAPSULE:
-                /* code */
+            {
+                glm::mat4 tf = entity->GetGlobalTransformNoScale();
+                glm::mat4 shapeTf;
+                shape->GetLocalTransform(shapeTf);
+
+                glm::mat4 finalTransform = tf * shapeTf;
+
+                CapsuleGeometry capsule;
+                shape->GetCapsuleGeometry(capsule);
+
+                renderCtx->RenderDebugCapsule(
+                    capsule.halfHeight,
+                    capsule.radius,
+                    finalTransform
+                );
+            }
                 break;
 
             case physics::GeometryType::ePLANE:

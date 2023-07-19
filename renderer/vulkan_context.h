@@ -21,6 +21,9 @@ public:
 
     void RenderDebugCircle(glm::vec3 position, glm::vec3 normal, float radius) override;
 
+    void RenderDebugCapsule(float halfHeight, float radius,
+        const glm::mat4& transform) override;
+
     void RenderDebugAABB(glm::vec3 minCoordinates, glm::vec3 maxCoordinates) override;
 
     void RenderDebugOBB(glm::mat4 transform) override;

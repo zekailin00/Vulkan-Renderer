@@ -81,7 +81,7 @@ void CollisionShape::SetTrigger(bool isTrigger)
 
 bool CollisionShape::GetTrigger() const
 {
-    return (gShape->getFlags() | physx::PxShapeFlag::eTRIGGER_SHAPE);
+    return (gShape->getFlags() & physx::PxShapeFlag::eTRIGGER_SHAPE);
 }
 
 GeometryType CollisionShape::GetGeometryType() const
