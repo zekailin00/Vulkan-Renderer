@@ -36,8 +36,8 @@ void RenderTechnique::Destroy()
 {
     ZoneScopedN("RenderTechnique::Destroy");
 
-    sceneUniform.Destroy();
     ResetSceneData();
+    sceneUniform.Destroy();
     
     skyboxMesh = nullptr;
     textureCube = nullptr;
