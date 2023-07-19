@@ -8,6 +8,7 @@
 #include "asset_manager.h"
 #include "validation.h"
 #include "logger.h"
+#include "math_library.h"
 
 #include <map>
 
@@ -177,46 +178,77 @@ void EntityProperties::ShowEntityProperties()
         ImGui::SeparatorText("Translation, Rotation, Scale");
         {
             glm::vec3 t = selectedEntity->GetLocalTranslation();
-
-            // Workaround for rotation conversion issue in glm library.
-            static bool uiControlling = false;
-            static glm::vec3 r;
-            static int frameCount = -1;
-            if (!uiControlling && frameCount-- < 0)
-            {
-                // Euler angles, pitch as x, yaw as y, roll as z.
-                r = selectedEntity->GetLocalRotation();
-                frameCount = -1;
-            }
-
+            glm::vec3 r = selectedEntity->GetLocalRotation();
             glm::vec3 s = selectedEntity->GetLocalScale();
 
             bool edited = false;
 
-            edited = ImGui::DragFloat3("Translation",
-                &t[0], 0.01f, -FLT_MAX, FLT_MAX) || edited;
-
-            bool tmp = ImGui::DragFloat3("Rotation",
-                &r[0], 0.01f, -FLT_MAX, FLT_MAX);
-            edited = tmp || edited;
-
-            if (tmp)
+            if (ImGui::DragFloat3("Translation", &t[0],
+                0.01f, -FLT_MAX, FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
             {
-                uiControlling = true;
-                frameCount = 100;
-            }
-            else
-            {
-                uiControlling = false;
+                glm::mat4 transform = selectedEntity->GetLocalTransform();
+                transform[3][0] = t[0];
+                transform[3][1] = t[1];
+                transform[3][2] = t[2];
+
+                selectedEntity->SetLocalTransform(transform);
             }
 
-            edited = ImGui::DragFloat3("Scale",
-                &s[0], 0.001f, 0.001, FLT_MAX,
-                "%.3f", ImGuiSliderFlags_AlwaysClamp) || edited;
-
-            if (edited)
+            glm::vec3 rCached = r;
+            if (ImGui::DragFloat3("Rotation", &r[0], 0.01f,
+                -FLT_MAX, FLT_MAX, "%.3f",
+                ImGuiSliderFlags_AlwaysClamp))
             {
-                selectedEntity->SetLocalTransform(t, r, s);
+                if (rCached[0] != r[0])
+                {
+                    if (glm::abs(rCached[0] - r[0]) > 0.1f)
+                    {
+                        selectedEntity->SetLocalRotation(r);
+                    }
+                    else
+                    {
+                        glm::mat4 transform = selectedEntity->GetLocalTransform();
+                        math::RotateAroundBasis0(transform, r[0] - rCached[0]);
+                        selectedEntity->SetLocalTransform(transform);
+                    }
+                }
+                else if (rCached[1] != r[1])
+                {
+                    if (glm::abs(rCached[1] - r[1]) > 0.1f)
+                    {
+                        selectedEntity->SetLocalRotation(r);
+                    }
+                    else
+                    {glm::mat4 transform = selectedEntity->GetLocalTransform();
+                    math::RotateAroundBasis1(transform, r[1] - rCached[1]);
+                    selectedEntity->SetLocalTransform(transform);}
+                }
+                else if (rCached[2] != r[2])
+                {
+                    if (glm::abs(rCached[2] - r[2]) > 0.1f)
+                    {
+                        selectedEntity->SetLocalRotation(r);
+                    }
+                    else
+                    {glm::mat4 transform = selectedEntity->GetLocalTransform();
+                    math::RotateAroundBasis2(transform, r[2] - rCached[2]);
+                    selectedEntity->SetLocalTransform(transform);}
+                }
+            }
+
+
+            if (ImGui::DragFloat3("Scale", &s[0],
+                0.01f, 0.01f, FLT_MAX, "%.2f", ImGuiSliderFlags_AlwaysClamp))
+            {
+                if (s[0] != 0 && s[1] != 0 && s[2] != 0)
+                {
+                    glm::mat4 transform = selectedEntity->GetLocalTransform();
+                    transform[0] = glm::normalize(transform[0]) * s[0];
+                    transform[1] = glm::normalize(transform[1]) * s[1];
+                    transform[2] = glm::normalize(transform[2]) * s[2];
+
+                    selectedEntity->SetLocalTransform(transform);
+                }
             }
         }
 
@@ -813,7 +845,8 @@ void EntityProperties::ShowDynamicBodyComponent()
                                 shapeList[i]->SetGeometry(box);
                             }
 
-                            // shapeList[i]->GetLocalTransform()
+                            //glm::mat4 transform = shapeList[i]->GetLocalTransform();
+
 
 
                             ImGui::TreePop();

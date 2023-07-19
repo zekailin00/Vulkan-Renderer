@@ -37,13 +37,15 @@ public:
     /**
      * @brief Set the Local Transform
      * 
-     * @param postion <x, y, z>
-     * @param rotation <w, x, y, z> quaternion
+     * @param postion <x, y, z> y-up in meter
+     * @param rotation  x, y, z> euler xyz in radian
      * @param scale <x, y, z>
      * @param isPhysicsDriven true if this is driven by physics system
      */
-    void SetLocalTransform(const glm::vec3& postion, const glm::vec3& rotation,
+    void SetLocalTransform(const glm::vec3& postion, const glm::vec3& eulerXYZ,
         const glm::vec3& scale, bool isPhysicsDriven = false);
+
+    void SetLocalRotation(const glm::vec3& eulerXYZ);
 
     glm::vec3 GetLocalTranslation() const;
     glm::vec3 GetLocalRotation() const;
@@ -54,7 +56,7 @@ public:
     glm::vec3 GetGlobalScale() const;
     glm::mat4 GetGlobalTransformNoScale() const;
 
-    ////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////
 
     Entity* GetParent() const {return parent;}
     Entity* GetChildByName(std::string name) const;
@@ -72,6 +74,7 @@ private:
     Entity(const Entity&) = delete;
 
     void UpdateTransform(bool isPhysicsDriven);
+    void UpdateLocalEulerXYZ();
 
     Entity() = default;
     ~Entity() = default;
@@ -81,8 +84,9 @@ private:
     Scene* scene = nullptr;
     std::string name;
 
-    glm::mat4 localTransform;
-    glm::mat4 globalTransform;
+    glm::mat4 localTransform;   // storage
+    glm::vec3 localEulerXYZ;    // local euler cache
+    glm::mat4 globalTransform;  // global cache
 
     Entity* parent;
     std::list<Entity*> children;

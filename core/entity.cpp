@@ -91,6 +91,9 @@ bool Entity::Deserialize(Json::Value& json)
         }
     }
 
+    UpdateLocalEulerXYZ();
+    UpdateTransform(true);
+
     Json::Value& jsonChildren = json["children"];
     for (int i = 0; i < jsonChildren.size(); i++)
     {
@@ -146,18 +149,37 @@ void Entity::SetLocalTransform(const glm::mat4& transform, bool isPhysicsDriven)
 {
     localTransform = transform;
 
+    UpdateLocalEulerXYZ();
+
     UpdateTransform(isPhysicsDriven);
 }
 
 void Entity::SetLocalTransform(const glm::vec3& postion,
-    const glm::vec3& rotation, const glm::vec3& scale, bool isPhysicsDriven)
+    const glm::vec3& eulerXYZ, const glm::vec3& scale, bool isPhysicsDriven)
 {
     // Transform = T * R * S
     localTransform = glm::translate(glm::mat4(1.0f), postion) *
-                     glm::eulerAngleXYZ(rotation[0], rotation[1], rotation[2]) *
+                     glm::eulerAngleXYZ(eulerXYZ[0], eulerXYZ[1], eulerXYZ[2]) *
                      glm::scale(glm::mat4(1.0f), scale);
+    
+    localEulerXYZ = eulerXYZ;
 
     UpdateTransform(isPhysicsDriven);
+}
+
+void Entity::SetLocalRotation(const glm::vec3& eulerXYZ)
+{
+    localEulerXYZ = eulerXYZ;
+
+    glm::mat4 newTransform = glm::eulerAngleXYZ(
+        eulerXYZ[0], eulerXYZ[1], eulerXYZ[2]
+    );
+
+    localTransform[0] = newTransform[0] * glm::length(localTransform[0]);
+    localTransform[1] = newTransform[1] * glm::length(localTransform[1]);
+    localTransform[2] = newTransform[2] * glm::length(localTransform[2]);
+
+    UpdateTransform(false);
 }
 
 glm::vec3 Entity::GetLocalTranslation() const
@@ -167,31 +189,17 @@ glm::vec3 Entity::GetLocalTranslation() const
 
 glm::vec3 Entity::GetLocalRotation() const
 {
-    // glm library problem
-    // extractEulerAngleXYZ required unity scale
-    glm::mat4 transform = GetLocalTransform() *
-                glm::inverse(glm::scale(glm::mat4(1.0f),
-                    GetLocalScale()));
-    
-    glm::vec3 rot;
-    glm::extractEulerAngleXYZ(transform, rot[0], rot[1], rot[2]);
-
-    return rot;
+    return localEulerXYZ;
 }
 
 glm::vec3 Entity::GetLocalScale() const
 {
-    glm::vec3 scale;
-    glm::quat rotation;
-    glm::vec3 translation;
-    glm::vec3 skew;
-    glm::vec4 perspective;
-    glm::decompose(
-        localTransform, scale, rotation,
-        translation, skew, perspective
-    );
-
-    return scale;
+    return glm::vec3
+    {
+        glm::length(localTransform[0]),
+        glm::length(localTransform[1]),
+        glm::length(localTransform[2])
+    };
 }
 
 glm::vec3 Entity::GetGlobalScale() const
@@ -279,4 +287,20 @@ void Entity::UpdateTransform(bool isPhysicsDriven)
     {
         e->UpdateTransform(isPhysicsDriven);
     }
+}
+
+void Entity::UpdateLocalEulerXYZ()
+{
+    glm::mat4 transform
+    {
+        glm::normalize(localTransform[0]),
+        glm::normalize(localTransform[1]),
+        glm::normalize(localTransform[2]),
+        localTransform[3]
+    };
+
+    glm::vec3 rot;
+    glm::extractEulerAngleXYZ(transform, rot[0], rot[1], rot[2]);
+
+    localEulerXYZ = rot;
 }

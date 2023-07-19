@@ -112,4 +112,91 @@ void XrToTransform(glm::mat4& result,
     result = translation * rotation;
 }
 
+void RotateAroundBasis0(glm::mat4& transform, float radian)
+{
+    glm::vec3 scale;
+    glm::quat quaternion;
+    glm::vec3 translate;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(
+        transform, scale, quaternion,
+        translate, skew, perspective
+    );
+
+    glm::mat4 rotation = glm::toMat4(quaternion);
+    glm::vec3 euler;
+
+    glm::extractEulerAngleYZX(
+        rotation,
+        euler[0], euler[1], euler[2]
+    );
+
+    euler[2] += radian;
+
+    transform = glm::eulerAngleYZX(euler[0], euler[1], euler[2]);
+    transform[0] *= scale[0];
+    transform[1] *= scale[1];
+    transform[2] *= scale[2];
+    transform[3] = glm::vec4(translate, 1.0f);
+}
+
+void RotateAroundBasis1(glm::mat4& transform, float radian)
+{
+    glm::vec3 scale;
+    glm::quat quaternion;
+    glm::vec3 translate;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(
+        transform, scale, quaternion,
+        translate, skew, perspective
+    );
+
+    glm::mat4 rotation = glm::toMat4(quaternion);
+    glm::vec3 euler;
+
+    glm::extractEulerAngleXZY(
+        rotation,
+        euler[0], euler[1], euler[2]
+    );
+
+    euler[2] += radian;
+
+    transform = glm::eulerAngleXZY(euler[0], euler[1], euler[2]);
+    transform[0] *= scale[0];
+    transform[1] *= scale[1];
+    transform[2] *= scale[2];
+    transform[3] = glm::vec4(translate, 1.0f);
+}
+
+void RotateAroundBasis2(glm::mat4& transform, float radian)
+{
+    glm::vec3 scale;
+    glm::quat quaternion;
+    glm::vec3 translate;
+    glm::vec3 skew;
+    glm::vec4 perspective;
+    glm::decompose(
+        transform, scale, quaternion,
+        translate, skew, perspective
+    );
+
+    glm::mat4 rotation = glm::toMat4(quaternion);
+    glm::vec3 euler;
+
+    glm::extractEulerAngleXYZ(
+        rotation,
+        euler[0], euler[1], euler[2]
+    );
+
+    euler[2] += radian;
+
+    transform = glm::eulerAngleXYZ(euler[0], euler[1], euler[2]);
+    transform[0] *= scale[0];
+    transform[1] *= scale[1];
+    transform[2] *= scale[2];
+    transform[3] = glm::vec4(translate, 1.0f);
+}
+
 } // namespace math
