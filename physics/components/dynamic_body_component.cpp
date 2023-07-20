@@ -4,6 +4,10 @@
 #include "physics_system.h"
 
 #include "dynamic_rigidbody.h"
+#include "components/physics_components_common.h"
+
+#include "serialization.h"
+#include "math_library.h"
 
 #include "entity.h"
 #include "scene.h"
@@ -47,7 +51,107 @@ Component* DynamicBodyInitializer::operator()(Entity* entity)
 
 Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json)
 {
-    return nullptr;
+    DynamicBodyComponent* component = new DynamicBodyComponent();
+    component->entity = entity;
+    component->type = Component::Type::DynamicBody;
+
+    Scene* scene = entity->GetScene();
+    std::shared_ptr<PhysicsContext> physicsCtx;
+    if (!scene->GetSceneContext(SceneContext::Type::PhysicsCtx))
+    {
+        physicsCtx = std::shared_ptr<PhysicsContext>(system->NewContext());
+
+        scene->SetSceneContext(
+            SceneContext::Type::PhysicsCtx,
+            std::dynamic_pointer_cast<SceneContext>(physicsCtx)
+        );
+    }
+    else
+    {
+        physicsCtx = std::dynamic_pointer_cast<PhysicsContext>(
+            scene->GetSceneContext(SceneContext::Type::PhysicsCtx)
+        );
+    }
+
+    component->dynamicBody = physicsCtx->NewDynamicRigidbody();
+
+    component->dynamicBody->SetGlobalTransform(
+        entity->GetGlobalTransform()
+    );
+
+    component->dynamicBody->SetKinematic(json["isKinematic"].asBool());
+    component->dynamicBody->SetGravity(json["isGravity"].asBool());
+    component->dynamicBody->SetDensity(json["density"].asFloat());
+    component->dynamicBody->SetLinearDamping(json["linearDamp"].asFloat());
+    component->dynamicBody->SetAngularDamping(json["angularDamp"].asFloat());
+
+    Json::Value& jsonShapeList = json["shapeList"];
+    for (int i = 0; i < jsonShapeList.size(); i++)
+    {
+        Json::Value& jsonShape = jsonShapeList[i];
+
+        switch (jsonShape["GeometryType"].asInt())
+        {
+        case GeometryType::eBOX:
+        {
+            CollisionShape* shape = physicsCtx->AddCollisionShape(
+                component->dynamicBody,
+                GeometryType::eBOX
+            );
+
+            glm::vec3 halfExtent;
+            DeserializeVec3(halfExtent, jsonShape["halfExtent"]);
+
+            BoxGeometry box;
+            shape->GetBoxGeometry(box);
+            box.halfExtents.x = halfExtent.x;
+            box.halfExtents.y = halfExtent.y;
+            box.halfExtents.z = halfExtent.z;
+            shape->SetGeometry(box);
+
+            DeserializeShapeCommons(shape, jsonShape);
+        }
+            break;
+
+        case GeometryType::eSPHERE:
+        {
+            CollisionShape* shape = physicsCtx->AddCollisionShape(
+                component->dynamicBody,
+                GeometryType::eSPHERE
+            );
+
+            SphereGeometry sphere;
+            shape->GetSphereGeometry(sphere);
+            sphere.radius = jsonShape["radius"].asFloat();
+            shape->SetGeometry(sphere);
+
+            DeserializeShapeCommons(shape, jsonShape);
+        }
+            break;
+
+        case GeometryType::eCAPSULE:
+        {
+            CollisionShape* shape = physicsCtx->AddCollisionShape(
+                component->dynamicBody,
+                GeometryType::eCAPSULE
+            );
+
+            CapsuleGeometry capsule;
+            shape->GetCapsuleGeometry(capsule);
+            capsule.halfHeight = jsonShape["halfHeight"].asFloat();
+            capsule.radius = jsonShape["radius"].asFloat();
+            shape->SetGeometry(capsule);
+
+            DeserializeShapeCommons(shape, jsonShape);
+        }
+            break;
+
+        default:
+            throw;
+        }
+    }
+
+    return component;
 }
 
 void DynamicBodyComponent::Update(Timestep ts)
@@ -67,13 +171,13 @@ void DynamicBodyComponent::Update(Timestep ts)
                 entity->GetScene()->GetSceneContext(SceneContext::Type::RendererCtx)
             );
         // debug lines
-        std::vector<physics::CollisionShape*> shapes;
+        std::vector<CollisionShape*> shapes;
         dynamicBody->GetShapes(shapes);
         for(auto& shape: shapes)
         {
             switch (shape->GetGeometryType())
             {
-            case physics::GeometryType::eBOX:
+            case GeometryType::eBOX:
             {
                 glm::mat4 tf = entity->GetGlobalTransformNoScale();
                 glm::mat4 shapeTf;
@@ -97,7 +201,7 @@ void DynamicBodyComponent::Update(Timestep ts)
             }    
                 break;
 
-            case physics::GeometryType::eSPHERE:
+            case GeometryType::eSPHERE:
             {
                 glm::mat4 tf = entity->GetGlobalTransformNoScale();
                 glm::mat4 shapeTf;
@@ -115,7 +219,7 @@ void DynamicBodyComponent::Update(Timestep ts)
             }
                 break;
 
-            case physics::GeometryType::eCAPSULE:
+            case GeometryType::eCAPSULE:
             {
                 glm::mat4 tf = entity->GetGlobalTransformNoScale();
                 glm::mat4 shapeTf;
@@ -134,13 +238,8 @@ void DynamicBodyComponent::Update(Timestep ts)
             }
                 break;
 
-            case physics::GeometryType::ePLANE:
-                /* code */
-                throw;
-                break;
-            
             default:
-                break;
+                throw;
             }
         }
     }
@@ -148,7 +247,75 @@ void DynamicBodyComponent::Update(Timestep ts)
 
 void DynamicBodyComponent::Serialize(Json::Value& json)
 {
-    
+    //TODO: for now, mass and inertia are automatically
+    // computed based on density and shapes' volume
+
+    json["isKinematic"] = dynamicBody->GetKinematic();
+    json["isGravity"] = dynamicBody->GetGravity();
+
+    json["density"] = dynamicBody->GetDensity();
+    json["linearDamp"] = dynamicBody->GetLinearDamping();
+    json["angularDamp"] = dynamicBody->GetAngularDamping();
+
+    std::vector<CollisionShape*> shapeList;
+    dynamicBody->GetShapes(shapeList);
+
+    Json::Value& jsonShapeList = json["shapeList"];
+    for (int i = 0; i < shapeList.size(); i++)
+    {
+        CollisionShape* shape = shapeList[i];
+        Json::Value& jsonShape = jsonShapeList[i];
+
+        switch (shape->GetGeometryType())
+        {
+        case GeometryType::eBOX:
+        {
+            jsonShape["GeometryType"] = GeometryType::eBOX;
+
+            BoxGeometry box;
+            shape->GetBoxGeometry(box);
+
+            glm::vec3 halfExtent =
+            {
+                box.halfExtents.x,
+                box.halfExtents.y,
+                box.halfExtents.z
+            };
+            SerializeVec3(halfExtent, jsonShape["halfExtent"]);
+
+            SerializeShapeCommons(shape, jsonShape);
+        }
+            break;
+
+        case GeometryType::eSPHERE:
+        {
+            jsonShape["GeometryType"] = GeometryType::eSPHERE;
+
+            SphereGeometry sphere;
+            shape->GetSphereGeometry(sphere);
+            jsonShape["radius"] = sphere.radius;
+
+            SerializeShapeCommons(shape, jsonShape);
+        }
+            break;
+
+        case GeometryType::eCAPSULE:
+        {
+            jsonShape["GeometryType"] = GeometryType::eCAPSULE;
+
+            CapsuleGeometry capsule;
+            shape->GetCapsuleGeometry(capsule);
+            jsonShape["halfHeight"] = capsule.halfHeight;
+            jsonShape["radius"] = capsule.radius;
+
+            SerializeShapeCommons(shape, jsonShape);
+        }
+            break;
+
+        default:
+            throw;
+        }
+    }
 }
 
 DynamicBodyComponent::~DynamicBodyComponent() 

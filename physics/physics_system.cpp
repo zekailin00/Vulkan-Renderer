@@ -28,7 +28,7 @@ PhysicsSystem::PhysicsSystem()
     ComponentLocator::SetInitializer(Component::Type::DynamicBody,
         DynamicBodyInitializer(this));
     ComponentLocator::SetDeserializer(Component::Type::DynamicBody,
-        DynamicBodyDeserializer());
+        DynamicBodyDeserializer(this));
 }
 
 PhysicsSystem::~PhysicsSystem()

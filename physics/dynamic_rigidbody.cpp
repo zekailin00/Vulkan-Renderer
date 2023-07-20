@@ -113,7 +113,7 @@ unsigned int DynamicRigidbody::GetShapes(
 void DynamicRigidbody::SetGravity(bool isEnabled)
 {
     rigidbody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !isEnabled);
-    if (isEnabled || !this->GetKinematic())
+    if (isEnabled && !this->GetKinematic())
     {
         // Force non-kinematic rigidbody to wake up with zero force
         rigidbody->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
@@ -230,7 +230,7 @@ void DynamicRigidbody::AddTorque(const glm::vec3& torque)
     gTorque.y = torque.y;
     gTorque.z = torque.z;
 
-    rigidbody->addForce(gTorque);
+    rigidbody->addTorque(gTorque);
 }
 
 void DynamicRigidbody::ClearForce()

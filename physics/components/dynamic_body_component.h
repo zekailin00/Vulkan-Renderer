@@ -10,7 +10,6 @@ class DynamicRigidbody;
 
 class DynamicBodyInitializer
 {
-
     PhysicsSystem* system;
 
 public:
@@ -22,9 +21,11 @@ public:
 
 class DynamicBodyDeserializer
 {
+    PhysicsSystem* system;
 
 public:
-    DynamicBodyDeserializer() {}
+    DynamicBodyDeserializer(PhysicsSystem* system):
+        system(system) {}
 
     Component* operator()(Entity* entity, Json::Value& json);
 };

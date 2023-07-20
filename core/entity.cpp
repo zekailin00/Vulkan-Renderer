@@ -77,6 +77,9 @@ bool Entity::Deserialize(Json::Value& json)
     name = json["name"].asString();
     DeserializeMat4(localTransform, json["localTransform"]);
 
+    UpdateLocalEulerXYZ();
+    UpdateTransform(false);
+
     Json::Value jsonComponents = json["components"];
     for (int i = 0; i < (int)Component::Type::Size; i++)
     {
@@ -91,8 +94,11 @@ bool Entity::Deserialize(Json::Value& json)
         }
     }
 
+    // Have to update transform cache again
+    // in case component deserialization changes transform ??
+    // idempotent operations.
     UpdateLocalEulerXYZ();
-    UpdateTransform(true);
+    UpdateTransform(false);
 
     Json::Value& jsonChildren = json["children"];
     for (int i = 0; i < jsonChildren.size(); i++)
