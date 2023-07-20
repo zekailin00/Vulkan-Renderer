@@ -1,7 +1,5 @@
 #include "dynamic_rigidbody.h"
 
-#include "collision_shape.h"
-
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/vec3.hpp>
@@ -11,124 +9,37 @@ namespace physics
 {
 
 DynamicRigidbody::DynamicRigidbody(
-    PhysicsContext* context, physx::PxRigidDynamic* rigidbody)
+    PhysicsContext* context, physx::PxRigidDynamic* rigidbody):
+    Rigidbody(context, rigidbody)
 {
-    this->context = context;
-    this->rigidbody = rigidbody;
-
+    this->gRigidDynamic = rigidbody;
     UpdateCenterOfMass();
 }
 
 DynamicRigidbody::~DynamicRigidbody()
 {
-    PX_RELEASE(rigidbody);
-}
-
-void DynamicRigidbody::GetGlobalTransform(glm::mat4& transform) const
-{
-    physx::PxTransform pose = rigidbody->getGlobalPose();
-
-    glm::quat quaternion;
-    quaternion.x = pose.q.x;
-    quaternion.y = pose.q.y;
-    quaternion.z = pose.q.z;
-    quaternion.w = pose.q.w;
-
-    glm::vec3 position;
-    position.x = pose.p.x;
-    position.y = pose.p.y;
-    position.z = pose.p.z;
-
-    transform =
-        glm::translate(glm::mat4(1.0f), position) *
-        glm::toMat4(quaternion);
-}
-
-void DynamicRigidbody::SetGlobalTransform(const glm::mat4& transform)
-{
-    glm::vec3 _0, _1;
-    glm::quat rotation;
-    glm::vec3 translate;
-    glm::vec4 _2;
-    glm::decompose(
-        transform, _0, rotation,
-        translate, _1, _2
-    );
-
-    physx::PxTransform pose;
-    pose.p.x = translate.x;
-    pose.p.y = translate.y;
-    pose.p.z = translate.z;
-
-    pose.q.w = rotation.w;
-    pose.q.x = rotation.x;
-    pose.q.y = rotation.y;
-    pose.q.z = rotation.z;
-
-    rigidbody->setGlobalPose(pose);
-}
-
-bool DynamicRigidbody::DynamicRigidbody::AttachShape(CollisionShape* shape)
-{
-    rigidbody->attachShape(*(shape->gShape));
-    collisionShapeList.push_back(shape);
-    physx::PxRigidBodyExt::updateMassAndInertia(
-        *rigidbody, 10.0f
-    );
-
-    shape->rigidbody = this;
-    return true;
-}
-
-void DynamicRigidbody::DetachShape(CollisionShape* shape)
-{
-    for (auto begin = collisionShapeList.begin();
-        begin != collisionShapeList.end(); begin++)
-    {
-        if (shape == *begin)
-        {
-            rigidbody->detachShape(*(*begin)->gShape);
-            delete *begin;
-            collisionShapeList.erase(begin);
-            break;
-        }
-    }
-    physx::PxRigidBodyExt::updateMassAndInertia(
-        *rigidbody, 10.0f
-    );
-}
-
-unsigned int DynamicRigidbody::GetNbShapes() const
-{
-    return collisionShapeList.size();
-}
-
-unsigned int DynamicRigidbody::GetShapes(
-    std::vector<CollisionShape*>& shapes) const
-{
-    shapes = collisionShapeList;
-    return collisionShapeList.size();
+    PX_RELEASE(gRigidDynamic);
 }
 
 void DynamicRigidbody::SetGravity(bool isEnabled)
 {
-    rigidbody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !isEnabled);
+    gRigidDynamic->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !isEnabled);
     if (isEnabled && !this->GetKinematic())
     {
         // Force non-kinematic rigidbody to wake up with zero force
-        rigidbody->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
+        gRigidDynamic->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
     }
 }
 
 bool DynamicRigidbody::GetGravity()
 {
-    return !(rigidbody->getActorFlags() & physx::PxActorFlag::eDISABLE_GRAVITY);
+    return !(gRigidDynamic->getActorFlags() & physx::PxActorFlag::eDISABLE_GRAVITY);
 }
 
 void DynamicRigidbody::UpdateCenterOfMass()
 {
     physx::PxRigidBodyExt::updateMassAndInertia(
-        *rigidbody, properties.density
+        *gRigidDynamic, properties.density
     );
     WakeUp();
 }
@@ -140,7 +51,7 @@ void DynamicRigidbody::WakeUp()
         return;
     }
 
-    rigidbody->wakeUp();
+    gRigidDynamic->wakeUp();
 }
 
 void DynamicRigidbody::SetDensity(float density)
@@ -161,13 +72,13 @@ float DynamicRigidbody::GetDensity() const
 
 void DynamicRigidbody::SetMass(float mass)
 {
-    rigidbody->setMass(mass);
+    gRigidDynamic->setMass(mass);
     UpdateCenterOfMass();
 }
 
 float DynamicRigidbody::GetMass() const
 {
-    return rigidbody->getMass();
+    return gRigidDynamic->getMass();
 }
 
 void DynamicRigidbody::SetMassSpaceInertiaTensor(const glm::vec3& inertia)
@@ -177,13 +88,13 @@ void DynamicRigidbody::SetMassSpaceInertiaTensor(const glm::vec3& inertia)
     gInertia.y = inertia.y;
     gInertia.z = inertia.z;
 
-    rigidbody->setMassSpaceInertiaTensor(gInertia);
+    gRigidDynamic->setMassSpaceInertiaTensor(gInertia);
     UpdateCenterOfMass();
 }
 
 glm::vec3 DynamicRigidbody::GetMassSpaceInertiaTensor() const
 {
-    physx::PxVec3 gInertia = rigidbody->getMassSpaceInertiaTensor();
+    physx::PxVec3 gInertia = gRigidDynamic->getMassSpaceInertiaTensor();
 
     glm::vec3 inertia;
     inertia.x = gInertia.x;
@@ -195,22 +106,22 @@ glm::vec3 DynamicRigidbody::GetMassSpaceInertiaTensor() const
 
 void DynamicRigidbody::SetLinearDamping(float linearDamp)
 {
-    rigidbody->setLinearDamping(linearDamp);
+    gRigidDynamic->setLinearDamping(linearDamp);
 }
 
 float DynamicRigidbody::GetLinearDamping() const
 {
-    return rigidbody->getLinearDamping();
+    return gRigidDynamic->getLinearDamping();
 }
 
 void DynamicRigidbody::SetAngularDamping(float angularDamp)
 {
-    rigidbody->setAngularDamping(angularDamp);
+    gRigidDynamic->setAngularDamping(angularDamp);
 }
 
 float DynamicRigidbody::GetAngularDamping() const
 {
-    return rigidbody->getAngularDamping();
+    return gRigidDynamic->getAngularDamping();
 }
 
 void DynamicRigidbody::AddForce(const glm::vec3& force)
@@ -220,7 +131,7 @@ void DynamicRigidbody::AddForce(const glm::vec3& force)
     gForce.y = force.y;
     gForce.z = force.z;
 
-    rigidbody->addForce(gForce);
+    gRigidDynamic->addForce(gForce);
 }
 
 void DynamicRigidbody::AddTorque(const glm::vec3& torque)
@@ -230,22 +141,22 @@ void DynamicRigidbody::AddTorque(const glm::vec3& torque)
     gTorque.y = torque.y;
     gTorque.z = torque.z;
 
-    rigidbody->addTorque(gTorque);
+    gRigidDynamic->addTorque(gTorque);
 }
 
 void DynamicRigidbody::ClearForce()
 {
-    rigidbody->clearForce();
+    gRigidDynamic->clearForce();
 }
 
 void DynamicRigidbody::ClearTorque()
 {
-    rigidbody->clearTorque();
+    gRigidDynamic->clearTorque();
 }
 
 glm::vec3 DynamicRigidbody::GetLinearVelocity() const
 {
-    physx::PxVec3 gVelocity = rigidbody->getLinearVelocity();
+    physx::PxVec3 gVelocity = gRigidDynamic->getLinearVelocity();
 
     glm::vec3 velocity;
     velocity.x = gVelocity.x;
@@ -262,12 +173,12 @@ void DynamicRigidbody::SetLinearVelocity(const glm::vec3& linearVelocity)
     gLinearVelocity.y = linearVelocity.y;
     gLinearVelocity.z = linearVelocity.z;
 
-    rigidbody->setLinearVelocity(gLinearVelocity);
+    gRigidDynamic->setLinearVelocity(gLinearVelocity);
 }
 
 glm::vec3 DynamicRigidbody::GetAngularVelocity() const
 {
-    physx::PxVec3 gAngularVelocity = rigidbody->getAngularVelocity();
+    physx::PxVec3 gAngularVelocity = gRigidDynamic->getAngularVelocity();
 
     glm::vec3 angularVelocity;
     angularVelocity.x = gAngularVelocity.x;
@@ -284,22 +195,22 @@ void DynamicRigidbody::SetAngularVelocity(const glm::vec3& angularVelocity)
     gAngularVelocity.y = angularVelocity.y;
     gAngularVelocity.z = angularVelocity.z;
 
-    rigidbody->setAngularVelocity(gAngularVelocity);
+    gRigidDynamic->setAngularVelocity(gAngularVelocity);
 }
 
 void DynamicRigidbody::SetKinematic(bool isKinematic)
 {
-    rigidbody->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
+    gRigidDynamic->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
     if (!isKinematic)
     {
         // Force non-kinematic rigidbody to wake up with zero force
-        rigidbody->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
+        gRigidDynamic->addForce({0.0f, 0.0f, 0.0f}, physx::PxForceMode::eFORCE, true);
     }
 }
 
 bool DynamicRigidbody::GetKinematic()
 {
-    return (rigidbody->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC);
+    return (gRigidDynamic->getRigidBodyFlags() & physx::PxRigidBodyFlag::eKINEMATIC);
 }
 
 void DynamicRigidbody::SetKinematicTarget(const glm::mat4& destination)
@@ -323,7 +234,7 @@ void DynamicRigidbody::SetKinematicTarget(const glm::mat4& destination)
     pose.q.y = rotation.y;
     pose.q.z = rotation.z;
 
-    rigidbody->setKinematicTarget(pose);
+    gRigidDynamic->setKinematicTarget(pose);
 }
 
 } // namespace physics

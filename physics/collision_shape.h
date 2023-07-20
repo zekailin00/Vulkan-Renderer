@@ -19,8 +19,7 @@ typedef physx::PxPlaneGeometry PlaneGeometry;
 typedef physx::PxGeometryType::Enum GeometryType;
 
 class PhysicsContext;
-class DynamicRigidbody;
-class StaticRigidbody;
+class Rigidbody;
 
 class CollisionShape
 {
@@ -47,7 +46,6 @@ public:
     bool GetCapsuleGeometry(CapsuleGeometry& geometry) const;
     bool GetPlaneGeometry(PlaneGeometry& geometry) const;
 
-
     void SetDynamicFriction(float coef);
     float GetDynamicFriction() const;
 
@@ -65,13 +63,12 @@ private:
     void UpdateCenterOfMass();
 
     friend PhysicsContext;
-    friend DynamicRigidbody;
-    friend StaticRigidbody;
+    friend Rigidbody;
 
 private:
     physx::PxShape* gShape; // storage
 
-    DynamicRigidbody* rigidbody; // owned by component
+    Rigidbody* rigidbody; // owned by component
 };
 
 } // namespace physics

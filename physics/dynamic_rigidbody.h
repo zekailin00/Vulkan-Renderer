@@ -1,9 +1,9 @@
 #pragma once
 
+#include "rigidbody.h"
+
 #include <PxPhysicsAPI.h>
-
 #include <glm/mat4x4.hpp>
-
 #include <vector>
 
 namespace physics
@@ -12,7 +12,7 @@ namespace physics
 class PhysicsContext;
 class CollisionShape;
 
-class DynamicRigidbody
+class DynamicRigidbody: public Rigidbody
 {
 public:
     struct RigidDynamicsProperties
@@ -27,25 +27,15 @@ public:
 
 public:
     DynamicRigidbody(PhysicsContext* context, physx::PxRigidDynamic* rigidbody);
-    ~DynamicRigidbody();
-
-    PhysicsContext* GetContext() {return context;}
+    ~DynamicRigidbody() override;
 
     DynamicRigidbody(const DynamicRigidbody&) = delete;
     void operator=(const DynamicRigidbody&) = delete;
 
-    void GetGlobalTransform(glm::mat4& transform) const;
-    void SetGlobalTransform(const glm::mat4& transform);
-
-    bool AttachShape(CollisionShape* shape);
-    void DetachShape(CollisionShape* shape);
-    unsigned int GetNbShapes() const;
-    unsigned int GetShapes(std::vector<CollisionShape*>& shapes) const;
-
     void SetGravity(bool isEnabled);
     bool GetGravity();
 
-    void UpdateCenterOfMass();
+    void UpdateCenterOfMass() override;
     void WakeUp();
 
     void SetDensity(float density);
@@ -76,9 +66,7 @@ public:
     void SetKinematicTarget(const glm::mat4& destination);
 
 private:
-    PhysicsContext* context; // Owned by scene
-    physx::PxRigidDynamic* rigidbody;
-    std::vector<CollisionShape*> collisionShapeList;
+    physx::PxRigidDynamic* gRigidDynamic;
     RigidDynamicsProperties properties{};
 };
 

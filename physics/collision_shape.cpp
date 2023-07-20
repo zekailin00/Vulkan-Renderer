@@ -17,6 +17,7 @@ CollisionShape::CollisionShape(physx::PxShape* gShape)
 
 CollisionShape::~CollisionShape()
 {
+    // FIXME: release material?
     // PX_RELEASE(gShape);
 }
 
@@ -168,7 +169,6 @@ float CollisionShape::GetRestitution() const
 
 void CollisionShape::UpdateCenterOfMass()
 {
-    //FIXME: for static rigidbody
     physx::PxRigidActor* actor = gShape->getActor();
     ASSERT(actor != nullptr);
 

@@ -22,6 +22,7 @@ public:
         Loader,
         Platform,
         Editor,
+        Physics,
         Others,
         MsgTypeSize
     };

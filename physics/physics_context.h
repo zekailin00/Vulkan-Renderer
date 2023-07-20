@@ -12,6 +12,7 @@ namespace physics
 
 class StaticRigidbody;
 class DynamicRigidbody;
+class Rigidbody;
 
 class PhysicsContext: public ScenePhysicsContext
 {
@@ -24,7 +25,7 @@ public:
     DynamicRigidbody* NewDynamicRigidbody();
 
     CollisionShape* AddCollisionShape(
-        DynamicRigidbody* ridigbody,
+        Rigidbody* ridigbody,
         GeometryType geometryType
     );
 

@@ -1,6 +1,7 @@
 add_library(physics_subsystem
     physics_system.cpp
     physics_context.cpp
+    rigidbody.cpp
     dynamic_rigidbody.cpp
     static_rigidbody.cpp
     collision_shape.cpp

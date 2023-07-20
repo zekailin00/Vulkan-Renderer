@@ -2,6 +2,9 @@
 
 #include "dynamic_rigidbody.h"
 #include "static_rigidbody.h"
+#include "rigidbody.h"
+
+#include "logger.h"
 
 #include "component.h"
 #include "components/dynamic_body_component.h"
@@ -41,7 +44,13 @@ PhysicsContext::~PhysicsContext()
 
 StaticRigidbody* PhysicsContext::NewStaticRigidbody()
 {
-	return nullptr;
+	physx::PxRigidStatic* body =
+		gPhysics->createRigidStatic(physx::PxTransform(physx::PxIdentity));
+
+	gScene->addActor(*body);
+
+	StaticRigidbody* staticRigidBody = new StaticRigidbody(this, body);
+	return staticRigidBody;
 }
 
 DynamicRigidbody* PhysicsContext::NewDynamicRigidbody()
@@ -56,7 +65,7 @@ DynamicRigidbody* PhysicsContext::NewDynamicRigidbody()
 }
 
 CollisionShape* PhysicsContext::AddCollisionShape(
-	DynamicRigidbody* rigidbody,
+	Rigidbody* rigidbody,
 	GeometryType geometryType)
 {
 	CollisionShape* collisionShape;
@@ -90,6 +99,29 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		);
 		collisionShape = new CollisionShape(shape);
 		break;
+
+	// case GeometryType::ePLANE:
+	// 	if (rigidbody->GetRigidbodyType() == RigidbodyType::eRIGID_STATIC)
+	// 	{
+	// 		shape = gPhysics->createShape(
+	// 			physx::PxPlane(),
+	// 			*material, true
+	// 		);
+	// 		physx::PxPlaneGeometry a;
+		
+
+	// 		collisionShape = new CollisionShape(shape);
+	// 	}
+	// 	else
+	// 	{
+	// 		Logger::Write(
+	// 			"[Physics] Plane shape can only be added to static rigidbodies",
+	// 			Logger::Level::Warning, Logger::MsgType::Physics
+	// 		);
+	// 		material->release();
+	// 		return nullptr;
+	// 	}
+	// 	break;
 
 	default:
 		material->release();
@@ -136,6 +168,7 @@ void PhysicsContext::UpdatePhysicsTransform(Entity* e)
 			rigidbody->SetGlobalTransform(e->GetGlobalTransform());
 		}
 	}
+	//TODO:
 } 
 
 } // namespace physics
