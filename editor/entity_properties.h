@@ -25,8 +25,6 @@ private:
     void ShowDynamicBodyComponent();
     void ShowStaticBodyComponent();
 
-    bool CheckComponentAddDependencies(Component::Type type);
-
     void PublishMaterialSelectedEvent(renderer::VulkanMaterial* mat);
 
 private:

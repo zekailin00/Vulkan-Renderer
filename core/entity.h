@@ -75,6 +75,7 @@ private:
 
     void UpdateTransform(bool isPhysicsDriven);
     void UpdateLocalEulerXYZ();
+    bool CheckComponentAddDependencies(Component::Type type);
 
     Entity() = default;
     ~Entity() = default;

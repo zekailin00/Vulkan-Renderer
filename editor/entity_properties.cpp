@@ -1182,88 +1182,38 @@ void EntityProperties::AddComponent()
         ImGui::EndPopup();
     }
 
-    if (selectedComponent == "Light Component" &&
-        !selectedEntity->HasComponent(Component::Type::Light))
+    if (selectedComponent == "Light Component")
     {
         selectedEntity->AddComponent(Component::Type::Light);
     }
-    else if (selectedComponent == "Camera Component" &&
-        !selectedEntity->HasComponent(Component::Type::Camera))
+    else if (selectedComponent == "Camera Component")
     {
         selectedEntity->AddComponent(Component::Type::Camera);
     }
-    else if (selectedComponent == "VR Display Component" &&
-        !selectedEntity->HasComponent(Component::Type::VrDisplay))
+    else if (selectedComponent == "VR Display Component")
     {
         selectedEntity->AddComponent(Component::Type::VrDisplay);
     }
-    else if (selectedComponent == "Mesh Component" &&
-        !selectedEntity->HasComponent(Component::Type::Mesh))
+    else if (selectedComponent == "Mesh Component")
     {
         selectedEntity->AddComponent(Component::Type::Mesh);
     }
-    else if (selectedComponent == "Script Component" &&
-        !selectedEntity->HasComponent(Component::Type::Script))
+    else if (selectedComponent == "Script Component")
     {
         selectedEntity->AddComponent(Component::Type::Script);
     }
-    else if (selectedComponent == "Line Component" &&
-        !selectedEntity->HasComponent(Component::Type::Line))
+    else if (selectedComponent == "Line Component" )
     {
         selectedEntity->AddComponent(Component::Type::Line);
     }
-    else if (selectedComponent == "Dynamic Rigidbody Component" &&
-        !selectedEntity->HasComponent(Component::Type::DynamicBody) &&
-        CheckComponentAddDependencies(Component::Type::DynamicBody))
+    else if (selectedComponent == "Dynamic Rigidbody Component")
     {
         selectedEntity->AddComponent(Component::Type::DynamicBody);
     }
-    else if (selectedComponent == "Static Rigidbody Component" &&
-        !selectedEntity->HasComponent(Component::Type::StaticBody) &&
-        CheckComponentAddDependencies(Component::Type::StaticBody))
+    else if (selectedComponent == "Static Rigidbody Component")
     {
         selectedEntity->AddComponent(Component::Type::StaticBody);
     }
-
-    // FIXME: move checking to entity
-}
-
-bool EntityProperties::CheckComponentAddDependencies(Component::Type type)
-{
-    switch (type)
-    {
-    case Component::Type::StaticBody:
-        if (selectedEntity->HasComponent(Component::Type::DynamicBody))
-        {
-            std::string message =
-                "[Editor] Cannot add a static rigidbody component "
-                "because a dynamic rigidbody component is already added";
-
-            Logger::Write(
-                message,
-                Logger::Level::Warning, Logger::MsgType::Editor
-            );
-            return false;
-        }
-        break;
-
-    case Component::Type::DynamicBody:
-        if (selectedEntity->HasComponent(Component::Type::StaticBody))
-        {
-            std::string message =
-                "[Editor] Cannot add a dynamic rigidbody component "
-                "because a static rigidbody component is already added";
-
-            Logger::Write(
-                message,
-                Logger::Level::Warning, Logger::MsgType::Editor
-            );
-            return false;
-        }
-        break;
-    }
-
-    return true;
 }
 
 void EntityProperties::RemoveComponent(Component::Type type)

@@ -23,6 +23,7 @@ public:
         Platform,
         Editor,
         Physics,
+        Scene,
         Others,
         MsgTypeSize
     };

@@ -3,6 +3,7 @@
 #include "scene.h"
 #include "validation.h"
 #include "serialization.h"
+#include "logger.h"
 
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -11,7 +12,21 @@
 
 Component* Entity::AddComponent(Component::Type type)
 {
-    ASSERT(componentList[(int)type] == nullptr);
+    if (HasComponent(type))
+    {
+        Logger::Write(
+            "[Scene] Component is already added.",
+            Logger::Level::Warning, Logger::MsgType::Scene
+        );
+
+        return nullptr;
+    }
+
+    if (!CheckComponentAddDependencies(type))
+    {
+        return nullptr;
+    }
+
     Component* component = ComponentLocator::GetInitializer(type)(this);
     componentList[(int)type] = component;
 
@@ -309,4 +324,42 @@ void Entity::UpdateLocalEulerXYZ()
     glm::extractEulerAngleXYZ(transform, rot[0], rot[1], rot[2]);
 
     localEulerXYZ = rot;
+}
+
+bool Entity::CheckComponentAddDependencies(Component::Type type)
+{
+    switch (type)
+    {
+    case Component::Type::StaticBody:
+        if (HasComponent(Component::Type::DynamicBody))
+        {
+            std::string message =
+                "[Scene] Cannot add a static rigidbody component "
+                "because a dynamic rigidbody component is already added";
+
+            Logger::Write(
+                message,
+                Logger::Level::Warning, Logger::MsgType::Scene
+            );
+            return false;
+        }
+        break;
+
+    case Component::Type::DynamicBody:
+        if (HasComponent(Component::Type::StaticBody))
+        {
+            std::string message =
+                "[Scene] Cannot add a dynamic rigidbody component "
+                "because a static rigidbody component is already added";
+
+            Logger::Write(
+                message,
+                Logger::Level::Warning, Logger::MsgType::Scene
+            );
+            return false;
+        }
+        break;
+    }
+
+    return true;
 }
