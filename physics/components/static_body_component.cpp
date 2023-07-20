@@ -1,9 +1,9 @@
-#include "components/dynamic_body_component.h"
+#include "components/static_body_component.h"
 
 #include "physics_context.h"
 #include "physics_system.h"
 
-#include "dynamic_rigidbody.h"
+#include "static_rigidbody.h"
 #include "components/physics_components_common.h"
 
 #include "serialization.h"
@@ -13,45 +13,41 @@
 #include "scene.h"
 #include <memory>
 
+
 namespace physics
 {
 
-Component* DynamicBodyInitializer::operator()(Entity* entity)
+
+Component* StaticBodyInitializer::operator()(Entity* entity)
 {
-    DynamicBodyComponent* component = new DynamicBodyComponent();
+    StaticBodyComponent* component = new StaticBodyComponent();
     component->entity = entity;
-    component->type = Component::Type::DynamicBody;
+    component->type = Component::Type::StaticBody;
 
     Scene* scene = entity->GetScene();
     std::shared_ptr<PhysicsContext> physicsCtx = GetPhysicsContext(system, scene);
 
-    component->dynamicBody = physicsCtx->NewDynamicRigidbody();
-    component->dynamicBody->SetGlobalTransform(
+    component->staticBody = physicsCtx->NewStaticRigidbody();
+    component->staticBody->SetGlobalTransform(
         entity->GetGlobalTransform()
     );
 
     return component;
 }
 
-Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json)
+Component* StaticBodyDeserializer::operator()(Entity* entity, Json::Value& json)
 {
-    DynamicBodyComponent* component = new DynamicBodyComponent();
+    StaticBodyComponent* component = new StaticBodyComponent();
     component->entity = entity;
-    component->type = Component::Type::DynamicBody;
+    component->type = Component::Type::StaticBody;
 
     Scene* scene = entity->GetScene();
     std::shared_ptr<PhysicsContext> physicsCtx = GetPhysicsContext(system, scene);
 
-    component->dynamicBody = physicsCtx->NewDynamicRigidbody();
-    component->dynamicBody->SetGlobalTransform(
+    component->staticBody = physicsCtx->NewStaticRigidbody();
+    component->staticBody->SetGlobalTransform(
         entity->GetGlobalTransform()
     );
-
-    component->dynamicBody->SetKinematic(json["isKinematic"].asBool());
-    component->dynamicBody->SetGravity(json["isGravity"].asBool());
-    component->dynamicBody->SetDensity(json["density"].asFloat());
-    component->dynamicBody->SetLinearDamping(json["linearDamp"].asFloat());
-    component->dynamicBody->SetAngularDamping(json["angularDamp"].asFloat());
 
     Json::Value& jsonShapeList = json["shapeList"];
     for (int i = 0; i < jsonShapeList.size(); i++)
@@ -63,7 +59,7 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
         case GeometryType::eBOX:
         {
             CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->dynamicBody,
+                component->staticBody,
                 GeometryType::eBOX
             );
 
@@ -84,7 +80,7 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
         case GeometryType::eSPHERE:
         {
             CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->dynamicBody,
+                component->staticBody,
                 GeometryType::eSPHERE
             );
 
@@ -100,7 +96,7 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
         case GeometryType::eCAPSULE:
         {
             CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->dynamicBody,
+                component->staticBody,
                 GeometryType::eCAPSULE
             );
 
@@ -122,16 +118,8 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
     return component;
 }
 
-void DynamicBodyComponent::Update(Timestep ts)
+void StaticBodyComponent::Update(Timestep ts)
 {
-    glm::mat4 transform;
-    dynamicBody->GetGlobalTransform(transform);
-    
-    glm::mat4 parentTransform = entity->GetParent()->GetGlobalTransform();
-    glm::mat4 localTransform = glm::inverse(parentTransform) * transform;
-    glm::mat4 scaleTransform = glm::scale(glm::mat4(1.0f), entity->GetLocalScale());
-    entity->SetLocalTransform(localTransform * scaleTransform, true);
-
     if (entity->GetScene()->GetSceneContext(SceneContext::Type::RendererCtx))
     {
         std::shared_ptr<SceneRendererContext> renderCtx =
@@ -140,7 +128,7 @@ void DynamicBodyComponent::Update(Timestep ts)
             );
         // debug lines
         std::vector<CollisionShape*> shapes;
-        dynamicBody->GetShapes(shapes);
+        staticBody->GetShapes(shapes);
         for(auto& shape: shapes)
         {
             switch (shape->GetGeometryType())
@@ -213,20 +201,10 @@ void DynamicBodyComponent::Update(Timestep ts)
     }
 }
 
-void DynamicBodyComponent::Serialize(Json::Value& json)
+void StaticBodyComponent::Serialize(Json::Value& json)
 {
-    //TODO: for now, mass and inertia are automatically
-    // computed based on density and shapes' volume
-
-    json["isKinematic"] = dynamicBody->GetKinematic();
-    json["isGravity"] = dynamicBody->GetGravity();
-
-    json["density"] = dynamicBody->GetDensity();
-    json["linearDamp"] = dynamicBody->GetLinearDamping();
-    json["angularDamp"] = dynamicBody->GetAngularDamping();
-
     std::vector<CollisionShape*> shapeList;
-    dynamicBody->GetShapes(shapeList);
+    staticBody->GetShapes(shapeList);
 
     Json::Value& jsonShapeList = json["shapeList"];
     for (int i = 0; i < shapeList.size(); i++)
@@ -286,9 +264,9 @@ void DynamicBodyComponent::Serialize(Json::Value& json)
     }
 }
 
-DynamicBodyComponent::~DynamicBodyComponent() 
+StaticBodyComponent::~StaticBodyComponent() 
 {
-    delete dynamicBody;
+    delete staticBody;
 }
 
 } // namespace physics

@@ -8,6 +8,7 @@
 
 #include "component.h"
 #include "components/dynamic_body_component.h"
+#include "components/static_body_component.h"
 
 namespace physics
 {
@@ -157,7 +158,6 @@ void PhysicsContext::UpdatePhysicsTransform(Entity* e)
 	{
 		DynamicRigidbody* rigidbody = dynamic_cast<DynamicBodyComponent*>(
 			e->GetComponent(Component::Type::DynamicBody))->dynamicBody;
-	
 
 		if (rigidbody->GetKinematic())
 		{
@@ -168,7 +168,13 @@ void PhysicsContext::UpdatePhysicsTransform(Entity* e)
 			rigidbody->SetGlobalTransform(e->GetGlobalTransform());
 		}
 	}
-	//TODO:
+	else if (e->HasComponent(Component::Type::StaticBody))
+	{
+		StaticRigidbody* rigidbody = dynamic_cast<StaticBodyComponent*>(
+			e->GetComponent(Component::Type::StaticBody))->staticBody;
+	
+		rigidbody->SetGlobalTransform(e->GetGlobalTransform());
+	} 
 } 
 
 } // namespace physics

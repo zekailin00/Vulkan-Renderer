@@ -6,6 +6,7 @@ add_library(physics_subsystem
     static_rigidbody.cpp
     collision_shape.cpp
     components/dynamic_body_component.cpp
+    components/static_body_component.cpp
 )
 
 target_include_directories(physics_subsystem PUBLIC

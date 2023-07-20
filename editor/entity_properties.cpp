@@ -5,6 +5,9 @@
 #include "openxr_components.h"
 #include "script_component.h"
 
+#include "components/static_body_component.h"
+#include "components/dynamic_body_component.h"
+
 #include "asset_manager.h"
 #include "validation.h"
 #include "logger.h"
@@ -14,7 +17,7 @@
 
 
 static void DrawPhysicsShapeCommon(
-    physics::DynamicRigidbody* rigidbody,
+    physics::Rigidbody* rigidbody,
     physics::CollisionShape* shape
 );
 
@@ -297,6 +300,11 @@ void EntityProperties::ShowEntityProperties()
     if (selectedEntity->HasComponent(Component::Type::DynamicBody))
     {
         ShowDynamicBodyComponent();
+    }
+
+    if (selectedEntity->HasComponent(Component::Type::StaticBody))
+    {
+        ShowStaticBodyComponent();
     }
 }
 
@@ -771,7 +779,7 @@ void EntityProperties::ShowDynamicBodyComponent()
         physics::DynamicBodyComponent* component =
             dynamic_cast<physics::DynamicBodyComponent*>(
                 selectedEntity->GetComponent(Component::Type::DynamicBody));
-        physics::DynamicRigidbody * rigidbody = component->dynamicBody;
+        physics::DynamicRigidbody* rigidbody = component->dynamicBody;
 
         ImGui::SeparatorText("Properties");
         {
@@ -979,6 +987,174 @@ void EntityProperties::ShowDynamicBodyComponent()
     }
 }
 
+void EntityProperties::ShowStaticBodyComponent()
+{
+    if (ImGui::CollapsingHeader("Static Rigidbody Component"))
+    {
+        RemoveComponent(Component::Type::StaticBody);
+
+        physics::StaticBodyComponent* component =
+            dynamic_cast<physics::StaticBodyComponent*>(
+                selectedEntity->GetComponent(Component::Type::StaticBody));
+
+        physics::StaticRigidbody* rigidbody = component->staticBody;
+
+        ImGui::SeparatorText("Shapes");
+        {
+
+            const float WIDTH = 0.6;
+            
+            std::vector<physics::CollisionShape *> shapeList;
+            rigidbody->GetShapes(shapeList);
+            for (int i = 0; i < shapeList.size(); i++)
+            {
+                ImGuiTreeNodeFlags treeFlags =
+                    ImGuiTreeNodeFlags_OpenOnArrow |
+                    ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                    ImGuiTreeNodeFlags_SpanAvailWidth;
+
+                switch (shapeList[i]->GetGeometryType())
+                {
+                case physics::GeometryType::eBOX:
+                {
+                    std::string treeName = std::to_string(i) + ". Box Shape";
+                    if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                    {
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * WIDTH);
+
+                        physics::BoxGeometry box;
+                        shapeList[i]->GetBoxGeometry(box);
+                        glm::vec3 halfExtent =
+                        {
+                            box.halfExtents.x,
+                            box.halfExtents.y,
+                            box.halfExtents.z
+                        };
+
+                        if (ImGui::DragFloat3("Half Extent", &halfExtent[0],
+                            0.01f, 0.01f, FLT_MAX, "%.3f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            box.halfExtents.x = halfExtent.x;
+                            box.halfExtents.y = halfExtent.y;
+                            box.halfExtents.z = halfExtent.z;
+
+                            shapeList[i]->SetGeometry(box);
+                        }
+
+                        DrawPhysicsShapeCommon(rigidbody, shapeList[i]);
+
+                        ImGui::PopItemWidth();
+                        ImGui::TreePop();
+                    }
+                }
+                    break;
+                case physics::GeometryType::eSPHERE:
+                {
+                    std::string treeName = std::to_string(i) + ". Sphere Shape";
+                    if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                    {
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * WIDTH);
+
+                        physics::SphereGeometry sphere;
+                        shapeList[i]->GetSphereGeometry(sphere);
+
+                        float radius = sphere.radius;
+                        if (ImGui::DragFloat("Radius", &radius,
+                            0.01f, 0.01f, FLT_MAX, "%.2f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            sphere.radius = radius;
+                            shapeList[i]->SetGeometry(sphere);
+                        }
+
+                        DrawPhysicsShapeCommon(rigidbody, shapeList[i]);
+
+                        ImGui::PopItemWidth();
+                        ImGui::TreePop();
+                    }
+                }
+                    break;
+
+                case physics::GeometryType::eCAPSULE:
+                {
+                    std::string treeName = std::to_string(i) + ". Capsule Shape";
+                    if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
+                    {
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * WIDTH);
+
+                        physics::CapsuleGeometry capsule;
+                        shapeList[i]->GetCapsuleGeometry(capsule);
+
+                        float radius = capsule.radius;
+                        if (ImGui::DragFloat("Radius", &radius,
+                            0.01f, 0.01f, FLT_MAX, "%.2f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            capsule.radius = radius;
+                            shapeList[i]->SetGeometry(capsule);
+                        }
+
+                        float halfHeight = capsule.halfHeight;
+                        if (ImGui::DragFloat("Half Height", &halfHeight,
+                            0.01f, 0.01f, FLT_MAX, "%.2f",
+                            ImGuiSliderFlags_AlwaysClamp))
+                        {
+                            capsule.halfHeight = halfHeight;
+                            shapeList[i]->SetGeometry(capsule);
+                        }
+
+                        DrawPhysicsShapeCommon(rigidbody, shapeList[i]);
+
+                        ImGui::PopItemWidth();
+                        ImGui::TreePop();
+                    }
+                }
+                    break;
+                
+                default:
+                    break;
+                }
+    
+            }
+
+            ImGui::Spacing();
+            if (ImGui::Button("Add"))
+                ImGui::OpenPopup("Add Shape");
+            
+            std::map<std::string, physics::GeometryType> shapeNames =
+            {
+                {"Box",     physics::GeometryType::eBOX    },
+                {"Sphere",  physics::GeometryType::eSPHERE },
+                {"Capsule", physics::GeometryType::eCAPSULE}
+            };
+            if (ImGui::BeginPopup("Add Shape"))
+            {
+                ImGui::SeparatorText("Shapes");
+                for (auto& s: shapeNames)
+                {
+                    if (ImGui::Selectable(s.first.c_str()))
+                    {
+                        rigidbody
+                            ->GetContext()
+                            ->AddCollisionShape(rigidbody, s.second);
+                    }
+                }     
+                ImGui::EndPopup();
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Remove All"))
+            {
+                for (auto& s: shapeList)
+                {
+                    rigidbody->DetachShape(s);
+                }
+            }
+        }
+    }
+}
+
 void EntityProperties::AddComponent()
 {
     std::vector<std::string> components
@@ -989,7 +1165,8 @@ void EntityProperties::AddComponent()
         "Mesh Component",
         "Script Component",
         "Line Component",
-        "Dynamic Rigidbody Component"
+        "Dynamic Rigidbody Component",
+        "Static Rigidbody Component"
     };
 
     std::string selectedComponent;
@@ -1036,10 +1213,57 @@ void EntityProperties::AddComponent()
         selectedEntity->AddComponent(Component::Type::Line);
     }
     else if (selectedComponent == "Dynamic Rigidbody Component" &&
-        !selectedEntity->HasComponent(Component::Type::DynamicBody))
+        !selectedEntity->HasComponent(Component::Type::DynamicBody) &&
+        CheckComponentAddDependencies(Component::Type::DynamicBody))
     {
         selectedEntity->AddComponent(Component::Type::DynamicBody);
     }
+    else if (selectedComponent == "Static Rigidbody Component" &&
+        !selectedEntity->HasComponent(Component::Type::StaticBody) &&
+        CheckComponentAddDependencies(Component::Type::StaticBody))
+    {
+        selectedEntity->AddComponent(Component::Type::StaticBody);
+    }
+
+    // FIXME: move checking to entity
+}
+
+bool EntityProperties::CheckComponentAddDependencies(Component::Type type)
+{
+    switch (type)
+    {
+    case Component::Type::StaticBody:
+        if (selectedEntity->HasComponent(Component::Type::DynamicBody))
+        {
+            std::string message =
+                "[Editor] Cannot add a static rigidbody component "
+                "because a dynamic rigidbody component is already added";
+
+            Logger::Write(
+                message,
+                Logger::Level::Warning, Logger::MsgType::Editor
+            );
+            return false;
+        }
+        break;
+
+    case Component::Type::DynamicBody:
+        if (selectedEntity->HasComponent(Component::Type::StaticBody))
+        {
+            std::string message =
+                "[Editor] Cannot add a dynamic rigidbody component "
+                "because a static rigidbody component is already added";
+
+            Logger::Write(
+                message,
+                Logger::Level::Warning, Logger::MsgType::Editor
+            );
+            return false;
+        }
+        break;
+    }
+
+    return true;
 }
 
 void EntityProperties::RemoveComponent(Component::Type type)
@@ -1074,7 +1298,7 @@ void EntityProperties::PublishMaterialSelectedEvent(
 
 
 void DrawPhysicsShapeCommon(
-    physics::DynamicRigidbody* rigidbody,
+    physics::Rigidbody* rigidbody,
     physics::CollisionShape* shape)
 {
     glm::mat4 transform;

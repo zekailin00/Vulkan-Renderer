@@ -2,6 +2,7 @@
 
 #include "physics_context.h"
 #include "components/dynamic_body_component.h"
+#include "components/static_body_component.h"
 
 #include "component.h"
 
@@ -29,6 +30,10 @@ PhysicsSystem::PhysicsSystem()
         DynamicBodyInitializer(this));
     ComponentLocator::SetDeserializer(Component::Type::DynamicBody,
         DynamicBodyDeserializer(this));
+    ComponentLocator::SetInitializer(Component::Type::StaticBody,
+        StaticBodyInitializer(this));
+    ComponentLocator::SetDeserializer(Component::Type::StaticBody,
+        StaticBodyDeserializer(this));
 }
 
 PhysicsSystem::~PhysicsSystem()
