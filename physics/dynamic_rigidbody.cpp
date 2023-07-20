@@ -15,6 +15,8 @@ DynamicRigidbody::DynamicRigidbody(
 {
     this->context = context;
     this->rigidbody = rigidbody;
+
+    UpdateCenterOfMass();
 }
 
 DynamicRigidbody::~DynamicRigidbody()
@@ -70,6 +72,11 @@ bool DynamicRigidbody::DynamicRigidbody::AttachShape(CollisionShape* shape)
 {
     rigidbody->attachShape(*(shape->gShape));
     collisionShapeList.push_back(shape);
+    physx::PxRigidBodyExt::updateMassAndInertia(
+        *rigidbody, 10.0f
+    );
+
+    shape->rigidbody = this;
     return true;
 }
 
@@ -86,6 +93,9 @@ void DynamicRigidbody::DetachShape(CollisionShape* shape)
             break;
         }
     }
+    physx::PxRigidBodyExt::updateMassAndInertia(
+        *rigidbody, 10.0f
+    );
 }
 
 unsigned int DynamicRigidbody::GetNbShapes() const
@@ -115,9 +125,44 @@ bool DynamicRigidbody::GetGravity()
     return !(rigidbody->getActorFlags() & physx::PxActorFlag::eDISABLE_GRAVITY);
 }
 
+void DynamicRigidbody::UpdateCenterOfMass()
+{
+    physx::PxRigidBodyExt::updateMassAndInertia(
+        *rigidbody, properties.density
+    );
+    WakeUp();
+}
+
+void DynamicRigidbody::WakeUp()
+{
+    if (GetKinematic())
+    {
+        return;
+    }
+
+    rigidbody->wakeUp();
+}
+
+void DynamicRigidbody::SetDensity(float density)
+{
+    if (density == 0.0f)
+    {
+        return;
+    }
+
+    properties.density = density;
+    UpdateCenterOfMass();
+}
+
+float DynamicRigidbody::GetDensity() const
+{
+    return properties.density;
+}
+
 void DynamicRigidbody::SetMass(float mass)
 {
     rigidbody->setMass(mass);
+    UpdateCenterOfMass();
 }
 
 float DynamicRigidbody::GetMass() const
@@ -133,6 +178,7 @@ void DynamicRigidbody::SetMassSpaceInertiaTensor(const glm::vec3& inertia)
     gInertia.z = inertia.z;
 
     rigidbody->setMassSpaceInertiaTensor(gInertia);
+    UpdateCenterOfMass();
 }
 
 glm::vec3 DynamicRigidbody::GetMassSpaceInertiaTensor() const

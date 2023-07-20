@@ -148,7 +148,7 @@ void DynamicBodyComponent::Update(Timestep ts)
 
 void DynamicBodyComponent::Serialize(Json::Value& json)
 {
-
+    
 }
 
 DynamicBodyComponent::~DynamicBodyComponent() 

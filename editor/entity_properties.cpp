@@ -13,7 +13,10 @@
 #include <map>
 
 
-static void DrawPhysicsShapeCommon(physics::CollisionShape* shape);
+static void DrawPhysicsShapeCommon(
+    physics::DynamicRigidbody* rigidbody,
+    physics::CollisionShape* shape
+);
 
 EntityProperties::EntityProperties()
 {
@@ -784,6 +787,13 @@ void EntityProperties::ShowDynamicBodyComponent()
                 rigidbody->SetGravity(isGravity);
             }
 
+            float density = rigidbody->GetDensity();
+            if (ImGui::DragFloat("Density", &density, 0.01f, 0.01f,
+                FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
+            {
+                rigidbody->SetDensity(density);
+            }
+
             float mass = rigidbody->GetMass();
             if (ImGui::DragFloat("Mass", &mass, 0.5f, 0.0f,
                 FLT_MAX, "%.3f", ImGuiSliderFlags_AlwaysClamp))
@@ -815,6 +825,9 @@ void EntityProperties::ShowDynamicBodyComponent()
 
         ImGui::SeparatorText("Shapes");
         {
+
+            const float WIDTH = 0.6;
+            
             std::vector<physics::CollisionShape *> shapeList;
             rigidbody->GetShapes(shapeList);
             for (int i = 0; i < shapeList.size(); i++)
@@ -831,6 +844,8 @@ void EntityProperties::ShowDynamicBodyComponent()
                     std::string treeName = std::to_string(i) + ". Box Shape";
                     if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
                     {
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * WIDTH);
+
                         physics::BoxGeometry box;
                         shapeList[i]->GetBoxGeometry(box);
                         glm::vec3 halfExtent =
@@ -851,8 +866,9 @@ void EntityProperties::ShowDynamicBodyComponent()
                             shapeList[i]->SetGeometry(box);
                         }
 
-                        DrawPhysicsShapeCommon(shapeList[i]);
+                        DrawPhysicsShapeCommon(rigidbody, shapeList[i]);
 
+                        ImGui::PopItemWidth();
                         ImGui::TreePop();
                     }
                 }
@@ -862,6 +878,8 @@ void EntityProperties::ShowDynamicBodyComponent()
                     std::string treeName = std::to_string(i) + ". Sphere Shape";
                     if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
                     {
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * WIDTH);
+
                         physics::SphereGeometry sphere;
                         shapeList[i]->GetSphereGeometry(sphere);
 
@@ -874,8 +892,9 @@ void EntityProperties::ShowDynamicBodyComponent()
                             shapeList[i]->SetGeometry(sphere);
                         }
 
-                        DrawPhysicsShapeCommon(shapeList[i]);
+                        DrawPhysicsShapeCommon(rigidbody, shapeList[i]);
 
+                        ImGui::PopItemWidth();
                         ImGui::TreePop();
                     }
                 }
@@ -886,6 +905,8 @@ void EntityProperties::ShowDynamicBodyComponent()
                     std::string treeName = std::to_string(i) + ". Capsule Shape";
                     if(ImGui::TreeNodeEx(treeName.c_str(), treeFlags))
                     {
+                        ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x * WIDTH);
+
                         physics::CapsuleGeometry capsule;
                         shapeList[i]->GetCapsuleGeometry(capsule);
 
@@ -907,8 +928,9 @@ void EntityProperties::ShowDynamicBodyComponent()
                             shapeList[i]->SetGeometry(capsule);
                         }
 
-                        DrawPhysicsShapeCommon(shapeList[i]);
+                        DrawPhysicsShapeCommon(rigidbody, shapeList[i]);
 
+                        ImGui::PopItemWidth();
                         ImGui::TreePop();
                     }
                 }
@@ -921,7 +943,7 @@ void EntityProperties::ShowDynamicBodyComponent()
             }
 
             ImGui::Spacing();
-            if (ImGui::Button("Add.."))
+            if (ImGui::Button("Add"))
                 ImGui::OpenPopup("Add Shape");
             
             std::map<std::string, physics::GeometryType> shapeNames =
@@ -943,6 +965,15 @@ void EntityProperties::ShowDynamicBodyComponent()
                     }
                 }     
                 ImGui::EndPopup();
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Remove All"))
+            {
+                for (auto& s: shapeList)
+                {
+                    rigidbody->DetachShape(s);
+                }
             }
         }
     }
@@ -1042,7 +1073,9 @@ void EntityProperties::PublishMaterialSelectedEvent(
 }
 
 
-void DrawPhysicsShapeCommon(physics::CollisionShape* shape)
+void DrawPhysicsShapeCommon(
+    physics::DynamicRigidbody* rigidbody,
+    physics::CollisionShape* shape)
 {
     glm::mat4 transform;
     shape->GetLocalTransform(transform);
@@ -1140,4 +1173,11 @@ void DrawPhysicsShapeCommon(physics::CollisionShape* shape)
     {
         shape->SetTrigger(isTrigger);
     }
+
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x-30);
+    if (ImGui::SmallButton("Remove"))
+    {
+        rigidbody->DetachShape(shape);
+    }
+
 }

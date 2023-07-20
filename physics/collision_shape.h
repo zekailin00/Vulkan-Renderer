@@ -37,7 +37,7 @@ public:
     void SetGeometry(const Geometry &geometry);
 
     template<typename T>
-    bool GetGeometry(GeometryType type, T& geometry)
+    bool GetGeometry(GeometryType type, T& geometry) const
     {
         return gShape->getGeometryT<T>(type, geometry);
     }
@@ -62,12 +62,16 @@ public:
 private:
     CollisionShape(physx::PxShape* gShape);
 
+    void UpdateCenterOfMass();
+
     friend PhysicsContext;
     friend DynamicRigidbody;
     friend StaticRigidbody;
 
 private:
-    physx::PxShape* gShape;
+    physx::PxShape* gShape; // storage
+
+    DynamicRigidbody* rigidbody; // owned by component
 };
 
 } // namespace physics

@@ -20,8 +20,7 @@ public:
         bool isKinematic;
         bool isGravity = true;
 
-        float mass;
-        glm::vec3 inertia;
+        float density = 10.0f;
         float linearDamp;
         float angularDamp;
     };
@@ -45,6 +44,12 @@ public:
 
     void SetGravity(bool isEnabled);
     bool GetGravity();
+
+    void UpdateCenterOfMass();
+    void WakeUp();
+
+    void SetDensity(float density);
+    float GetDensity() const;
 
     void SetMass(float mass);
     float GetMass() const; 
@@ -74,6 +79,7 @@ private:
     PhysicsContext* context; // Owned by scene
     physx::PxRigidDynamic* rigidbody;
     std::vector<CollisionShape*> collisionShapeList;
+    RigidDynamicsProperties properties{};
 };
 
 } // namespace physics

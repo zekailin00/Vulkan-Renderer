@@ -3,6 +3,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "dynamic_rigidbody.h"
 #include "validation.h"
 
 
@@ -41,6 +42,7 @@ void CollisionShape::SetLocalTransform(const glm::mat4& transform)
     pose.q.z = rotation.z;
 
     gShape->setLocalPose(pose);
+    UpdateCenterOfMass();
 }
 
 void CollisionShape::GetLocalTransform(glm::mat4& transform) const
@@ -77,6 +79,7 @@ void CollisionShape::SetTrigger(bool isTrigger)
         gShape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
         gShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
     }
+    UpdateCenterOfMass();
 }
 
 bool CollisionShape::GetTrigger() const
@@ -92,6 +95,7 @@ GeometryType CollisionShape::GetGeometryType() const
 void CollisionShape::SetGeometry(const Geometry &geometry)
 {
     gShape->setGeometry(geometry);
+    UpdateCenterOfMass();
 }
 
 bool CollisionShape::GetBoxGeometry(BoxGeometry& geometry) const
@@ -160,6 +164,18 @@ float CollisionShape::GetRestitution() const
     physx::PxMaterial* gMaterial;
     gShape->getMaterials(&gMaterial, 1, 0);
     return gMaterial->getRestitution();
+}
+
+void CollisionShape::UpdateCenterOfMass()
+{
+    //FIXME: for static rigidbody
+    physx::PxRigidActor* actor = gShape->getActor();
+    ASSERT(actor != nullptr);
+
+    if (actor->getType() == physx::PxActorType::eRIGID_DYNAMIC)
+    {
+        rigidbody->UpdateCenterOfMass();
+    }
 }
 
 } // namespace physics
