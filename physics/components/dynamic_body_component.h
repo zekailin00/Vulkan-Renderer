@@ -1,6 +1,7 @@
 #pragma once
 
 #include "component.h"
+#include "dynamic_rigidbody.h"
 
 namespace physics
 {

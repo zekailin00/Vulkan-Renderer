@@ -12,6 +12,8 @@
 #include "component.h"
 #include "mesh_component.h"
 #include "light_component.h"
+#include "components/static_body_component.h"
+#include "components/dynamic_body_component.h"
 #include "renderer_asset_manager.h"
 
 #include "scripting_subsystem.h"
@@ -171,6 +173,526 @@ void SetLightColor(const v8::FunctionCallbackInfo<v8::Value> &info)
         glm::vec3(1000, 1000, 1000)
     );
     component->properties.color = color;
+}
+
+void DynamicRigidbody::AttachShape(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void DynamicRigidbody::DetachShape(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void DynamicRigidbody::GetNbShapes(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void DynamicRigidbody::GetShapes(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void DynamicRigidbody::SetGravity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsBoolean())
+    {
+        Logger::Write(
+            "[Scripting] SetGravity parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    bool isGravity = info[0]->BooleanValue(isolate);
+    component->dynamicBody->SetGravity(isGravity);
+}
+
+void DynamicRigidbody::GetGravity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    bool isGravity = component->dynamicBody->GetGravity();
+
+    info.GetReturnValue().Set(isGravity);
+}
+
+void DynamicRigidbody::WakeUp(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    component->dynamicBody->WakeUp();
+}
+
+void DynamicRigidbody::SetDensity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsNumber())
+    {
+        Logger::Write(
+            "[Scripting] SetDensity parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    float density = info[0]->NumberValue(context).ToChecked();
+    component->dynamicBody->SetDensity(density);
+}
+
+void DynamicRigidbody::GetDensity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    float density = component->dynamicBody->GetDensity();
+    info.GetReturnValue().Set(density);
+}
+
+void DynamicRigidbody::GetMass(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    float mass = component->dynamicBody->GetMass();
+    info.GetReturnValue().Set(mass);
+}
+
+void DynamicRigidbody::GetMassSpaceInertiaTensor(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    glm::vec3 inertia = component->dynamicBody->GetMassSpaceInertiaTensor();
+    
+    v8::Local<v8::Object> v8Inertia = toV8(inertia, isolate);
+    info.GetReturnValue().Set(v8Inertia);
+}
+
+void DynamicRigidbody::SetLinearDamping(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsNumber())
+    {
+        Logger::Write(
+            "[Scripting] SetLinearDamping parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    float linearDamp = info[0]->NumberValue(context).ToChecked();
+    component->dynamicBody->SetLinearDamping(linearDamp);
+}
+
+void DynamicRigidbody::GetLinearDamping(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    float linearDamp = component->dynamicBody->GetLinearDamping();
+    info.GetReturnValue().Set(linearDamp);
+}
+
+void DynamicRigidbody::SetAngularDamping(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsNumber())
+    {
+        Logger::Write(
+            "[Scripting] SetAngularDamping parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    float angularDamp = info[0]->NumberValue(context).ToChecked();
+    component->dynamicBody->SetAngularDamping(angularDamp);
+}
+
+void DynamicRigidbody::GetAngularDamping(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    float angularDamp = component->dynamicBody->GetAngularDamping();
+    info.GetReturnValue().Set(angularDamp);
+}
+
+void DynamicRigidbody::AddForce(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] AddForce parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 force;
+    if (!toCpp(force, info[0].As<v8::Object>(), isolate))
+    {
+        Logger::Write(
+            "[Scripting] AddForce parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    component->dynamicBody->AddForce(force);
+}
+
+void DynamicRigidbody::AddTorque(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] AddTorque parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 torque;
+    if (!toCpp(torque, info[0].As<v8::Object>(), isolate))
+    {
+        Logger::Write(
+            "[Scripting] AddTorque parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    component->dynamicBody->AddTorque(torque);
+}
+
+void DynamicRigidbody::ClearForce(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+    
+    component->dynamicBody->ClearForce();
+}
+
+void DynamicRigidbody::ClearTorque(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+    
+    component->dynamicBody->ClearTorque();
+}
+
+void DynamicRigidbody::GetLinearVelocity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    glm::vec3 linearVelocity = component->dynamicBody->GetLinearVelocity();
+    
+    v8::Local<v8::Object> v8LinearVelocity = toV8(linearVelocity, isolate);
+    info.GetReturnValue().Set(v8LinearVelocity);
+}
+
+void DynamicRigidbody::SetLinearVelocity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] SetLinearVelocity parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 linearVelocity;
+    if (!toCpp(linearVelocity, info[0].As<v8::Object>(), isolate))
+    {
+        Logger::Write(
+            "[Scripting] SetLinearVelocity parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    component->dynamicBody->SetLinearVelocity(linearVelocity);
+}
+
+void DynamicRigidbody::GetAngularVelocity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    glm::vec3 angularVelocity = component->dynamicBody->GetAngularVelocity();
+    
+    v8::Local<v8::Object> v8AngularVelocity = toV8(angularVelocity, isolate);
+    info.GetReturnValue().Set(v8AngularVelocity);
+}
+
+void DynamicRigidbody::SetAngularVelocity(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsObject())
+    {
+        Logger::Write(
+            "[Scripting] SetAngularVelocity parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    glm::vec3 angularVelocity;
+    if (!toCpp(angularVelocity, info[0].As<v8::Object>(), isolate))
+    {
+        Logger::Write(
+            "[Scripting] SetAngularVelocity parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    component->dynamicBody->SetAngularVelocity(angularVelocity);
+}
+
+void DynamicRigidbody::SetKinematic(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsBoolean())
+    {
+        Logger::Write(
+            "[Scripting] SetKinematic parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    bool isKinematic = info[0]->BooleanValue(isolate);
+    component->dynamicBody->SetKinematic(isKinematic);
+}
+
+void DynamicRigidbody::GetKinematic(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    bool isKinematic = component->dynamicBody->GetKinematic();
+
+    info.GetReturnValue().Set(isKinematic);
 }
 
 } // namespace scripting

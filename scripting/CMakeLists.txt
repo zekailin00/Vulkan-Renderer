@@ -19,6 +19,7 @@ add_library(scripting_subsystem
     environment/input_callbacks.cpp
     environment/component_callbacks.cpp
     environment/asset_manager_callbacks.cpp
+    environment/physics/collision_shapes.cpp
 
     ${ASSET_MANAGER_SOURCE}
     ${ASSET_MANAGER_SOURCE}
@@ -28,6 +29,7 @@ target_link_libraries(scripting_subsystem PUBLIC
     v8_engine
     engine_core
     renderer
+    physics_subsystem
 )
 
 target_include_directories(scripting_subsystem PUBLIC
