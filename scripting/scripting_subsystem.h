@@ -11,6 +11,7 @@
 #include <string>
 
 #include "script_context.h"
+#include "environment_templates.h"
 #include "script_asset_manager.h"
 
 
@@ -36,41 +37,6 @@ public:
 
     v8::Isolate* GetIsolate() {return isolate;}
 
-    const v8::Global<v8::ObjectTemplate>& GetGlobalTemplate()
-    {
-        return globalTemplate;
-    }
-
-    const v8::Global<v8::ObjectTemplate>& GetSystemTemplate()
-    {
-        return systemTemplate;
-    }
-
-    const v8::Global<v8::FunctionTemplate>& GetEntityTemplate()
-    {
-        return entityTemplate;
-    }
-
-    const v8::Global<v8::FunctionTemplate>& GetComponentTemplate()
-    {
-        return componentTemplate;
-    }
-
-    const v8::Global<v8::FunctionTemplate>& GetSceneTemplate()
-    {
-        return sceneTemplate;
-    }
-
-    const v8::Global<v8::ObjectTemplate>& GetMeshCompTemplate()
-    {
-        return meshCompTemplate;
-    }
-
-    const v8::Global<v8::ObjectTemplate>& GetLightCompTemplate()
-    {
-        return lightCompTemplate;
-    }
-
     ScriptingSystem(ScriptingSystem const&) = delete;
     void operator=(ScriptingSystem const&) = delete;
 
@@ -85,19 +51,6 @@ private:
     v8::Isolate* isolate;
     v8::Isolate::CreateParams createParams;
     std::unique_ptr<v8::Platform> platform;
-
-    v8::Global<v8::ObjectTemplate> globalTemplate;
-    v8::Global<v8::ObjectTemplate> systemTemplate;
-    v8::Global<v8::ObjectTemplate> mathTemplate;
-    v8::Global<v8::ObjectTemplate> inputTemplate;
-    v8::Global<v8::ObjectTemplate> assetManagerTemplate;
-
-    v8::Global<v8::ObjectTemplate> meshCompTemplate;
-    v8::Global<v8::ObjectTemplate> lightCompTemplate;
-
-    v8::Global<v8::FunctionTemplate> entityTemplate;
-    v8::Global<v8::FunctionTemplate> componentTemplate;
-    v8::Global<v8::FunctionTemplate> sceneTemplate;
 };
 
 } // namespace scripting

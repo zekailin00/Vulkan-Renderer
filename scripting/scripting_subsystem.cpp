@@ -12,6 +12,8 @@
 #include "component.h"
 #include "script_component.h"
 #include "environment/environment.h"
+#include "environment_templates.h"
+
 
 namespace scripting
 {
@@ -51,18 +53,7 @@ ScriptingSystem::~ScriptingSystem()
 {
     if (initialized)
     {
-        globalTemplate.Reset();
-        systemTemplate.Reset();
-        mathTemplate.Reset();
-        inputTemplate.Reset();
-        assetManagerTemplate.Reset();
-
-        meshCompTemplate.Reset();
-        lightCompTemplate.Reset();
-
-        entityTemplate.Reset();
-        componentTemplate.Reset();
-        sceneTemplate.Reset();
+        Templates::ResetAll();
 
         isolate->Dispose();
         v8::V8::Dispose();
@@ -78,12 +69,13 @@ ScriptContext* ScriptingSystem::NewContext()
     ScriptContext* scriptContext = new ScriptContext();
 
     v8::Local<v8::ObjectTemplate> globalTemp =
-        v8::Local<v8::ObjectTemplate>::New(GetIsolate(), globalTemplate);
+        v8::Local<v8::ObjectTemplate>::New(
+            GetIsolate(), Templates::globalTemplate);
     v8::Local<v8::Context> context = v8::Context::New(isolate, NULL, globalTemp);
 
     
     v8::Local<v8::ObjectTemplate> localSystemTemplate =
-        v8::Local<v8::ObjectTemplate>::New(GetIsolate(), systemTemplate);
+        v8::Local<v8::ObjectTemplate>::New(GetIsolate(), Templates::systemTemplate);
 
     v8::Local<v8::Object> systemObject =
         localSystemTemplate->NewInstance(context).ToLocalChecked();
@@ -111,49 +103,49 @@ void ScriptingSystem::BuildEnvironment()
     {
         v8::Local<v8::ObjectTemplate> temp;
         temp = v8::ObjectTemplate::New(isolate);
-        globalTemplate.Reset(isolate, temp);
+        Templates::globalTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::FunctionTemplate> temp;
         temp = MakeEntityTemplate(isolate);
-        entityTemplate.Reset(isolate, temp);
+        Templates::entityTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::FunctionTemplate> temp;
         temp = MakeSceneTemplate(isolate);
-        sceneTemplate.Reset(isolate, temp);
+        Templates::sceneTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::ObjectTemplate> temp;
         temp = MakeMathTemplate(isolate);
-        mathTemplate.Reset(isolate, temp);
+        Templates::mathTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::ObjectTemplate> temp;
         temp = MakeInputTemplate(isolate);
-        inputTemplate.Reset(isolate, temp);
+        Templates::inputTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::ObjectTemplate> temp;
         temp = MakeMeshCompTemplate(isolate);
-        meshCompTemplate.Reset(isolate, temp);
+        Templates::meshCompTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::ObjectTemplate> temp;
         temp = MakeLightCompTemplate(isolate);
-        lightCompTemplate.Reset(isolate, temp);
+        Templates::lightCompTemplate.Reset(isolate, temp);
     }
 
     {
         v8::Local<v8::ObjectTemplate> temp;
         temp = MakeAssetManagerTemplate(isolate);
-        assetManagerTemplate.Reset(isolate, temp);
+        Templates::assetManagerTemplate.Reset(isolate, temp);
     }
     
     {
@@ -164,18 +156,19 @@ void ScriptingSystem::BuildEnvironment()
             v8::FunctionTemplate::New(isolate, print));
 
         v8::Local<v8::ObjectTemplate> localMathTemp =
-            v8::Local<v8::ObjectTemplate>::New(isolate, mathTemplate);
+            v8::Local<v8::ObjectTemplate>::New(isolate, Templates::mathTemplate);
         localSystemTemp->Set(isolate, "Math", localMathTemp);
 
         v8::Local<v8::ObjectTemplate> localInputTemp =
-            v8::Local<v8::ObjectTemplate>::New(isolate, inputTemplate);
+            v8::Local<v8::ObjectTemplate>::New(isolate, Templates::inputTemplate);
         localSystemTemp->Set(isolate, "Input", localInputTemp);
 
         v8::Local<v8::ObjectTemplate> localAssetManagerTemp =
-            v8::Local<v8::ObjectTemplate>::New(isolate, assetManagerTemplate);
+            v8::Local<v8::ObjectTemplate>::New(
+                isolate, Templates::assetManagerTemplate);
         localSystemTemp->Set(isolate, "AssetManager", localAssetManagerTemp);
 
-        systemTemplate.Reset(isolate, localSystemTemp);
+        Templates::systemTemplate.Reset(isolate, localSystemTemp);
     }
 }
 

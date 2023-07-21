@@ -12,6 +12,7 @@ add_library(scripting_subsystem
     script_context.cpp
     scripting_subsystem.cpp
     script_component.cpp
+    environment_templates.cpp
     environment/script_math.cpp
     environment/environment.cpp
     environment/entity_callbacks.cpp

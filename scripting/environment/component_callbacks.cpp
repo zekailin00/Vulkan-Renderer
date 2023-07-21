@@ -15,8 +15,8 @@
 #include "components/static_body_component.h"
 #include "components/dynamic_body_component.h"
 #include "renderer_asset_manager.h"
+#include "environment_templates.h"
 
-#include "scripting_subsystem.h"
 #include "script_math.h"
 
 #include "logger.h"
@@ -42,10 +42,9 @@ void GetEntity(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     Entity* entity = component->entity;
 
-    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> entityTemplate =
-        v8::Local<v8::FunctionTemplate>::New(isolate,
-        scriptingSystem->GetEntityTemplate());
+        v8::Local<v8::FunctionTemplate>::New(
+            isolate, Templates::entityTemplate);
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Function> entityFunction =

@@ -3,7 +3,7 @@
 #include "entity.h"
 
 #include "environment/script_math.h"
-#include "scripting_subsystem.h"
+#include "environment_templates.h"
 
 #include "validation.h"
 #include "logger.h"
@@ -67,10 +67,10 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     if (compType == Component::Type::Mesh)
     {
-        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
         v8::Local<v8::ObjectTemplate> compTemplate =
             v8::Local<v8::ObjectTemplate>::New(isolate,
-                scriptingSystem->GetMeshCompTemplate());
+                Templates::meshCompTemplate);
+
         v8::Local<v8::Object> v8MeshComp =
             compTemplate->NewInstance(context).ToLocalChecked();
         
@@ -82,10 +82,10 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
     else if (compType == Component::Type::Light)
     {
-        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
         v8::Local<v8::ObjectTemplate> compTemplate =
             v8::Local<v8::ObjectTemplate>::New(isolate,
-                scriptingSystem->GetLightCompTemplate());
+                Templates::lightCompTemplate);
+
         v8::Local<v8::Object> v8LightComp =
             compTemplate->NewInstance(context).ToLocalChecked();
         
@@ -224,10 +224,10 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     if (compType == Component::Type::Mesh)
     {
-        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
         v8::Local<v8::ObjectTemplate> compTemplate =
             v8::Local<v8::ObjectTemplate>::New(isolate,
-                scriptingSystem->GetMeshCompTemplate());
+                Templates::meshCompTemplate);
+
         v8::Local<v8::Object> v8MeshComp =
             compTemplate->NewInstance(context).ToLocalChecked();
         
@@ -239,10 +239,10 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
     }
     else if (compType == Component::Type::Light)
     {
-        ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
         v8::Local<v8::ObjectTemplate> compTemplate =
             v8::Local<v8::ObjectTemplate>::New(isolate,
-                scriptingSystem->GetLightCompTemplate());
+                Templates::meshCompTemplate);
+
         v8::Local<v8::Object> v8LightComp =
             compTemplate->NewInstance(context).ToLocalChecked();
         
@@ -486,10 +486,9 @@ void GetParent(const v8::FunctionCallbackInfo<v8::Value> &info)
         return;
     }
 
-    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> entityTemplate =
-        v8::Local<v8::FunctionTemplate>::New(isolate,
-        scriptingSystem->GetEntityTemplate());
+        v8::Local<v8::FunctionTemplate>::New(
+            isolate, Templates::entityTemplate);
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     v8::Local<v8::Function> entityFunction =
@@ -532,10 +531,9 @@ void GetChildByName(const v8::FunctionCallbackInfo<v8::Value> &info)
         return;
     }
 
-    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> entityTemplate =
-        v8::Local<v8::FunctionTemplate>::New(isolate,
-        scriptingSystem->GetEntityTemplate());
+        v8::Local<v8::FunctionTemplate>::New(
+            isolate, Templates::entityTemplate);
 
     v8::Local<v8::Function> entityFunction =
         entityTemplate->GetFunction(context).ToLocalChecked();
@@ -558,10 +556,9 @@ void GetChildren(const v8::FunctionCallbackInfo<v8::Value> &info)
     Entity* entity = static_cast<Entity*>(field->Value());
     ASSERT(entity != nullptr);
 
-    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> entityTemplate =
-        v8::Local<v8::FunctionTemplate>::New(isolate,
-        scriptingSystem->GetEntityTemplate());
+        v8::Local<v8::FunctionTemplate>::New(
+            isolate, Templates::entityTemplate);
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
     
@@ -661,10 +658,9 @@ void GetScene(const v8::FunctionCallbackInfo<v8::Value> &info)
 
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
 
-    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> sceneTemplate =
-        v8::Local<v8::FunctionTemplate>::New(isolate,
-        scriptingSystem->GetSceneTemplate());
+        v8::Local<v8::FunctionTemplate>::New(
+            isolate, Templates::sceneTemplate);
 
     v8::Local<v8::Function> sceneFunction =
         sceneTemplate->GetFunction(context).ToLocalChecked();

@@ -12,7 +12,7 @@
 
 #include "script_context.h"
 #include "script_exception.h"
-#include "scripting_subsystem.h"
+#include "environment_templates.h"
 
 #include "validation.h"
 #include "logger.h"
@@ -150,10 +150,9 @@ bool Script::Compile(Entity* entity)
         prototype = value.As<v8::Function>();
     }
     
-    ScriptingSystem* scriptingSystem = ScriptingSystem::GetInstance();
     v8::Local<v8::FunctionTemplate> entityTemplate =
-        v8::Local<v8::FunctionTemplate>::New(isolate,
-        scriptingSystem->GetEntityTemplate());
+        v8::Local<v8::FunctionTemplate>::New(
+            isolate, Templates::entityTemplate);
 
     v8::Local<v8::Function> entityFunction =
         entityTemplate->GetFunction(localContext).ToLocalChecked();
