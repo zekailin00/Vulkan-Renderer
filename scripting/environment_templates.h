@@ -18,6 +18,10 @@ struct Templates
 
     static v8::Global<v8::ObjectTemplate> meshCompTemplate;
     static v8::Global<v8::ObjectTemplate> lightCompTemplate;
+    static v8::Global<v8::ObjectTemplate> dynamicBodyCompTemplate;
+    static v8::Global<v8::ObjectTemplate> staticBodyCompTemplate;
+
+    static v8::Global<v8::ObjectTemplate> collisionShapeTemplate;
 
     static v8::Global<v8::FunctionTemplate> entityTemplate;
     static v8::Global<v8::FunctionTemplate> componentTemplate;
@@ -33,6 +37,10 @@ struct Templates
 
         meshCompTemplate.Reset();
         lightCompTemplate.Reset();
+        dynamicBodyCompTemplate.Reset();
+        staticBodyCompTemplate.Reset();
+
+        collisionShapeTemplate.Reset();
 
         entityTemplate.Reset();
         componentTemplate.Reset();

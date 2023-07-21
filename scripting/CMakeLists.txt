@@ -20,7 +20,7 @@ add_library(scripting_subsystem
     environment/input_callbacks.cpp
     environment/component_callbacks.cpp
     environment/asset_manager_callbacks.cpp
-    environment/physics/collision_shapes.cpp
+    environment/physics_callbacks.cpp
 
     ${ASSET_MANAGER_SOURCE}
     ${ASSET_MANAGER_SOURCE}

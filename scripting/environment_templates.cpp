@@ -11,6 +11,10 @@ v8::Global<v8::ObjectTemplate> Templates::assetManagerTemplate;
 
 v8::Global<v8::ObjectTemplate> Templates::meshCompTemplate;
 v8::Global<v8::ObjectTemplate> Templates::lightCompTemplate;
+v8::Global<v8::ObjectTemplate> Templates::dynamicBodyCompTemplate;
+v8::Global<v8::ObjectTemplate> Templates::staticBodyCompTemplate;
+
+v8::Global<v8::ObjectTemplate> Templates::collisionShapeTemplate;
 
 v8::Global<v8::FunctionTemplate> Templates::entityTemplate;
 v8::Global<v8::FunctionTemplate> Templates::componentTemplate;
