@@ -96,8 +96,7 @@ void RemoveEntity(const v8::FunctionCallbackInfo<v8::Value> &info)
     Entity* entity = static_cast<Entity*>(field2->Value());
     ASSERT(entity != nullptr);
     
-    bool result = scene->RemoveEntity(entity);
-    info.GetReturnValue().Set(result);
+    scene->RemoveEntity(entity);;
 }
 
 void GetEntityByName(const v8::FunctionCallbackInfo<v8::Value> &info)

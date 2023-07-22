@@ -38,12 +38,11 @@ Component* Entity::AddComponent(Component::Type type)
 
 void Entity::RemoveComponent(Component::Type type)
 {
-    if (!HasComponent(type))
-        return;
-
-    Component* component = componentList[(int)type];
-    componentList[(int)type] = nullptr;
-    delete component;
+    DeferredAction action;
+    action.type = DeferredAction::RemoveComponent;
+    action.entity = this;
+    action.target.componentType = type;
+    scene->PushDeferredAction(action);
 }
 
 bool Entity::HasComponent(Component::Type type) const
@@ -140,13 +139,11 @@ void Entity::Update(Timestep ts)
 
 void Entity::ReparentTo(Entity* entity)
 {
-    ASSERT(this->scene == entity->scene);
-
-    parent->children.remove(this);
-    entity->children.push_back(this);
-    parent = entity;
-
-    UpdateTransform(false);
+    DeferredAction action;
+    action.type = DeferredAction::ReparentTo;
+    action.entity = this;
+    action.target.parent = entity;
+    scene->PushDeferredAction(action);
 }
 
 const glm::mat4& Entity::GetGlobalTransform() const
@@ -362,4 +359,25 @@ bool Entity::CheckComponentAddDependencies(Component::Type type)
     }
 
     return true;
+}
+
+void Entity::DeferredRemoveComponent(Component::Type type)
+{
+    if (!HasComponent(type))
+        return;
+
+    Component* component = componentList[(int)type];
+    componentList[(int)type] = nullptr;
+    delete component;
+}
+
+void Entity::DeferredReparentTo(Entity* entity)
+{
+    ASSERT(this->scene == entity->scene);
+
+    parent->children.remove(this);
+    entity->children.push_back(this);
+    parent = entity;
+
+    UpdateTransform(false);
 }

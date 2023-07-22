@@ -82,7 +82,6 @@ void Scene::SetSceneContext(
 
 Entity* Scene::NewEntity()
 {
-
     Entity* entity = _NewEntity();
     entity->parent = rootEntity;
     rootEntity->children.push_back(entity);
@@ -91,32 +90,19 @@ Entity* Scene::NewEntity()
     return entity;
 }
 
-bool Scene::RemoveEntity(Entity* entity)
+void Scene::RemoveEntity(Entity* entity)
 {
-    ASSERT(this == entity->scene);
-    ASSERT(entity != nullptr);
-
-    std::list<Entity*> childrenCopy = entity->children;
-    for(Entity* e: childrenCopy)
-        RemoveEntity(e);
-
-    ASSERT(entity->children.empty());
-
-    // Remove all components
-    for (int j = 0; j < (int)Component::Type::Size; j++)
-        entity->RemoveComponent((Component::Type)j);
-
-    entity->parent->children.remove(entity);
-    delete entity;
-
-    return true;
+    Entity::DeferredAction action;
+    action.type = Entity::DeferredAction::RemoveEntity;
+    action.entity = entity;
+    this->PushDeferredAction(action);
 }
 
 Scene::~Scene()
 {
     std::list<Entity*> childrenCopy = rootEntity->children;
     for (Entity* e: childrenCopy)
-        RemoveEntity(e);
+        DeferredRemoveEntity(e);
     delete rootEntity;
 
     for (int i = 0; i < SceneContext::Type::CtxSize; i++)
@@ -132,6 +118,7 @@ Entity* Scene::GetRootEntity()
 
 void Scene::Update(Timestep ts)
 {
+    ProcessDeferredActions();
 
     if (contexts[SceneContext::Type::RendererCtx])
     {
@@ -185,4 +172,59 @@ Entity* Scene::_NewEntity()
     entity->children.clear();
 
     return entity;
+}
+
+void Scene::DeferredRemoveEntity(Entity* entity)
+{
+    ASSERT(this == entity->scene);
+    ASSERT(entity != nullptr);
+
+    std::list<Entity*> childrenCopy = entity->children;
+    for(Entity* e: childrenCopy)
+        DeferredRemoveEntity(e);
+
+    ASSERT(entity->children.empty());
+
+    // Remove all components
+    for (int j = 0; j < (int)Component::Type::Size; j++)
+        entity->DeferredRemoveComponent((Component::Type)j);
+
+    entity->parent->children.remove(entity);
+    delete entity;
+}
+
+void Scene::PushDeferredAction(const Entity::DeferredAction& action)
+{
+    deferredActions.push_back(action);
+}
+
+void Scene::ProcessDeferredActions()
+{
+    for (auto& action: deferredActions)
+    {
+        switch (action.type)
+        {
+        case Entity::DeferredAction::RemoveEntity:
+        {
+            DeferredRemoveEntity(action.entity);
+        }
+            break;
+        case Entity::DeferredAction::RemoveComponent:
+        {
+            action.entity->DeferredRemoveComponent(
+                action.target.componentType
+            );
+        }
+            break;
+        case Entity::DeferredAction::ReparentTo:
+        {
+            action.entity->DeferredReparentTo(
+                action.target.parent
+            );
+        }
+            break;
+        }
+    }
+
+    deferredActions.clear();
 }

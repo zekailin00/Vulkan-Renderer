@@ -9,13 +9,15 @@
 #include <list>
 #include <functional>
 
+#define ASYNC
+
 class Scene;
 
 class Entity 
 {
 public:
     Component* AddComponent(Component::Type type);
-    void RemoveComponent(Component::Type type);
+    void RemoveComponent(Component::Type type); // Asynchronous
 
     bool HasComponent(Component::Type type) const;
     Component* GetComponent(Component::Type type) const;
@@ -25,7 +27,7 @@ public:
 
     void Update(Timestep ts);
 
-    void ReparentTo(Entity* entity);
+    void ReparentTo(Entity* entity); // Asynchronous
 
     bool operator==(const Entity& e);
 
@@ -70,12 +72,31 @@ public:
 private:
     friend Scene;
 
+    struct DeferredAction
+    {
+        enum Type 
+        {
+            RemoveEntity,
+            RemoveComponent,
+            ReparentTo
+        } type;
+
+        Entity* entity;
+        union {
+            Component::Type componentType;
+            Entity* parent;
+        } target;
+    };
+
     const Entity& operator=(const Entity&) = delete;
     Entity(const Entity&) = delete;
 
     void UpdateTransform(bool isPhysicsDriven);
     void UpdateLocalEulerXYZ();
     bool CheckComponentAddDependencies(Component::Type type);
+
+    void DeferredRemoveComponent(Component::Type type);
+    void DeferredReparentTo(Entity* entity);
 
     Entity() = default;
     ~Entity() = default;

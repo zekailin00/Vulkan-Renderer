@@ -6,6 +6,7 @@
 #include "core_asset_manager.h"
 
 #include <string>
+#include <list>
 #include <memory>
 
 
@@ -48,7 +49,7 @@ public:
     State GetState() {return state;}
 
     Entity* NewEntity();
-    bool RemoveEntity(Entity* entity);
+    void RemoveEntity(Entity* entity); // Asynchronous
     Entity* GetEntityByName(std::string name);
     void GetEntitiesWithComponent(
         Component::Type type, std::vector<Entity*>& list);
@@ -65,6 +66,12 @@ private:
 
     Entity* _NewEntity();
 
+    friend Entity;
+
+    void DeferredRemoveEntity(Entity* entity);
+    void PushDeferredAction(const Entity::DeferredAction& action);
+    void ProcessDeferredActions();
+
 private:
     State state = State::Editor;
     std::string sceneName;
@@ -72,4 +79,6 @@ private:
     unsigned int entityCounter = 0;
     ICoreAssetManager* assetManager = nullptr;
     std::shared_ptr<SceneContext> contexts[SceneContext::Type::CtxSize] = {};
+
+    std::list<Entity::DeferredAction> deferredActions;
 };
