@@ -105,9 +105,12 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
             compTemplate->NewInstance(context).ToLocalChecked();
         
         Component* component = entity->AddComponent(compType);
-        
-        v8DynamicBodyComp->SetInternalField(0, v8::External::New(isolate, component));
-        info.GetReturnValue().Set(v8DynamicBodyComp);
+
+        if (component)
+        {
+            v8DynamicBodyComp->SetInternalField(0, v8::External::New(isolate, component));
+            info.GetReturnValue().Set(v8DynamicBodyComp);
+        }
         return;
     }
     else

@@ -3,6 +3,9 @@
 #include <PxPhysicsAPI.h>
 #include <glm/mat4x4.hpp>
 
+
+class Entity;
+
 namespace physics
 {
 
@@ -69,6 +72,14 @@ private:
     physx::PxShape* gShape; // storage
 
     Rigidbody* rigidbody; // owned by component
+};
+
+struct TriggerEvent
+{
+    Entity* triggerEntity;
+    CollisionShape* triggerCollisionShape;
+    Entity* otherEntity;
+    CollisionShape* otherCollisionShape;
 };
 
 } // namespace physics

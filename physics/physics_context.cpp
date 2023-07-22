@@ -13,6 +13,46 @@
 namespace physics
 {
 
+void SimulationEventCallback::onTrigger(
+	physx::PxTriggerPair* pairs, physx::PxU32 count)
+{
+	while(count--)
+	{
+		// if(pairs[i].flags & 
+		// 	(physx::PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER |
+		// 	 physx::PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
+		// {
+		// 	continue;
+		// }
+
+		const physx::PxTriggerPair& current = *pairs++;
+		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+		{
+			// CollisionShape* shape =
+			// 	static_cast<CollisionShape*>(current.otherShape->userData);
+			
+			/**
+			 * shape->SetTriggerState(ENTER)
+			 * shape->SetTriggerState(LEAVE)
+			 * 
+			 * shape->ProcessCallbacks()
+			 * {
+			 * 		if (ENTER)
+			 * 		{
+			 * 			// enter callback, go to stay state
+			 * 		}
+			 * 		
+			 * }
+			 * 
+			 */
+		}
+		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
+		{
+
+		}
+	}
+}
+
 PhysicsContext::PhysicsContext(physx::PxPhysics* gPhysics)
 {
 	this->gPhysics = gPhysics;
@@ -20,8 +60,9 @@ PhysicsContext::PhysicsContext(physx::PxPhysics* gPhysics)
     physx::PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 	sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f);
 	gDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
-	sceneDesc.cpuDispatcher	= gDispatcher;
-	sceneDesc.filterShader	= physx::PxDefaultSimulationFilterShader;
+	sceneDesc.cpuDispatcher = gDispatcher;
+	sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+	sceneDesc.simulationEventCallback = &simulationEventCallback;
 	gScene = gPhysics->createScene(sceneDesc);
 
     physx::PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
