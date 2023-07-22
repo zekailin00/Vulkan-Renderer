@@ -203,17 +203,17 @@ void EntityProperties::ShowEntityProperties()
             }
 
             glm::vec3 rCached = r;
-            if (ImGui::DragFloat3("Rotation", &r[0], 0.01f,
+            if (ImGui::DragFloat3("Rotation", &r[0], 0.001f,
                 -FLT_MAX, FLT_MAX, "%.3f",
                 ImGuiSliderFlags_AlwaysClamp))
             {
                 if (rCached[0] != r[0])
                 {
-                    if (glm::abs(rCached[0] - r[0]) > 0.1f)
-                    {
-                        selectedEntity->SetLocalRotation(r);
-                    }
-                    else
+                    // if (glm::abs(rCached[0] - r[0]) > 0.1f)
+                    // {
+                    //     selectedEntity->SetLocalRotation(r);
+                    // }
+                    // else
                     {
                         glm::mat4 transform = selectedEntity->GetLocalTransform();
                         math::RotateAroundBasis0(transform, r[0] - rCached[0]);
@@ -222,11 +222,11 @@ void EntityProperties::ShowEntityProperties()
                 }
                 else if (rCached[1] != r[1])
                 {
-                    if (glm::abs(rCached[1] - r[1]) > 0.1f)
-                    {
-                        selectedEntity->SetLocalRotation(r);
-                    }
-                    else
+                    // if (glm::abs(rCached[1] - r[1]) > 0.1f)
+                    // {
+                    //     selectedEntity->SetLocalRotation(r);
+                    // }
+                    // else
                     {
                         glm::mat4 transform = selectedEntity->GetLocalTransform();
                         math::RotateAroundBasis1(transform, r[1] - rCached[1]);
@@ -235,11 +235,11 @@ void EntityProperties::ShowEntityProperties()
                 }
                 else if (rCached[2] != r[2])
                 {
-                    if (glm::abs(rCached[2] - r[2]) > 0.1f)
-                    {
-                        selectedEntity->SetLocalRotation(r);
-                    }
-                    else
+                    // if (glm::abs(rCached[2] - r[2]) > 0.1f)
+                    // {
+                    //     selectedEntity->SetLocalRotation(r);
+                    // }
+                    // else
                     {
                         glm::mat4 transform = selectedEntity->GetLocalTransform();
                         math::RotateAroundBasis2(transform, r[2] - rCached[2]);

@@ -95,6 +95,21 @@ void AddComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         info.GetReturnValue().Set(v8LightComp);
         return;
     }
+    else if (compType == Component::Type::DynamicBody)
+    {
+        v8::Local<v8::ObjectTemplate> compTemplate =
+            v8::Local<v8::ObjectTemplate>::New(isolate,
+                Templates::dynamicBodyCompTemplate);
+
+        v8::Local<v8::Object> v8DynamicBodyComp =
+            compTemplate->NewInstance(context).ToLocalChecked();
+        
+        Component* component = entity->AddComponent(compType);
+        
+        v8DynamicBodyComp->SetInternalField(0, v8::External::New(isolate, component));
+        info.GetReturnValue().Set(v8DynamicBodyComp);
+        return;
+    }
     else
     {
         Logger::Write(
@@ -250,6 +265,21 @@ void GetComponent(const v8::FunctionCallbackInfo<v8::Value> &info)
         
         v8LightComp->SetInternalField(0, v8::External::New(isolate, component));
         info.GetReturnValue().Set(v8LightComp);
+        return;
+    }
+    else if (compType == Component::Type::DynamicBody)
+    {
+        v8::Local<v8::ObjectTemplate> compTemplate =
+            v8::Local<v8::ObjectTemplate>::New(isolate,
+                Templates::dynamicBodyCompTemplate);
+
+        v8::Local<v8::Object> v8DynamicBodyComp =
+            compTemplate->NewInstance(context).ToLocalChecked();
+        
+        Component* component = entity->GetComponent(compType);
+        
+        v8DynamicBodyComp->SetInternalField(0, v8::External::New(isolate, component));
+        info.GetReturnValue().Set(v8DynamicBodyComp);
         return;
     }
     else

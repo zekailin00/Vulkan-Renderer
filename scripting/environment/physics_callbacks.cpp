@@ -269,12 +269,15 @@ void CollisionShape::GetBoxGeometry(
         return;
     }
 
+    v8::Local<v8::Value> keySystem =
+        v8::String::NewFromUtf8Literal(isolate, "System");
     v8::Local<v8::Value> keyPhysics =
         v8::String::NewFromUtf8Literal(isolate, "Physics");
     v8::Local<v8::Value> keyGeometry =
         v8::String::NewFromUtf8Literal(isolate, "BoxGeometry");
 
     v8::Local<v8::Function> constructor = context->Global()
+        ->Get(context, keySystem).ToLocalChecked().As<v8::Object>()
         ->Get(context, keyPhysics).ToLocalChecked().As<v8::Object>()
         ->Get(context, keyGeometry).ToLocalChecked().As<v8::Function>();
 
@@ -314,12 +317,15 @@ void CollisionShape::GetSphereGeometry(
         return;
     }
 
+    v8::Local<v8::Value> keySystem =
+        v8::String::NewFromUtf8Literal(isolate, "System");
     v8::Local<v8::Value> keyPhysics =
         v8::String::NewFromUtf8Literal(isolate, "Physics");
     v8::Local<v8::Value> keyGeometry =
         v8::String::NewFromUtf8Literal(isolate, "SphereGeometry");
 
     v8::Local<v8::Function> constructor = context->Global()
+        ->Get(context, keySystem).ToLocalChecked().As<v8::Object>()
         ->Get(context, keyPhysics).ToLocalChecked().As<v8::Object>()
         ->Get(context, keyGeometry).ToLocalChecked().As<v8::Function>();
 
@@ -355,12 +361,15 @@ void CollisionShape::GetCapsuleGeometry(
         return;
     }
 
+    v8::Local<v8::Value> keySystem =
+        v8::String::NewFromUtf8Literal(isolate, "System");
     v8::Local<v8::Value> keyPhysics =
         v8::String::NewFromUtf8Literal(isolate, "Physics");
     v8::Local<v8::Value> keyGeometry =
         v8::String::NewFromUtf8Literal(isolate, "CapsuleGeometry");
 
     v8::Local<v8::Function> constructor = context->Global()
+        ->Get(context, keySystem).ToLocalChecked().As<v8::Object>()
         ->Get(context, keyPhysics).ToLocalChecked().As<v8::Object>()
         ->Get(context, keyGeometry).ToLocalChecked().As<v8::Function>();
 

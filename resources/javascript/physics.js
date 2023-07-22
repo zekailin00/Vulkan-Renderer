@@ -12,7 +12,7 @@ System.Physics.GeometryType =
 System.Physics.BoxGeometry = function(x, y, z)
 {
     this.GeometryType = System.Physics.GeometryType.BOX;
-    this.halfExtent = Vec3(
+    this.halfExtent = new Vec3(
         x? x: 0.5,
         y? y: 0.5,
         z? z: 0.5

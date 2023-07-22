@@ -92,6 +92,7 @@ ScriptContext* ScriptingSystem::NewContext()
 
     scriptContext->ExecuteFromPath("resources/javascript/math.js");
     scriptContext->ExecuteFromPath("resources/javascript/enums.js");
+    scriptContext->ExecuteFromPath("resources/javascript/physics.js");
 
     return scriptContext;
 }

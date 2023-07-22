@@ -19,6 +19,7 @@ class DynamicRigidbody
 public:
     static void AttachShape(const v8::FunctionCallbackInfo<v8::Value> &info);
     static void DetachShape(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void GetShape(const v8::FunctionCallbackInfo<v8::Value> &info);
     static void GetNbShapes(const v8::FunctionCallbackInfo<v8::Value> &info);
     static void GetShapes(const v8::FunctionCallbackInfo<v8::Value> &info);
 

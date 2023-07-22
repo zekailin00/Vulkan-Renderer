@@ -28,4 +28,6 @@ System.ComponentType =
     UI:             4,
     Wireframe:      5,
     Script:         6,
+    DynamicBody:    7,
+    StaticBody:     8,
 }

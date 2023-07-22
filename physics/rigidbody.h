@@ -38,7 +38,7 @@ public:
 
     CollisionShape* AttachShape(GeometryType geometryType);
     void DetachShape(CollisionShape* shape);
-    CollisionShape* GetShape(unsigned int index);
+    CollisionShape* GetShape(unsigned int index) const;
     unsigned int GetNbShapes() const;
     unsigned int GetShapes(std::vector<CollisionShape*>& shapes) const;
 

@@ -6,6 +6,7 @@
 #include <v8-function.h>
 #include <v8-local-handle.h>
 #include <v8-primitive.h>
+#include <v8-container.h>
 
 #include "entity.h"
 #include "scene.h"
@@ -176,22 +177,173 @@ void SetLightColor(const v8::FunctionCallbackInfo<v8::Value> &info)
 
 void DynamicRigidbody::AttachShape(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
 
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsInt32())
+    {
+        Logger::Write(
+            "[Scripting] AttachShape parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    physics::GeometryType geometryType = static_cast<physics::GeometryType>(
+        info[0]->Int32Value(context).ToChecked());
+    physics::CollisionShape* collisionShape =
+         component->dynamicBody->AttachShape(geometryType);
+
+    v8::Local<v8::ObjectTemplate> v8CollisionShapeTemp =
+        v8::Local<v8::ObjectTemplate>::New(
+            isolate, Templates::collisionShapeTemplate);
+
+    v8::Local<v8::Object> v8CollisionShape =
+        v8CollisionShapeTemp->NewInstance(context).ToLocalChecked();
+
+    v8CollisionShape->SetInternalField(0, v8::External::New(isolate, collisionShape));
+    info.GetReturnValue().Set(v8CollisionShape);
 }
 
 void DynamicRigidbody::DetachShape(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
 
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsObject() ||
+        info[0].As<v8::Object>()->InternalFieldCount() != 1)
+    {
+        Logger::Write(
+            "[Scripting] DetachShape parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    v8::Local<v8::External> v8CollisionShape = info[0].As<v8::Object>()
+        ->GetInternalField(0).As<v8::External>();
+    physics::CollisionShape* collisionShape =
+        static_cast<physics::CollisionShape*>(v8CollisionShape->Value());
+    ASSERT(collisionShape != nullptr);
+
+    component->dynamicBody->DetachShape(collisionShape);
+}
+
+void DynamicRigidbody::GetShape(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
+
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    if (info.Length() != 1 || !info[0]->IsInt32())
+    {
+        Logger::Write(
+            "[Scripting] AttachShape parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    int index = info[0]->Int32Value(context).ToChecked();
+    physics::CollisionShape* collisionShape = component->dynamicBody->GetShape(index);
+
+    if (collisionShape)
+    {
+        v8::Local<v8::ObjectTemplate> v8CollisionShapeTemp =
+            v8::Local<v8::ObjectTemplate>::New(
+                isolate, Templates::collisionShapeTemplate);
+
+        v8::Local<v8::Object> v8CollisionShape =
+            v8CollisionShapeTemp->NewInstance(context).ToLocalChecked();
+
+        v8CollisionShape->SetInternalField(0, v8::External::New(isolate, collisionShape));
+        info.GetReturnValue().Set(v8CollisionShape);
+    }
 }
 
 void DynamicRigidbody::GetNbShapes(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
 
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    int size = component->dynamicBody->GetNbShapes();
+    info.GetReturnValue().Set(size);
 }
 
 void DynamicRigidbody::GetShapes(const v8::FunctionCallbackInfo<v8::Value> &info)
 {
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(info.GetIsolate());
 
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+
+    physics::DynamicBodyComponent* component =
+        static_cast<physics::DynamicBodyComponent*>(field->Value());
+    ASSERT(component != nullptr);
+
+    v8::Local<v8::ObjectTemplate> v8CollisionShapeTemp =
+            v8::Local<v8::ObjectTemplate>::New(
+                isolate, Templates::collisionShapeTemplate);
+
+    std::vector<physics::CollisionShape*> shapeList;
+    component->dynamicBody->GetShapes(shapeList);
+
+    v8::Local<v8::Array> v8ShapeList = v8::Array::New(isolate, shapeList.size());
+    int i = 0;
+    for (auto& shape: shapeList)
+    {
+        v8::Local<v8::Object> v8Shape =
+            v8CollisionShapeTemp->NewInstance(context).ToLocalChecked();
+        v8Shape->SetInternalField(0, v8::External::New(isolate, shape));
+
+        v8ShapeList->Set(context, i, v8Shape).ToChecked();
+        i++;
+    }
+    
+    info.GetReturnValue().Set(v8ShapeList);
+
+    /**
+     * shapeList = comp.GetShapes();
+     * shapeList[0].<Collision Shape Methods>
+     */
 }
 
 void DynamicRigidbody::SetGravity(const v8::FunctionCallbackInfo<v8::Value> &info)

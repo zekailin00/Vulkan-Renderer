@@ -88,6 +88,7 @@ CollisionShape* Rigidbody::AttachShape(GeometryType geometryType)
 
 void Rigidbody::DetachShape(CollisionShape* shape)
 {
+    bool found = false;
     for (auto begin = collisionShapeList.begin();
         begin != collisionShapeList.end(); begin++)
     {
@@ -96,14 +97,25 @@ void Rigidbody::DetachShape(CollisionShape* shape)
             gRigidActor->detachShape(*(*begin)->gShape);
             delete *begin;
             collisionShapeList.erase(begin);
+            found = true;
             break;
         }
     }
-    
-    UpdateCenterOfMass();
+
+    if (found)
+    {
+        UpdateCenterOfMass();
+    }
+    else
+    {
+        Logger::Write(
+            "[Physics] DetachShape failed because not shape is found",
+            Logger::Level::Warning, Logger::MsgType::Physics
+        );
+    }
 }
 
-CollisionShape* Rigidbody::GetShape(unsigned int index)
+CollisionShape* Rigidbody::GetShape(unsigned int index) const
 {
     if (index < collisionShapeList.size())
     {
