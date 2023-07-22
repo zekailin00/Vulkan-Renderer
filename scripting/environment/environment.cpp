@@ -6,6 +6,8 @@
 #include "environment/input_callbacks.h"
 #include "environment/component_callbacks.h"
 #include "environment/asset_manager_callbacks.h"
+#include "environment/physics_callbacks.h"
+
 #include "logger.h"
 
 namespace scripting
@@ -178,6 +180,114 @@ v8::Local<v8::ObjectTemplate> MakeLightCompTemplate(v8::Isolate* isolate)
         v8::FunctionTemplate::New(isolate, GetComponentType));
     temp->Set(isolate, "SetLightColor",
         v8::FunctionTemplate::New(isolate, SetLightColor));
+
+    return handleScope.Escape(temp);
+}
+
+v8::Local<v8::ObjectTemplate> MakeDynamicBodyCompTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+    
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "GetEntity",
+        v8::FunctionTemplate::New(isolate, GetEntity));
+    temp->Set(isolate, "GetComponentType",
+        v8::FunctionTemplate::New(isolate, GetComponentType));
+    temp->Set(isolate, "AttachShape",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::AttachShape));
+    temp->Set(isolate, "DetachShape",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::DetachShape));
+    temp->Set(isolate, "GetNbShapes",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetNbShapes));
+    temp->Set(isolate, "GetShapes",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetShapes));
+    temp->Set(isolate, "SetGravity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetGravity));
+    temp->Set(isolate, "GetGravity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetGravity));
+    temp->Set(isolate, "WakeUp",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::WakeUp));
+    temp->Set(isolate, "SetDensity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetDensity));
+    temp->Set(isolate, "GetDensity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetDensity));
+    temp->Set(isolate, "GetMass",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetMass));
+    temp->Set(isolate, "GetMassSpaceInertiaTensor",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetMassSpaceInertiaTensor));
+    temp->Set(isolate, "SetLinearDamping",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetLinearDamping));
+    temp->Set(isolate, "GetLinearDamping",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetLinearDamping));
+    temp->Set(isolate, "SetAngularDamping",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetAngularDamping));
+    temp->Set(isolate, "GetAngularDamping",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetAngularDamping));
+    temp->Set(isolate, "AddForce",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::AddForce));
+    temp->Set(isolate, "AddTorque",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::AddTorque));
+    temp->Set(isolate, "ClearForce",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::ClearForce));
+    temp->Set(isolate, "ClearTorque",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::ClearTorque));
+    temp->Set(isolate, "GetLinearVelocity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetLinearVelocity));
+    temp->Set(isolate, "SetLinearVelocity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetLinearVelocity));
+    temp->Set(isolate, "GetAngularVelocity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetAngularVelocity));
+    temp->Set(isolate, "SetAngularVelocity",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetAngularVelocity));
+    temp->Set(isolate, "SetKinematic",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::SetKinematic));
+    temp->Set(isolate, "GetKinematic",
+        v8::FunctionTemplate::New(isolate, DynamicRigidbody::GetKinematic));
+    
+    return handleScope.Escape(temp);
+}
+
+v8::Local<v8::ObjectTemplate> MakeCollsionShapeTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+    
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "SetLocalTransform",
+        v8::FunctionTemplate::New(isolate, CollisionShape::SetLocalTransform));
+    temp->Set(isolate, "GetLocalTransform",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetLocalTransform));
+    temp->Set(isolate, "SetTrigger",
+        v8::FunctionTemplate::New(isolate, CollisionShape::SetTrigger));
+    temp->Set(isolate, "GetTrigger",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetTrigger));
+    temp->Set(isolate, "GetGeometryType",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetGeometryType));
+    temp->Set(isolate, "SetGeometry",
+        v8::FunctionTemplate::New(isolate, CollisionShape::SetGeometry));
+    temp->Set(isolate, "GetBoxGeometry",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetBoxGeometry));
+    temp->Set(isolate, "GetSphereGeometry",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetSphereGeometry));
+    temp->Set(isolate, "GetCapsuleGeometry",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetCapsuleGeometry));
+    temp->Set(isolate, "GetPlaneGeometry",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetPlaneGeometry));
+    temp->Set(isolate, "SetDynamicFriction",
+        v8::FunctionTemplate::New(isolate, CollisionShape::SetDynamicFriction));
+    temp->Set(isolate, "GetDynamicFriction",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetDynamicFriction));
+    temp->Set(isolate, "SetStaticFriction",
+        v8::FunctionTemplate::New(isolate, CollisionShape::SetStaticFriction));
+    temp->Set(isolate, "GetStaticFriction",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetStaticFriction));
+    temp->Set(isolate, "SetRestitution",
+        v8::FunctionTemplate::New(isolate, CollisionShape::SetRestitution));
+    temp->Set(isolate, "GetRestitution",
+        v8::FunctionTemplate::New(isolate, CollisionShape::GetRestitution));
 
     return handleScope.Escape(temp);
 }

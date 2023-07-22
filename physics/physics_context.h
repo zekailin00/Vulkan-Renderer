@@ -24,14 +24,17 @@ public:
     StaticRigidbody* NewStaticRigidbody();
     DynamicRigidbody* NewDynamicRigidbody();
 
-    CollisionShape* AddCollisionShape(
-        Rigidbody* ridigbody,
-        GeometryType geometryType
-    );
-
     int Simulate(Timestep ts) override;
 
     void UpdatePhysicsTransform(Entity* e) override;
+
+private:
+    void RemoveRigidbody(physx::PxRigidActor* actor);
+    CollisionShape* AddCollisionShape(GeometryType geometryType);
+
+    friend StaticRigidbody;
+    friend DynamicRigidbody;
+    friend Rigidbody;
 
 private:
     physx::PxDefaultCpuDispatcher* gDispatcher;

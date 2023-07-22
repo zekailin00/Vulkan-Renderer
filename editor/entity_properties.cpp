@@ -967,9 +967,7 @@ void EntityProperties::ShowDynamicBodyComponent()
                 {
                     if (ImGui::Selectable(s.first.c_str()))
                     {
-                        rigidbody
-                            ->GetContext()
-                            ->AddCollisionShape(rigidbody, s.second);
+                        rigidbody->AttachShape(s.second);
                     }
                 }     
                 ImGui::EndPopup();
@@ -1135,9 +1133,7 @@ void EntityProperties::ShowStaticBodyComponent()
                 {
                     if (ImGui::Selectable(s.first.c_str()))
                     {
-                        rigidbody
-                            ->GetContext()
-                            ->AddCollisionShape(rigidbody, s.second);
+                        rigidbody->AttachShape(s.second);
                     }
                 }     
                 ImGui::EndPopup();

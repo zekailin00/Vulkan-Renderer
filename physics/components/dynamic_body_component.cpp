@@ -62,8 +62,7 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
         {
         case GeometryType::eBOX:
         {
-            CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->dynamicBody,
+            CollisionShape* shape = component->dynamicBody->AttachShape(
                 GeometryType::eBOX
             );
 
@@ -83,8 +82,7 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
 
         case GeometryType::eSPHERE:
         {
-            CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->dynamicBody,
+            CollisionShape* shape = component->dynamicBody->AttachShape(
                 GeometryType::eSPHERE
             );
 
@@ -99,11 +97,9 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
 
         case GeometryType::eCAPSULE:
         {
-            CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->dynamicBody,
+            CollisionShape* shape = component->dynamicBody->AttachShape(
                 GeometryType::eCAPSULE
             );
-
             CapsuleGeometry capsule;
             shape->GetCapsuleGeometry(capsule);
             capsule.halfHeight = jsonShape["halfHeight"].asFloat();

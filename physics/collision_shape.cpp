@@ -17,8 +17,11 @@ CollisionShape::CollisionShape(physx::PxShape* gShape)
 
 CollisionShape::~CollisionShape()
 {
-    // FIXME: release material?
-    // PX_RELEASE(gShape);
+    physx::PxMaterial* gMaterial;
+
+    gShape->getMaterials(&gMaterial, 1);
+    gMaterial->release();
+    gShape->release();
 }
 
 void CollisionShape::SetLocalTransform(const glm::mat4& transform)

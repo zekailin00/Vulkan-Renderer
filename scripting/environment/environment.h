@@ -16,6 +16,9 @@ v8::Local<v8::ObjectTemplate> MakeAssetManagerTemplate(v8::Isolate* isolate);
 
 v8::Local<v8::ObjectTemplate> MakeMeshCompTemplate(v8::Isolate* isolate);
 v8::Local<v8::ObjectTemplate> MakeLightCompTemplate(v8::Isolate* isolate);
+v8::Local<v8::ObjectTemplate> MakeDynamicBodyCompTemplate(v8::Isolate* isolate);
+
+v8::Local<v8::ObjectTemplate> MakeCollsionShapeTemplate(v8::Isolate* isolate);
 
 void print(const v8::FunctionCallbackInfo<v8::Value>& args);
 

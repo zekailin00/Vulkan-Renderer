@@ -66,18 +66,16 @@ DynamicRigidbody* PhysicsContext::NewDynamicRigidbody()
 }
 
 CollisionShape* PhysicsContext::AddCollisionShape(
-	Rigidbody* rigidbody,
 	GeometryType geometryType)
 {
-	CollisionShape* collisionShape;
+	physx::PxMaterial* material;
 	physx::PxShape* shape;
-	physx::PxMaterial* material = gPhysics->createMaterial(
-		0.5f, 0.5f, 0.5f
-	);
+	CollisionShape* collisionShape;
 
 	switch (geometryType)
 	{
 	case GeometryType::eBOX:
+		material = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
 		shape = gPhysics->createShape(
 			physx::PxBoxGeometry(0.5f, 0.5f, 0.5f),
 			*material, true
@@ -86,6 +84,7 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		break;
 
 	case GeometryType::eSPHERE:
+		material = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
 		shape = gPhysics->createShape(
 			physx::PxSphereGeometry(0.5f),
 			*material, true
@@ -94,6 +93,7 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 		break;
 
 	case GeometryType::eCAPSULE:
+		material = gPhysics->createMaterial(0.5f, 0.5f, 0.5f);
 		shape = gPhysics->createShape(
 			physx::PxCapsuleGeometry(0.5f, 1.0f),
 			*material, true
@@ -125,14 +125,16 @@ CollisionShape* PhysicsContext::AddCollisionShape(
 	// 	break;
 
 	default:
-		material->release();
 		return nullptr;
 		break;
 	}
 
-	rigidbody->AttachShape(collisionShape);
-	shape->release();
 	return collisionShape;
+}
+
+void PhysicsContext::RemoveRigidbody(physx::PxRigidActor* actor)
+{
+	//gScene->removeActor(*actor);
 }
 
 int PhysicsContext::Simulate(Timestep ts)

@@ -2,8 +2,8 @@
 
 #include <PxPhysicsAPI.h>
 
+#include "collision_shape.h"
 #include <glm/mat4x4.hpp>
-
 #include <vector>
 
 
@@ -22,7 +22,7 @@ public:
     Rigidbody(PhysicsContext* context, physx::PxRigidActor* gRigidActor):
         context(context), gRigidActor(gRigidActor) {}
 
-    virtual ~Rigidbody() {}
+    virtual ~Rigidbody();
 
     virtual void UpdateCenterOfMass() = 0;
 
@@ -36,8 +36,9 @@ public:
     void GetGlobalTransform(glm::mat4& transform) const;
     void SetGlobalTransform(const glm::mat4& transform);
 
-    bool AttachShape(CollisionShape* shape);
+    CollisionShape* AttachShape(GeometryType geometryType);
     void DetachShape(CollisionShape* shape);
+    CollisionShape* GetShape(unsigned int index);
     unsigned int GetNbShapes() const;
     unsigned int GetShapes(std::vector<CollisionShape*>& shapes) const;
 

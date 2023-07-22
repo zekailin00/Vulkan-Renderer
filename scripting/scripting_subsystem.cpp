@@ -144,6 +144,18 @@ void ScriptingSystem::BuildEnvironment()
 
     {
         v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeDynamicBodyCompTemplate(isolate);
+        Templates::dynamicBodyCompTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
+        temp = MakeCollsionShapeTemplate(isolate);
+        Templates::collisionShapeTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
         temp = MakeAssetManagerTemplate(isolate);
         Templates::assetManagerTemplate.Reset(isolate, temp);
     }

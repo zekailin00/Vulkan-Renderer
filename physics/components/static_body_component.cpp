@@ -58,8 +58,7 @@ Component* StaticBodyDeserializer::operator()(Entity* entity, Json::Value& json)
         {
         case GeometryType::eBOX:
         {
-            CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->staticBody,
+            CollisionShape* shape = component->staticBody->AttachShape(
                 GeometryType::eBOX
             );
 
@@ -79,8 +78,7 @@ Component* StaticBodyDeserializer::operator()(Entity* entity, Json::Value& json)
 
         case GeometryType::eSPHERE:
         {
-            CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->staticBody,
+            CollisionShape* shape = component->staticBody->AttachShape(
                 GeometryType::eSPHERE
             );
 
@@ -95,8 +93,7 @@ Component* StaticBodyDeserializer::operator()(Entity* entity, Json::Value& json)
 
         case GeometryType::eCAPSULE:
         {
-            CollisionShape* shape = physicsCtx->AddCollisionShape(
-                component->staticBody,
+            CollisionShape* shape = component->staticBody->AttachShape(
                 GeometryType::eCAPSULE
             );
 

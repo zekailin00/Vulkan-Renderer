@@ -1,5 +1,7 @@
 #include "dynamic_rigidbody.h"
 
+#include "physics_context.h"
+
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/vec3.hpp>

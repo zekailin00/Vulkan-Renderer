@@ -1,11 +1,23 @@
 #include "rigidbody.h"
 
+#include "physics_context.h"
 #include "collision_shape.h"
 #include "math_library.h"
+
+#include "logger.h"
 
 namespace physics
 {
 
+Rigidbody::~Rigidbody()
+{
+    for (auto& c: collisionShapeList)
+    {
+        delete c;
+    }
+
+    collisionShapeList.clear();
+}
 
 void Rigidbody::GetGlobalTransform(glm::mat4& transform) const
 {
@@ -51,14 +63,27 @@ void Rigidbody::SetGlobalTransform(const glm::mat4& transform)
     gRigidActor->setGlobalPose(pose);
 }
 
-bool Rigidbody::AttachShape(CollisionShape* shape)
+CollisionShape* Rigidbody::AttachShape(GeometryType geometryType)
 {
-    gRigidActor->attachShape(*(shape->gShape));
-    collisionShapeList.push_back(shape);
-    shape->rigidbody = this;
+    CollisionShape* collisionShape =
+        context->AddCollisionShape(geometryType);
+    if (collisionShape)
+    {
+        collisionShape->rigidbody = this;
+        gRigidActor->attachShape(*(collisionShape->gShape));
+        collisionShapeList.push_back(collisionShape);
 
-    UpdateCenterOfMass();
-    return true;
+        UpdateCenterOfMass();
+    }
+    else
+    {
+        Logger::Write(
+            "[Physics] Geometry type is not supported for this rigidbody.",
+            Logger::Level::Warning, Logger::MsgType::Physics
+        );
+    }
+
+    return collisionShape;
 }
 
 void Rigidbody::DetachShape(CollisionShape* shape)
@@ -76,6 +101,16 @@ void Rigidbody::DetachShape(CollisionShape* shape)
     }
     
     UpdateCenterOfMass();
+}
+
+CollisionShape* Rigidbody::GetShape(unsigned int index)
+{
+    if (index < collisionShapeList.size())
+    {
+        return collisionShapeList[index];
+    }
+
+    return nullptr;
 }
 
 unsigned int Rigidbody::GetNbShapes() const
