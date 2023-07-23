@@ -154,22 +154,22 @@ void PhysicsContext::ProcessOnTriggerStayEvents()
 	}
 }
 
-StaticRigidbody* PhysicsContext::NewStaticRigidbody()
+StaticRigidbody* PhysicsContext::NewStaticRigidbody(void* userData)
 {
 	physx::PxRigidStatic* body =
 		gPhysics->createRigidStatic(physx::PxTransform(physx::PxIdentity));
-
+	body->userData = userData;
 	gScene->addActor(*body);
 
 	StaticRigidbody* staticRigidBody = new StaticRigidbody(this, body);
 	return staticRigidBody;
 }
 
-DynamicRigidbody* PhysicsContext::NewDynamicRigidbody()
+DynamicRigidbody* PhysicsContext::NewDynamicRigidbody(void* userData)
 {
 	physx::PxRigidDynamic* body =
 		gPhysics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
-
+	body->userData = userData;
 	gScene->addActor(*body);
 
 	DynamicRigidbody* dynamicRigidBody = new DynamicRigidbody(this, body);

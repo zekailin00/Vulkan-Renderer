@@ -56,8 +56,8 @@ public:
     void RemoveTriggerEvent(TriggerEvent& event);
     void RemoveTrigger(CollisionShape* shape);
 
-    StaticRigidbody* NewStaticRigidbody();
-    DynamicRigidbody* NewDynamicRigidbody();
+    StaticRigidbody* NewStaticRigidbody(void* userData);
+    DynamicRigidbody* NewDynamicRigidbody(void* userData);
 
     int Simulate(Timestep ts) override;
 

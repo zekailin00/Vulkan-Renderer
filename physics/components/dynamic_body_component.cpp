@@ -25,7 +25,7 @@ Component* DynamicBodyInitializer::operator()(Entity* entity)
     Scene* scene = entity->GetScene();
     std::shared_ptr<PhysicsContext> physicsCtx = GetPhysicsContext(system, scene);
 
-    component->dynamicBody = physicsCtx->NewDynamicRigidbody();
+    component->dynamicBody = physicsCtx->NewDynamicRigidbody(entity);
     component->dynamicBody->SetGlobalTransform(
         entity->GetGlobalTransform()
     );
@@ -42,7 +42,7 @@ Component* DynamicBodyDeserializer::operator()(Entity* entity, Json::Value& json
     Scene* scene = entity->GetScene();
     std::shared_ptr<PhysicsContext> physicsCtx = GetPhysicsContext(system, scene);
 
-    component->dynamicBody = physicsCtx->NewDynamicRigidbody();
+    component->dynamicBody = physicsCtx->NewDynamicRigidbody(entity);
     component->dynamicBody->SetGlobalTransform(
         entity->GetGlobalTransform()
     );
