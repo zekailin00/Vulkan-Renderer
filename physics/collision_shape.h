@@ -2,6 +2,7 @@
 
 #include <PxPhysicsAPI.h>
 #include <glm/mat4x4.hpp>
+#include <functional>
 
 
 class Entity;
@@ -23,6 +24,7 @@ typedef physx::PxGeometryType::Enum GeometryType;
 
 class PhysicsContext;
 class Rigidbody;
+struct TriggerEvent;
 
 class CollisionShape
 {
@@ -33,6 +35,36 @@ public:
 
     void SetTrigger(bool isTrigger);
     bool GetTrigger() const;
+
+    void SetOnTriggerEnter(std::function<void(TriggerEvent*)> callback)
+    {
+        OnTriggerEnter = callback;
+    }
+
+    void SetOnTriggerStay(std::function<void(TriggerEvent*)> callback)
+    {
+        OnTriggerStay = callback;
+    }
+
+    void SetOnTriggerLeave(std::function<void(TriggerEvent*)> callback)
+    {
+        OnTriggerLeave = callback;
+    }
+
+    void ClearOnTriggerEnter()
+    {
+        OnTriggerEnter = nullptr;
+    }
+
+    void ClearOnTriggerStay()
+    {
+        OnTriggerStay = nullptr;
+    }
+
+    void ClearOnTriggerLeave()
+    {
+        OnTriggerLeave = nullptr;
+    }
 
     GeometryType GetGeometryType() const;
 
@@ -65,11 +97,32 @@ private:
 
     void UpdateCenterOfMass();
 
+    void ExecuteOnTriggerEnter(TriggerEvent* event)
+    {
+        if (OnTriggerEnter)
+            OnTriggerEnter(event);
+    }
+
+    void ExecuteOnTriggerStay(TriggerEvent* event)
+    {   if (OnTriggerStay)
+            OnTriggerStay(event);
+    }
+
+    void ExecuteOnTriggerLeave(TriggerEvent* event)
+    {
+        if (OnTriggerLeave)
+            OnTriggerLeave(event);
+    }
+
     friend PhysicsContext;
     friend Rigidbody;
 
 private:
     physx::PxShape* gShape; // storage
+
+    std::function<void(TriggerEvent*)> OnTriggerEnter = nullptr;
+    std::function<void(TriggerEvent*)> OnTriggerLeave = nullptr;
+    std::function<void(TriggerEvent*)> OnTriggerStay = nullptr;
 
     Rigidbody* rigidbody; // owned by component
 };
@@ -80,6 +133,12 @@ struct TriggerEvent
     CollisionShape* triggerCollisionShape;
     Entity* otherEntity;
     CollisionShape* otherCollisionShape;
+
+    bool operator==(const TriggerEvent& other) const
+    {
+        return (triggerCollisionShape == other.triggerCollisionShape) &&
+               (otherCollisionShape == other.otherCollisionShape);
+    }
 };
 
 } // namespace physics

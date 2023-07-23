@@ -3,6 +3,7 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "physics_context.h"
 #include "dynamic_rigidbody.h"
 #include "validation.h"
 
@@ -19,6 +20,7 @@ CollisionShape::~CollisionShape()
 {
     physx::PxMaterial* gMaterial;
 
+    rigidbody->GetContext()->RemoveTrigger(this);
     gShape->getMaterials(&gMaterial, 1);
     gMaterial->release();
     gShape->release();
@@ -82,6 +84,7 @@ void CollisionShape::SetTrigger(bool isTrigger)
         gShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
         gShape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
         gShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
+        rigidbody->GetContext()->RemoveTrigger(this);
     }
     UpdateCenterOfMass();
 }

@@ -16,39 +16,74 @@ namespace physics
 void SimulationEventCallback::onTrigger(
 	physx::PxTriggerPair* pairs, physx::PxU32 count)
 {
-	while(count--)
+	for (int i = 0; i < count; i++)
 	{
-		// if(pairs[i].flags & 
-		// 	(physx::PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER |
-		// 	 physx::PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
-		// {
-		// 	continue;
-		// }
+		if(pairs[i].flags & 
+			(physx::PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER |
+			 physx::PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
+		{
+			Logger::Write(
+				"Trigger Deleted",
+				Logger::Level::Warning, Logger::MsgType::Physics
+			);
+			continue;
+			// delete shape and isTrigger = false are
+			// handles in destructor and SetTrigger,
+			// which cause this event
+		}
 
-		const physx::PxTriggerPair& current = *pairs++;
+		const physx::PxTriggerPair& current = pairs[i];
 		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
 		{
-			// CollisionShape* shape =
-			// 	static_cast<CollisionShape*>(current.otherShape->userData);
+			Logger::Write(
+				"Trigger Enter",
+				Logger::Level::Warning, Logger::MsgType::Physics
+			);
+
+			TriggerEvent event;
+			event.triggerCollisionShape = static_cast<CollisionShape*>(
+				current.triggerShape->userData);
+			event.otherCollisionShape = static_cast<CollisionShape*>(
+				current.otherShape->userData);
+			event.triggerEntity = static_cast<Entity*>(
+				current.triggerActor->userData);
+			event.otherEntity = static_cast<Entity*>(
+				current.otherActor->userData);
+
+			context->AddTriggerEvent(event);
 			
-			/**
-			 * shape->SetTriggerState(ENTER)
-			 * shape->SetTriggerState(LEAVE)
+			/** Notes;
+			 * shape->SetTriggerEvents(True);
+			 * otherShape->SetTriggerEvents(true);
 			 * 
-			 * shape->ProcessCallbacks()
-			 * {
-			 * 		if (ENTER)
-			 * 		{
-			 * 			// enter callback, go to stay state
-			 * 		}
-			 * 		
-			 * }
+			 * context->addTriggerEvent(TriggerEvent);
+			 * 
+			 * context->ProcessTrigger(): loop all
+			 * 
+			 * when collision destructor is called and has triggers
+			 * - context->CleanAllTriggers(this)
 			 * 
 			 */
 		}
+
 		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
 		{
+			Logger::Write(
+				"Trigger Leave",
+				Logger::Level::Warning, Logger::MsgType::Physics
+			);
 
+			TriggerEvent event;
+			event.triggerCollisionShape = static_cast<CollisionShape*>(
+				current.triggerShape->userData);
+			event.otherCollisionShape = static_cast<CollisionShape*>(
+				current.otherShape->userData);
+			event.triggerEntity = static_cast<Entity*>(
+				current.triggerActor->userData);
+			event.otherEntity = static_cast<Entity*>(
+				current.otherActor->userData);
+
+			context->RemoveTriggerEvent(event);
 		}
 	}
 }
@@ -62,7 +97,7 @@ PhysicsContext::PhysicsContext(physx::PxPhysics* gPhysics)
 	gDispatcher = physx::PxDefaultCpuDispatcherCreate(2);
 	sceneDesc.cpuDispatcher = gDispatcher;
 	sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
-	sceneDesc.simulationEventCallback = &simulationEventCallback;
+	sceneDesc.simulationEventCallback = new SimulationEventCallback(this);
 	gScene = gPhysics->createScene(sceneDesc);
 
     physx::PxPvdSceneClient* pvdClient = gScene->getScenePvdClient();
@@ -79,9 +114,44 @@ PhysicsContext::PhysicsContext(physx::PxPhysics* gPhysics)
 
 PhysicsContext::~PhysicsContext()
 {
+	delete simulationEventCallback;
     PX_RELEASE(gScene);
 	PX_RELEASE(gDispatcher);
 	gPhysics = nullptr;
+}
+
+void PhysicsContext::AddTriggerEvent(TriggerEvent& event)
+{
+	event.triggerCollisionShape->ExecuteOnTriggerEnter(&event);
+	triggerEvents.push_back(event);
+}
+
+void PhysicsContext::RemoveTriggerEvent(TriggerEvent& event)
+{
+	event.triggerCollisionShape->ExecuteOnTriggerLeave(&event);
+	triggerEvents.remove(event);
+}
+
+void PhysicsContext::RemoveTrigger(CollisionShape* shape)
+{
+	std::list<TriggerEvent> copy = triggerEvents;
+
+	for(auto& e: copy)
+	{
+		if (e.triggerCollisionShape == shape)
+		{
+			e.triggerCollisionShape->ExecuteOnTriggerLeave(&e);
+			triggerEvents.remove(e);
+		}
+	}
+}
+
+void PhysicsContext::ProcessOnTriggerStayEvents()
+{
+	for (auto& e: triggerEvents)
+	{
+		e.triggerCollisionShape->ExecuteOnTriggerStay(&e);
+	}
 }
 
 StaticRigidbody* PhysicsContext::NewStaticRigidbody()
@@ -191,6 +261,8 @@ int PhysicsContext::Simulate(Timestep ts)
     	gScene->simulate(STEP_SIZE);
 		gScene->fetchResults(true);
 	}
+
+	ProcessOnTriggerStayEvents();
 
     return simCount;
 }
