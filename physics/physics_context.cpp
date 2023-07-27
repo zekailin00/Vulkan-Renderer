@@ -22,12 +22,12 @@ void SimulationEventCallback::onTrigger(
 			(physx::PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER |
 			 physx::PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
 		{
-			Logger::Write(
-				"Trigger Deleted",
-				Logger::Level::Warning, Logger::MsgType::Physics
-			);
+			// Logger::Write(
+			// 	"Trigger Deleted",
+			// 	Logger::Level::Warning, Logger::MsgType::Physics
+			// );
 			continue;
-			// delete shape and isTrigger = false are
+			// delete shape and rigidbody are
 			// handles in destructor and SetTrigger,
 			// which cause this event
 		}
@@ -35,10 +35,7 @@ void SimulationEventCallback::onTrigger(
 		const physx::PxTriggerPair& current = pairs[i];
 		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
 		{
-			Logger::Write(
-				"Trigger Enter",
-				Logger::Level::Warning, Logger::MsgType::Physics
-			);
+/
 
 			TriggerEvent event;
 			event.triggerCollisionShape = static_cast<CollisionShape*>(
