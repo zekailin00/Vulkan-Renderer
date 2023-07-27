@@ -16,6 +16,14 @@ public:
     static void SetTrigger(const v8::FunctionCallbackInfo<v8::Value> &info);
     static void GetTrigger(const v8::FunctionCallbackInfo<v8::Value> &info);
 
+    static void SetOnTriggerEnter(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void SetOnTriggerStay(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void SetOnTriggerLeave(const v8::FunctionCallbackInfo<v8::Value> &info);
+
+    static void ClearOnTriggerEnter(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void ClearOnTriggerStay(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void ClearOnTriggerLeave(const v8::FunctionCallbackInfo<v8::Value> &info);
+
     static void GetGeometryType(const v8::FunctionCallbackInfo<v8::Value> &info);
 
     static void SetGeometry(const v8::FunctionCallbackInfo<v8::Value> &info);

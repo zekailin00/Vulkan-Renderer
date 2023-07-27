@@ -167,6 +167,11 @@ void ScriptingSystem::BuildEnvironment()
         
         localSystemTemp->Set(isolate, "Print",
             v8::FunctionTemplate::New(isolate, print));
+        
+        v8::Local<v8::ObjectTemplate> localInternalTemp =
+            v8::ObjectTemplate::New(isolate);
+        localInternalTemp->SetInternalFieldCount(1);
+        localSystemTemp->Set(isolate, "Internal", localInternalTemp);
 
         v8::Local<v8::ObjectTemplate> localMathTemp =
             v8::Local<v8::ObjectTemplate>::New(isolate, Templates::mathTemplate);

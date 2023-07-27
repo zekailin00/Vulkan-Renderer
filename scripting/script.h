@@ -15,6 +15,7 @@
 #include "entity.h"
 #include "timestep.h"
 #include "script_asset_manager.h"
+#include "collision_shape.h"
 #include <list>
 
 namespace scripting
@@ -31,6 +32,14 @@ public:
         v8::Isolate* isolate;
         ScriptContext* scriptContext;
         int handle;
+    };
+
+    struct TriggerContext
+    {
+        v8::Persistent<v8::Function> function;
+        v8::Isolate* isolate;
+        ScriptContext* scriptContext;
+        physics::CollisionShape* collisionShape;
     };
 
 public:
@@ -57,6 +66,24 @@ public:
         SubscriberContext* subscriberContext,
         std::function<void (Event *)> callback
     );
+
+//___________Needs to be redesigned______________
+    void AddTriggerContext(
+        TriggerContext* triggerContext)
+    {
+        triggerContext->isolate = isolate;
+        triggerContext->scriptContext = scriptContext;
+        triggerContexts.push_back(triggerContext);
+    }
+
+    void ClearAllTriggerContext()
+    {
+
+    }
+
+    std::list<TriggerContext*> triggerContexts;
+
+//_________________________________________
 
     /**
      * @brief Run callback "OnUpdated",

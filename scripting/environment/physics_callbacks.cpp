@@ -7,6 +7,10 @@
 #include <v8-local-handle.h>
 #include <v8-primitive.h>
 
+#include "script.h"
+#include "script_context.h"
+#include "script_exception.h"
+
 #include "environment_templates.h"
 #include "script_math.h"
 
@@ -17,6 +21,80 @@
 
 namespace scripting
 {
+
+class ScriptTriggerCallback
+{
+    Script::TriggerContext* triggerContext;
+public:
+    ScriptTriggerCallback(Script::TriggerContext* triggerContext):
+        triggerContext(triggerContext) {}
+
+    void operator() (physics::TriggerEvent* event)
+    {
+        //FIXME: all callbacks do NOT have environment setup from script.cpp
+        v8::HandleScope handleScope(triggerContext->isolate);
+        v8::Local<v8::Context> localContext = v8::Local<v8::Context>::New(
+            triggerContext->isolate,
+            triggerContext->scriptContext->GetContext()
+        );
+        v8::Context::Scope contextScope(localContext);
+
+        v8::Local<v8::Object> v8Event = v8::Object::New(triggerContext->isolate);
+
+        v8::Local<v8::Value> keyTriggerEntity =
+            v8::String::NewFromUtf8Literal(triggerContext->isolate, "triggerEntity");
+        v8::Local<v8::Value> keyTriggerCollisionShape =
+            v8::String::NewFromUtf8Literal(triggerContext->isolate, "triggerCollisionShape");
+        v8::Local<v8::Value> keyOtherEntity =
+            v8::String::NewFromUtf8Literal(triggerContext->isolate, "otherEntity");
+        v8::Local<v8::Value> keyOtherCollisionShape =
+            v8::String::NewFromUtf8Literal(triggerContext->isolate, "otherCollisionShape");
+
+        v8::Local<v8::FunctionTemplate> entityTemplate =
+            v8::Local<v8::FunctionTemplate>::New(
+                triggerContext->isolate, Templates::entityTemplate);
+        v8::Local<v8::Function> entityFunction =
+            entityTemplate->GetFunction(localContext).ToLocalChecked();
+
+        v8::Local<v8::Object> v8TriggerEntity = 
+            entityFunction->NewInstance(localContext).ToLocalChecked();
+        v8TriggerEntity->SetInternalField(0,
+            v8::External::New(triggerContext->isolate, event->triggerEntity));
+        v8::Local<v8::Object> v8OtherEntity = 
+            entityFunction->NewInstance(localContext).ToLocalChecked();
+        v8OtherEntity->SetInternalField(0,
+            v8::External::New(triggerContext->isolate, event->otherEntity));
+
+        v8::Local<v8::ObjectTemplate> v8CollisionShapeTemp =
+        v8::Local<v8::ObjectTemplate>::New(
+            triggerContext->isolate, Templates::collisionShapeTemplate);
+
+        v8::Local<v8::Object> v8TriggerCollisionShape =
+            v8CollisionShapeTemp->NewInstance(localContext).ToLocalChecked();
+        v8TriggerCollisionShape->SetInternalField(0,
+            v8::External::New(triggerContext->isolate, event->triggerCollisionShape));
+        v8::Local<v8::Object> v8OtherCollisionShape =
+            v8CollisionShapeTemp->NewInstance(localContext).ToLocalChecked();
+        v8OtherCollisionShape->SetInternalField(0,
+            v8::External::New(triggerContext->isolate, event->otherCollisionShape));
+
+        v8::Local<v8::Function> callback = v8::Local<v8::Function>::New(
+                triggerContext->isolate,
+                triggerContext->function
+        );
+
+        v8::TryCatch tryCatch(triggerContext->isolate);
+        v8::Local<v8::Value> result;
+
+        if (!callback->Call(localContext, localContext->Global(), 1, &v8Event.As<v8::Value>())
+            .ToLocal(&result))
+        {
+            ASSERT(tryCatch.HasCaught());
+            ExceptionHandler(&tryCatch, triggerContext->isolate);
+        }
+        
+    }
+};
 
 void CollisionShape::SetLocalTransform(
     const v8::FunctionCallbackInfo<v8::Value> &info)
@@ -123,6 +201,118 @@ void CollisionShape::GetTrigger(
 
     bool isTrigger = collisionShape->GetTrigger();
     info.GetReturnValue().Set(isTrigger);
+}
+
+void CollisionShape::SetOnTriggerEnter(
+    const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 1 || !info[0]->IsFunction())
+    {
+        Logger::Write(
+            "[Scripting] SetOnTriggerEnter parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+    physics::CollisionShape* collisionShape =
+        static_cast<physics::CollisionShape*>(field->Value());
+    ASSERT(collisionShape != nullptr);
+
+    v8::Local<v8::Value> keySystem =
+        v8::String::NewFromUtf8Literal(isolate, "System");
+    v8::Local<v8::Value> keyInternal =
+        v8::String::NewFromUtf8Literal(isolate, "Internal");
+
+    v8::Local<v8::Object> v8Internal = context->Global()
+        ->Get(context, keySystem).ToLocalChecked().As<v8::Object>()
+        ->Get(context, keyInternal).ToLocalChecked().As<v8::Object>();
+
+    Script* script = static_cast<Script*>(
+        v8Internal->GetInternalField(0).As<v8::External>()->Value()
+    );
+    
+    Script::TriggerContext* triggerContext = new Script::TriggerContext();
+    triggerContext->function.Reset(isolate, info[0].As<v8::Function>());
+    triggerContext->collisionShape = collisionShape;
+    collisionShape->SetOnTriggerEnter(ScriptTriggerCallback(triggerContext));
+    script->AddTriggerContext(triggerContext);
+}
+
+void CollisionShape::SetOnTriggerStay(
+    const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 1 || !info[0]->IsFunction())
+    {
+        Logger::Write(
+            "[Scripting] SetOnTriggerEnter parameters are invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+
+        return;
+    }
+
+    v8::Isolate* isolate = info.GetIsolate();
+    v8::HandleScope handleScope(isolate);
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+    v8::Local<v8::Object> holder = info.Holder();
+    v8::Local<v8::External> field =
+        holder->GetInternalField(0).As<v8::External>();
+    physics::CollisionShape* collisionShape =
+        static_cast<physics::CollisionShape*>(field->Value());
+    ASSERT(collisionShape != nullptr);
+
+    v8::Local<v8::Value> keySystem =
+        v8::String::NewFromUtf8Literal(isolate, "System");
+    v8::Local<v8::Value> keyInternal =
+        v8::String::NewFromUtf8Literal(isolate, "Internal");
+
+    v8::Local<v8::Object> v8Internal = context->Global()
+        ->Get(context, keySystem).ToLocalChecked().As<v8::Object>()
+        ->Get(context, keyInternal).ToLocalChecked().As<v8::Object>();
+
+    Script* script = static_cast<Script*>(
+        v8Internal->GetInternalField(0).As<v8::External>()->Value()
+    );
+    
+    Script::TriggerContext* triggerContext = new Script::TriggerContext();
+    triggerContext->function.Reset(isolate, info[0].As<v8::Function>());
+    triggerContext->collisionShape = collisionShape;
+    collisionShape->SetOnTriggerEnter(ScriptTriggerCallback(triggerContext));
+    script->AddTriggerContext(triggerContext);
+}
+
+void CollisionShape::SetOnTriggerLeave(
+    const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void CollisionShape::ClearOnTriggerEnter(
+    const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void CollisionShape::ClearOnTriggerStay(
+    const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void CollisionShape::ClearOnTriggerLeave(
+    const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
 }
 
 void CollisionShape::GetGeometryType(
