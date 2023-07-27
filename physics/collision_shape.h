@@ -24,7 +24,21 @@ typedef physx::PxGeometryType::Enum GeometryType;
 
 class PhysicsContext;
 class Rigidbody;
-struct TriggerEvent;
+class CollisionShape;
+
+struct TriggerEvent
+{
+    Entity* triggerEntity;
+    CollisionShape* triggerCollisionShape;
+    Entity* otherEntity;
+    CollisionShape* otherCollisionShape;
+
+    bool operator==(const TriggerEvent& other) const
+    {
+        return (triggerCollisionShape == other.triggerCollisionShape) &&
+               (otherCollisionShape == other.otherCollisionShape);
+    }
+};
 
 class CollisionShape
 {
@@ -104,7 +118,8 @@ private:
     }
 
     void ExecuteOnTriggerStay(TriggerEvent* event)
-    {   if (OnTriggerStay)
+    {
+        if (OnTriggerStay)
             OnTriggerStay(event);
     }
 
@@ -125,20 +140,6 @@ private:
     std::function<void(TriggerEvent*)> OnTriggerStay = nullptr;
 
     Rigidbody* rigidbody; // owned by component
-};
-
-struct TriggerEvent
-{
-    Entity* triggerEntity;
-    CollisionShape* triggerCollisionShape;
-    Entity* otherEntity;
-    CollisionShape* otherCollisionShape;
-
-    bool operator==(const TriggerEvent& other) const
-    {
-        return (triggerCollisionShape == other.triggerCollisionShape) &&
-               (otherCollisionShape == other.otherCollisionShape);
-    }
 };
 
 } // namespace physics

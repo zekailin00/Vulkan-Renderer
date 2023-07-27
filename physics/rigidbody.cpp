@@ -70,7 +70,7 @@ CollisionShape* Rigidbody::AttachShape(GeometryType geometryType)
     if (collisionShape)
     {
         collisionShape->rigidbody = this;
-        collisionShape->gShape->userData = this;
+        collisionShape->gShape->userData = collisionShape;
         gRigidActor->attachShape(*(collisionShape->gShape));
         collisionShapeList.push_back(collisionShape);
 

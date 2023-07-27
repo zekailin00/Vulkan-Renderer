@@ -84,7 +84,10 @@ void CollisionShape::SetTrigger(bool isTrigger)
         gShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, false);
         gShape->setFlag(physx::PxShapeFlag::eSCENE_QUERY_SHAPE, true);
         gShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, true);
-        rigidbody->GetContext()->RemoveTrigger(this);
+        // rigidbody->GetContext()->RemoveTrigger(this);
+        // Notes: When shape is not removed and trigger is disabled
+        // eNOTIFY_TOUCH_LOST is received, but not eREMOVED_SHAPE_OTHER
+        // so trigger does NOT need to be removed here.
     }
     UpdateCenterOfMass();
 }
