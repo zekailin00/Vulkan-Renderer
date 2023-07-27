@@ -35,7 +35,10 @@ void SimulationEventCallback::onTrigger(
 		const physx::PxTriggerPair& current = pairs[i];
 		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
 		{
-/
+			// Logger::Write(
+			// 	"Trigger Enter",
+			// 	Logger::Level::Warning, Logger::MsgType::Physics
+			// );
 
 			TriggerEvent event;
 			event.triggerCollisionShape = static_cast<CollisionShape*>(
@@ -65,10 +68,10 @@ void SimulationEventCallback::onTrigger(
 
 		if(current.status & physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
 		{
-			Logger::Write(
-				"Trigger Leave",
-				Logger::Level::Warning, Logger::MsgType::Physics
-			);
+			// Logger::Write(
+			// 	"Trigger Leave",
+			// 	Logger::Level::Warning, Logger::MsgType::Physics
+			// );
 
 			TriggerEvent event;
 			event.triggerCollisionShape = static_cast<CollisionShape*>(
