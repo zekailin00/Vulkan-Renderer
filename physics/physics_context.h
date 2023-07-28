@@ -5,8 +5,10 @@
 #include "collision_shape.h"
 #include "timestep.h"
 #include "scene_contexts.h"
+#include "entity.h"
 
 #include <list>
+#include <vector>
 
 
 namespace physics
@@ -49,6 +51,17 @@ class PhysicsContext: public ScenePhysicsContext
 {
 
 public:
+    struct Hit
+    {
+        bool hasHit;
+        glm::vec3 position;
+        glm::vec3 normal;
+        glm::vec3 distance;
+        CollisionShape* collisionShape;
+        Entity* entity;
+    };
+
+public:
     PhysicsContext(physx::PxPhysics* gPhysics);
     ~PhysicsContext();
 
@@ -58,6 +71,21 @@ public:
 
     StaticRigidbody* NewStaticRigidbody(void* userData);
     DynamicRigidbody* NewDynamicRigidbody(void* userData);
+
+    void RaycastClosest(
+        const glm::vec3& origin, const glm::vec3& direction,
+        const float maxDistance, Hit& hit);
+    void Raycast(
+        const glm::vec3& origin, const glm::vec3& direction,
+        const float maxDistance, std::vector<Hit>& hitList,
+        unsigned int maxHits = 1024);
+    void SweepClosest(
+        const Geometry& geometry, const glm::mat4& transform,
+        const glm::vec3& direction, const float maxDistance, Hit& hit);
+    void Sweep(
+        const Geometry& geometry, const glm::mat4& transform,
+        const glm::vec3& direction, const float maxDistance,
+        std::vector<Hit>& hitList, unsigned int maxHits = 1024);
 
     int Simulate(Timestep ts) override;
 

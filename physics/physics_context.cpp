@@ -5,6 +5,7 @@
 #include "rigidbody.h"
 
 #include "logger.h"
+#include "math_library.h"
 
 #include "component.h"
 #include "components/dynamic_body_component.h"
@@ -248,6 +249,159 @@ void PhysicsContext::RemoveRigidbody(physx::PxRigidActor* actor)
 	//gScene->removeActor(*actor);
 }
 
+void PhysicsContext::RaycastClosest(
+	const glm::vec3& origin, const glm::vec3& direction,
+	const float maxDistance, Hit& hit)
+{
+	const physx::PxVec3* gOrigin =
+		reinterpret_cast<const physx::PxVec3*>(&origin);
+	const glm::vec3 normDir = glm::normalize(direction);
+	const physx::PxVec3* gDirection =
+		reinterpret_cast<const physx::PxVec3*>(&normDir);
+
+	physx::PxRaycastBuffer gHit;
+	gScene->raycast(*gOrigin, *gDirection, maxDistance, gHit);
+
+	hit.hasHit = gHit.hasBlock;
+	if(hit.hasHit)
+	{
+		hit.position = *reinterpret_cast<const glm::vec3*>(&gHit.block.position);
+		hit.normal = *reinterpret_cast<const glm::vec3*>(&gHit.block.normal);
+		hit.distance = *reinterpret_cast<const glm::vec3*>(&gHit.block.distance);
+		hit.collisionShape = static_cast<CollisionShape*>(gHit.block.shape->userData);
+		hit.entity = static_cast<Entity*>(gHit.block.actor->userData);
+	}
+}
+
+void PhysicsContext::Raycast(
+	const glm::vec3& origin, const glm::vec3& direction,
+	const float maxDistance, std::vector<Hit>& hitList, unsigned int maxHits)
+{
+	hitList.clear();
+	std::vector<physx::PxRaycastHit> hitBuffer(maxHits);
+	physx::PxRaycastBuffer result(hitBuffer.data(), maxHits);
+
+	const physx::PxVec3* gOrigin =
+		reinterpret_cast<const physx::PxVec3*>(&origin);
+	const glm::vec3 normDir = glm::normalize(direction);
+	const physx::PxVec3* gDirection =
+		reinterpret_cast<const physx::PxVec3*>(&normDir);
+
+	gScene->raycast(*gOrigin, *gDirection, maxDistance, result);
+
+	Hit hit;
+	hit.hasHit = true;
+	for (int i = 0; i < result.nbTouches; i++)
+	{
+		hit.position = *reinterpret_cast<const glm::vec3*>(
+			&result.touches[i].position);
+		hit.normal = *reinterpret_cast<const glm::vec3*>(
+			&result.touches[i].normal);
+		hit.distance = *reinterpret_cast<const glm::vec3*>(
+			&result.touches[i].distance);
+		hit.collisionShape = static_cast<CollisionShape*>(
+			result.touches[i].shape->userData);
+		hit.entity = static_cast<Entity*>(
+			result.touches[i].actor->userData);
+
+		hitList.push_back(hit);
+	}
+}
+
+void PhysicsContext::SweepClosest(
+	const Geometry& geometry, const glm::mat4& transform,
+    const glm::vec3& direction, const float maxDistance, Hit& hit)
+{
+	glm::vec3 _0, _1;
+    glm::quat rotation;
+    glm::vec3 translate;
+    glm::vec4 _2;
+    glm::decompose(
+        transform, _0, rotation,
+        translate, _1, _2
+    );
+
+    physx::PxTransform pose;
+    pose.p.x = translate.x;
+    pose.p.y = translate.y;
+    pose.p.z = translate.z;
+
+    pose.q.w = rotation.w;
+    pose.q.x = rotation.x;
+    pose.q.y = rotation.y;
+    pose.q.z = rotation.z;
+
+	const glm::vec3 normDir = glm::normalize(direction);
+	const physx::PxVec3* gDirection =
+		reinterpret_cast<const physx::PxVec3*>(&normDir);
+
+	physx::PxSweepBuffer gHit;
+	gScene->sweep(geometry, pose, *gDirection, maxDistance, gHit);
+
+	hit.hasHit = gHit.hasBlock;
+	if(hit.hasHit)
+	{
+		hit.position = *reinterpret_cast<const glm::vec3*>(&gHit.block.position);
+		hit.normal = *reinterpret_cast<const glm::vec3*>(&gHit.block.normal);
+		hit.distance = *reinterpret_cast<const glm::vec3*>(&gHit.block.distance);
+		hit.collisionShape = static_cast<CollisionShape*>(gHit.block.shape->userData);
+		hit.entity = static_cast<Entity*>(gHit.block.actor->userData);
+	}
+}
+
+void PhysicsContext::Sweep(
+	const Geometry& geometry, const glm::mat4& transform,
+    const glm::vec3& direction, const float maxDistance,
+    std::vector<Hit>& hitList, unsigned int maxHits)
+{
+	glm::vec3 _0, _1;
+    glm::quat rotation;
+    glm::vec3 translate;
+    glm::vec4 _2;
+    glm::decompose(
+        transform, _0, rotation,
+        translate, _1, _2
+    );
+
+    physx::PxTransform pose;
+    pose.p.x = translate.x;
+    pose.p.y = translate.y;
+    pose.p.z = translate.z;
+
+    pose.q.w = rotation.w;
+    pose.q.x = rotation.x;
+    pose.q.y = rotation.y;
+    pose.q.z = rotation.z;
+
+	hitList.clear();
+	std::vector<physx::PxSweepHit> hitBuffer(maxHits);
+	physx::PxSweepBuffer result(hitBuffer.data(), maxHits);
+
+	const glm::vec3 normDir = glm::normalize(direction);
+	const physx::PxVec3* gDirection =
+		reinterpret_cast<const physx::PxVec3*>(&normDir);
+
+	gScene->sweep(geometry, pose, *gDirection, maxDistance, result);
+
+	Hit hit;
+	hit.hasHit = true;
+	for (int i = 0; i < result.nbTouches; i++)
+	{
+		hit.position = *reinterpret_cast<const glm::vec3*>(
+			&result.touches[i].position);
+		hit.normal = *reinterpret_cast<const glm::vec3*>(
+			&result.touches[i].normal);
+		hit.distance = *reinterpret_cast<const glm::vec3*>(
+			&result.touches[i].distance);
+		hit.collisionShape = static_cast<CollisionShape*>(
+			result.touches[i].shape->userData);
+		hit.entity = static_cast<Entity*>(
+			result.touches[i].actor->userData);
+
+		hitList.push_back(hit);
+	}
+}
+
 int PhysicsContext::Simulate(Timestep ts)
 {
 	accumulator += ts;
@@ -290,6 +444,6 @@ void PhysicsContext::UpdatePhysicsTransform(Entity* e)
 	
 		rigidbody->SetGlobalTransform(e->GetGlobalTransform());
 	} 
-} 
+}
 
 } // namespace physics
