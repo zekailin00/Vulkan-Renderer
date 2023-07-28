@@ -35,4 +35,13 @@ public:
     static void GetRestitution(const v8::FunctionCallbackInfo<v8::Value> &info);
 };
 
+class Physics
+{
+public:
+    static void RaycastClosest(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void Raycast(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void SweepClosest(const v8::FunctionCallbackInfo<v8::Value> &info);
+    static void Sweep(const v8::FunctionCallbackInfo<v8::Value> &info);
+};
+
 } // namespace scripting

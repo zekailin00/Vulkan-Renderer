@@ -77,15 +77,15 @@ public:
         const float maxDistance, Hit& hit);
     void Raycast(
         const glm::vec3& origin, const glm::vec3& direction,
-        const float maxDistance, std::vector<Hit>& hitList,
-        unsigned int maxHits = 1024);
+        const float maxDistance, unsigned int maxHits = 1024,
+        std::vector<Hit>& hitList);
     void SweepClosest(
         const Geometry& geometry, const glm::mat4& transform,
         const glm::vec3& direction, const float maxDistance, Hit& hit);
     void Sweep(
         const Geometry& geometry, const glm::mat4& transform,
         const glm::vec3& direction, const float maxDistance,
-        std::vector<Hit>& hitList, unsigned int maxHits = 1024);
+        unsigned int maxHits = 1024, std::vector<Hit>& hitList);
 
     int Simulate(Timestep ts) override;
 

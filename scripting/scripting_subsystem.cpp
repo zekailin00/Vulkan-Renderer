@@ -157,6 +157,12 @@ void ScriptingSystem::BuildEnvironment()
 
     {
         v8::Local<v8::ObjectTemplate> temp;
+        temp = MakePhysicsTemplate(isolate);
+        Templates::physicsTemplate.Reset(isolate, temp);
+    }
+
+    {
+        v8::Local<v8::ObjectTemplate> temp;
         temp = MakeAssetManagerTemplate(isolate);
         Templates::assetManagerTemplate.Reset(isolate, temp);
     }
@@ -175,6 +181,10 @@ void ScriptingSystem::BuildEnvironment()
         v8::Local<v8::ObjectTemplate> localInputTemp =
             v8::Local<v8::ObjectTemplate>::New(isolate, Templates::inputTemplate);
         localSystemTemp->Set(isolate, "Input", localInputTemp);
+
+        v8::Local<v8::ObjectTemplate> localPhysicsTemp =
+            v8::Local<v8::ObjectTemplate>::New(isolate, Templates::physicsTemplate);
+        localSystemTemp->Set(isolate, "Physics", localPhysicsTemp);
 
         v8::Local<v8::ObjectTemplate> localAssetManagerTemp =
             v8::Local<v8::ObjectTemplate>::New(

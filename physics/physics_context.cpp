@@ -275,7 +275,7 @@ void PhysicsContext::RaycastClosest(
 
 void PhysicsContext::Raycast(
 	const glm::vec3& origin, const glm::vec3& direction,
-	const float maxDistance, std::vector<Hit>& hitList, unsigned int maxHits)
+	const float maxDistance, unsigned int maxHits, std::vector<Hit>& hitList)
 {
 	hitList.clear();
 	std::vector<physx::PxRaycastHit> hitBuffer(maxHits);
@@ -352,7 +352,7 @@ void PhysicsContext::SweepClosest(
 void PhysicsContext::Sweep(
 	const Geometry& geometry, const glm::mat4& transform,
     const glm::vec3& direction, const float maxDistance,
-    std::vector<Hit>& hitList, unsigned int maxHits)
+    unsigned int maxHits, std::vector<Hit>& hitList)
 {
 	glm::vec3 _0, _1;
     glm::quat rotation;

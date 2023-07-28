@@ -55,6 +55,7 @@ bool Script::LoadSource(
 
 bool Script::Compile(Entity* entity)
 {
+    this->entity = entity;
     scriptInstance.Reset();
     UnSubscribeAll();
     OnCreatedCalled = false;
@@ -252,6 +253,12 @@ void Script::RunCallback(std::string callbackName, Timestep ts)
     inputObject->SetInternalField(0, v8::External::New(isolate, this));
 
     v8::Local<v8::Object> assetManagerObject = 
+        systemObject->Get(localContext,
+            v8::String::NewFromUtf8Literal(isolate, "AssetManager"))
+        .ToLocalChecked().As<v8::Object>();
+    assetManagerObject->SetInternalField(0, v8::External::New(isolate, assetManager));
+
+    v8::Local<v8::Object> tObject =
         systemObject->Get(localContext,
             v8::String::NewFromUtf8Literal(isolate, "AssetManager"))
         .ToLocalChecked().As<v8::Object>();

@@ -22,6 +22,7 @@ struct Templates
     static v8::Global<v8::ObjectTemplate> staticBodyCompTemplate;
 
     static v8::Global<v8::ObjectTemplate> collisionShapeTemplate;
+    static v8::Global<v8::ObjectTemplate> physicsTemplate;
 
     static v8::Global<v8::FunctionTemplate> entityTemplate;
     static v8::Global<v8::FunctionTemplate> componentTemplate;
@@ -41,6 +42,7 @@ struct Templates
         staticBodyCompTemplate.Reset();
 
         collisionShapeTemplate.Reset();
+        physicsTemplate.Reset();
 
         entityTemplate.Reset();
         componentTemplate.Reset();

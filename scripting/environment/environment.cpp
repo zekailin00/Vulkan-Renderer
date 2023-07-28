@@ -292,6 +292,23 @@ v8::Local<v8::ObjectTemplate> MakeCollsionShapeTemplate(v8::Isolate* isolate)
     return handleScope.Escape(temp);
 }
 
+v8::Local<v8::ObjectTemplate> MakePhysicsTemplate(v8::Isolate* isolate)
+{
+    v8::EscapableHandleScope handleScope(isolate);
+    v8::Local<v8::ObjectTemplate> temp = v8::ObjectTemplate::New(isolate);
+
+    temp->SetInternalFieldCount(1);
+
+    temp->Set(isolate, "RaycastClosest",
+        v8::FunctionTemplate::New(isolate, Physics::RaycastClosest));
+    temp->Set(isolate, "Raycast",
+        v8::FunctionTemplate::New(isolate, Physics::Raycast));
+    temp->Set(isolate, "SweepClosest",
+        v8::FunctionTemplate::New(isolate, Physics::SweepClosest));
+    temp->Set(isolate, "Sweep",
+        v8::FunctionTemplate::New(isolate, Physics::Sweep));
+}
+
 void print(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     bool first = true;

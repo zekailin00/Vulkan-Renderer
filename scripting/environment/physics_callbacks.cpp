@@ -552,4 +552,35 @@ void CollisionShape::GetRestitution(
     info.GetReturnValue().Set(restitution);
 }
 
+void Physics::RaycastClosest(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+    if (info.Length() != 3 || !info[0]->IsObject() ||
+        !info[1]->IsObject() || !info[2]->IsNumber())
+    {
+        Logger::Write(
+            "[Scripting] RaycastClosest parameter is invalid",
+            Logger::Level::Warning, Logger::Scripting
+        );
+        return;
+    }
+
+    
+
+}
+
+void Physics::Raycast(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void Physics::SweepClosest(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
+void Physics::Sweep(const v8::FunctionCallbackInfo<v8::Value> &info)
+{
+
+}
+
 } // namespace scripting

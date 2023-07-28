@@ -88,6 +88,7 @@ private:
     std::list<SubscriberContext*> subscriberContexts;
     bool OnCreatedCalled = false;
 
+    Entity* entity = nullptr;
     ScriptContext* scriptContext = nullptr;
     IScriptAssetManager* assetManager = nullptr;
     v8::Isolate* isolate = nullptr; // Owned by ScriptingSystem

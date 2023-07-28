@@ -15,6 +15,7 @@ v8::Global<v8::ObjectTemplate> Templates::dynamicBodyCompTemplate;
 v8::Global<v8::ObjectTemplate> Templates::staticBodyCompTemplate;
 
 v8::Global<v8::ObjectTemplate> Templates::collisionShapeTemplate;
+v8::Global<v8::ObjectTemplate> Templates::physicsTemplate;
 
 v8::Global<v8::FunctionTemplate> Templates::entityTemplate;
 v8::Global<v8::FunctionTemplate> Templates::componentTemplate;
