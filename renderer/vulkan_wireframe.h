@@ -109,7 +109,7 @@ public:
         glm::vec3 position, glm::vec3 normal, float radius,
         unsigned int resolution = 64);
     
-    static void VulkanLineGenerator::GetCapsule(std::vector<LineData>& lineData,
+    static void GetCapsule(std::vector<LineData>& lineData,
         float halfHeight, float radius,
         const glm::mat4& transform, unsigned int resolution = 64);
 

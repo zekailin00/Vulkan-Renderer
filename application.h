@@ -24,7 +24,6 @@
 #include "physics_context.h"
 #include "dynamic_rigidbody.h"
 #include "collision_shape.h"
-#include "components\dynamic_body_component.h"
 
 #include <tracy/Tracy.hpp>
 #include <map>

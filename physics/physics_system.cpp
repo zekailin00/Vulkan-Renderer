@@ -6,6 +6,18 @@
 
 #include "component.h"
 
+/**
+ * PhysX is version 0x05010300 on Windows, 0x05010200 on Mac.
+ * The header files are from the Windows version.
+ * But APIs are pretty much the same.
+ * Redefine the version here for Mac compatibility.
+ * Just defer potential problems to the future me x_x??
+*/
+#ifdef __APPLE__
+#undef PX_PHYSICS_VERSION
+#define PX_PHYSICS_VERSION 0x05010200
+#endif
+
 namespace physics
 {
 
